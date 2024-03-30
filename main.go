@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"path/filepath"
 )
 
 
@@ -40,9 +41,13 @@ func readMap(jsonPath string) map[string]string {
 
 
 func changeDirectory(cmd []string, allPaths map[string]string, jsonPath string) {
-
+    
+    if len(allPaths) == 0 {
+        fmt.Printf("No fast travel locations set, set locations by navigating to desired destination directory and using 'ftrav set <key>' ")
+        os.Exit(1)
+    }
     path := allPaths[cmd[1]]
-
+    
     err := os.Chdir(path)
     if err != nil {
         fmt.Printf("Fast travel failed! %v", err)
@@ -53,6 +58,38 @@ func changeDirectory(cmd []string, allPaths map[string]string, jsonPath string) 
 
 }
 
+
+func ensureJSON(filepath string) {
+    
+    _, err := os.Stat(filepath)
+    if err == nil {
+        return
+    }
+
+    if !os.IsNotExist(err) {
+        fmt.Println("Error: ", err)
+        os.Exit(1)
+    }
+
+    newFile, err := os.Create(filepath)
+    if err != nil {
+        fmt.Println("Error: ", err)
+        os.Exit(1)
+    }
+    
+    defer newFile.Close()
+
+    _, err = newFile.WriteString("{}")
+    if err != nil {
+        fmt.Println("Error: ", err)
+        os.Exit(1)
+    }
+
+}
+
+
+
+
 func setDirectoryVar(cmd []string, allPaths map[string]string, jsonPath string) {
      
     path, err := os.Getwd()
@@ -60,7 +97,7 @@ func setDirectoryVar(cmd []string, allPaths map[string]string, jsonPath string) 
         fmt.Println("Error:", err)
         os.Exit(1)
     }
-    allPaths[cmd[2]] = path
+    allPaths[cmd[1]] = path
     
     jsonData, err := json.MarshalIndent(allPaths, "", "  ")
     if err != nil {
@@ -90,19 +127,34 @@ func setDirectoryVar(cmd []string, allPaths map[string]string, jsonPath string) 
 //     jsonPath string 
 // }
 
+
+
+// map of available ftrav commands 
+var availCmds = map[string]func(cmd []string, allPaths map[string]string, jsonPath string) {
+    "to": changeDirectory,
+    "set": setDirectoryVar,
+    // "ls": displayAllPaths
+}
+
+
+
+
 func main() {
     
     // read in json file
-    jsonPath := "fastTravel.json"
-    allPaths := readMap(jsonPath)
-
-    // map available ftrav commands 
-    availCmds := map[string]func(cmd []string, allPaths map[string]string, jsonPath string) {
-        "to": changeDirectory,
-        "set": setDirectoryVar,
-        // "ls": displayAllPaths
+    exePath, err := os.Executable()
+    if err != nil {
+        fmt.Println("Error:", err)
+        os.Exit(1)
     }
-    
+ 
+    jsonDirPath := filepath.Dir(exePath)
+    jsonPath := jsonDirPath + "\\fastTravel.json"
+    fmt.Println("k") 
+    ensureJSON(jsonPath)
+    fmt.Println("k") 
+    allPaths := readMap(jsonPath)
+ 
     // sanitize input
     inputCommand, err := passCmd(os.Args)
     if err != nil {
