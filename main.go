@@ -6,6 +6,8 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+
+	"github.com/atotto/clipboard"
 )
 
 
@@ -48,13 +50,13 @@ func changeDirectory(cmd []string, allPaths map[string]string, jsonPath string) 
     }
     path := allPaths[cmd[1]]
     
-    err := os.Chdir(path)
+    err := clipboard.WriteAll("cd "+"'"+path+"'")
     if err != nil {
         fmt.Printf("Fast travel failed! %v", err)
         os.Exit(1)
     }
 
-    fmt.Println("moved to ", path)
+    fmt.Printf("cd %v copied to clipboard, paste to fast travel there", path)
 
 }
 
@@ -150,9 +152,7 @@ func main() {
  
     jsonDirPath := filepath.Dir(exePath)
     jsonPath := jsonDirPath + "\\fastTravel.json"
-    fmt.Println("k") 
     ensureJSON(jsonPath)
-    fmt.Println("k") 
     allPaths := readMap(jsonPath)
  
     // sanitize input
