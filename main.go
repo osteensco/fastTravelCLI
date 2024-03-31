@@ -13,7 +13,7 @@ import (
 
 func passCmd(args []string) ([]string, error) {
 
-    if len(args) <= 2 {
+    if (args[1] != "ls" && len(args) <= 2) {
         return nil, errors.New("Insufficient args provided, usage: ftrav <command> <path/key>")
     }
     return args[1:], nil
@@ -42,13 +42,13 @@ func readMap(jsonPath string) map[string]string {
 }
 
 
-func changeDirectory(cmd []string, allPaths map[string]string, jsonPath string) {
+func changeDirectory(data cmdArgs) {
     
-    if len(allPaths) == 0 {
+    if len(data.allPaths) == 0 {
         fmt.Printf("No fast travel locations set, set locations by navigating to desired destination directory and using 'ftrav set <key>' ")
         os.Exit(1)
     }
-    path := allPaths[cmd[1]]
+    path := data.allPaths[data.cmd[1]]
     
     err := clipboard.WriteAll("cd "+"'"+path+"'")
     if err != nil {
@@ -92,22 +92,22 @@ func ensureJSON(filepath string) {
 
 
 
-func setDirectoryVar(cmd []string, allPaths map[string]string, jsonPath string) {
+func setDirectoryVar(data cmdArgs) {
      
     path, err := os.Getwd()
     if err != nil {
         fmt.Println("Error:", err)
         os.Exit(1)
     }
-    allPaths[cmd[1]] = path
+    data.allPaths[data.cmd[1]] = path
     
-    jsonData, err := json.MarshalIndent(allPaths, "", "  ")
+    jsonData, err := json.MarshalIndent(data.allPaths, "", "  ")
     if err != nil {
         fmt.Println("Error marshalling JSON:", err)
         os.Exit(1)
     }
  
-    file, err := os.Create(jsonPath)
+    file, err := os.Create(data.jsonPath)
     if err != nil {
         fmt.Println("Error creating file:", err)
         os.Exit(1)
@@ -122,20 +122,27 @@ func setDirectoryVar(cmd []string, allPaths map[string]string, jsonPath string) 
     }
 }
 
-// func displayAllPaths(cmd []string, allPaths map[string]string, jsonPath string) {}
-// type cmdArgs struct {
-//     cmd []string 
-//     allPaths map[string]string  
-//     jsonPath string 
-// }
+
+
+func displayAllPaths(data cmdArgs) {
+    fmt.Println(data.allPaths)
+}
+
+
+
+type cmdArgs struct {
+    cmd []string 
+    allPaths map[string]string  
+    jsonPath string 
+}
 
 
 
 // map of available ftrav commands 
-var availCmds = map[string]func(cmd []string, allPaths map[string]string, jsonPath string) {
+var availCmds = map[string]func(data cmdArgs) {
     "to": changeDirectory,
     "set": setDirectoryVar,
-    // "ls": displayAllPaths
+    "ls": displayAllPaths,
 }
 
 
@@ -154,7 +161,8 @@ func main() {
     jsonPath := jsonDirPath + "\\fastTravel.json"
     ensureJSON(jsonPath)
     allPaths := readMap(jsonPath)
- 
+
+
     // sanitize input
     inputCommand, err := passCmd(os.Args)
     if err != nil {
@@ -170,8 +178,14 @@ func main() {
         fmt.Println("Invalid command, use 'help' for available commands.")
         os.Exit(1)
     }
+ 
+    data := cmdArgs{
+        cmd: inputCommand,
+        allPaths: allPaths,
+        jsonPath: jsonPath,
+    }
 
-    exeCmd(inputCommand, allPaths, jsonPath)
+    exeCmd(data)
 
 }
 
