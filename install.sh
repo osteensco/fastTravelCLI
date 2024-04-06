@@ -5,8 +5,8 @@
 # add main.sh contents to users shell rc 
 
 # TODO
-# test executable by running `version` command (ps, add `version` command) 
-# add manual install where user can choose what shell(s) to install fastTravel to
+# add step to test executable after install by running `version` command (ps, add `version` command) 
+# add manual install option where user can choose what shell(s) to install fastTravel to
 
 
 
@@ -47,48 +47,49 @@ exe_install() {
 
     mv ./fastTravel.exe "$ft_dir/" 
 
+    echo "$ft_dir/fastTravel.exe"
 }
 
-
+FT_EXE_PATH=$(exe_install)
 
 
 
 # USER_SHELL=""
 
 
+
 function bash_install() {
     case "$SHELL" in
         *bash*)
+            echo "export FT_EXE_PATH=\"$FT_EXE_PATH\"" >> ~/.bashrc
             echo ". $SCRIPT_PATH" >> ~/.bashrc
             ;;
         *zsh*)
+            echo "export FT_EXE_PATH=\"$FT_EXE_PATH\"" >> ~/.zshrc
             echo ". $SCRIPT_PATH" >> ~/.zshrc
             ;;
         *fish*)
+            echo "set -x FT_EXE_PATH \"$FT_EXE_PATH\"" >> ~/.config/fish/config.fish
             echo "source $SCRIPT_PATH" >> ~/.config/fish/config.fish
             ;;
         *csh* | *tcsh*)
+            echo "setenv FT_EXE_PATH \"$FT_EXE_PATH\"" >> ~/.cshrc
             echo "source $SCRIPT_PATH" >> ~/.cshrc
             ;;
         *ksh* | *sh*)
-            echo ". $SCRIPT_PATH" >> ~/.kshrc
-            ;;
-        *zsh*)
-            echo ". $SCRIPT_PATH" >> ~/.zshrc
-            ;;
-        *tcsh*)
-            echo "source $SCRIPT_PATH" >> ~/.tcshrc
-            ;;
-        *ksh* | *sh*)
+            echo "export FT_EXE_PATH=\"$FT_EXE_PATH\"" >> ~/.kshrc
             echo ". $SCRIPT_PATH" >> ~/.kshrc
             ;;
         *powershell*)
             # PowerShell profile path varies depending on the version
             if [ -f "$%USERPROFILE%/Documents/WindowsPowerShell/Microsoft.PowerShell_profile.ps1" ]; then
-                echo ". '$SCRIPT_PATH'" >> "%USERPROFILE%/Documents/WindowsPowerShell/Microsoft.PowerShell_profile.ps1"
+                echo "\$FT_EXE_PATH = \"$FT_EXE_PATH\"" >> "$%USERPROFILE%/Documents/WindowsPowerShell/Microsoft.PowerShell_profile.ps1"
+                echo ". '$SCRIPT_PATH'" >> "$%USERPROFILE%/Documents/WindowsPowerShell/Microsoft.PowerShell_profile.ps1"
             elif [ -f "$%USERPROFILE%/Documents/PowerShell/Microsoft.PowerShell_profile.ps1" ]; then
+                echo "\$FT_EXE_PATH = \"$FT_EXE_PATH\"" >> "$%USERPROFILE%/Documents/PowerShell/Microsoft.PowerShell_profile.ps1"
                 echo ". '$SCRIPT_PATH'" >> "$%USERPROFILE%/Documents/PowerShell/Microsoft.PowerShell_profile.ps1"
             else
+                echo "echo \$FT_EXE_PATH = \"$FT_EXE_PATH\" >> PowerShell profile file"
                 echo "echo . '$SCRIPT_PATH' >> PowerShell profile file"
             fi
             ;;
@@ -101,12 +102,6 @@ function bash_install() {
 
 
 
-
-
-
-
-
-exe_install
 bash_install
 
 
