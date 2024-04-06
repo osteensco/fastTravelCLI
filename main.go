@@ -50,13 +50,13 @@ func changeDirectory(data cmdArgs) {
     }
     path := data.allPaths[data.cmd[1]]
     
-    err := clipboard.WriteAll("cd "+"'"+path+"'")
-    if err != nil {
-        fmt.Printf("Fast travel failed! %v", err)
-        os.Exit(1)
-    }
+    // err := clipboard.WriteAll("cd "+"'"+path+"'")
+    // if err != nil {
+    //     fmt.Printf("Fast travel failed! %v", err)
+    //     os.Exit(1)
+    // }
 
-    fmt.Printf("cd %v copied to clipboard, paste to fast travel there", path)
+    fmt.Println(path)
 
 }
 
