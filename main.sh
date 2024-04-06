@@ -3,7 +3,7 @@
 
 ftrav() {
 
-    output=$( $exe_path )
+    output=$( $FT_EXE_PATH )
 
     cd "$output"
 
