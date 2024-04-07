@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	"github.com/atotto/clipboard"
+	// "github.com/atotto/clipboard"
 )
 
 func passCmd(args []string) ([]string, error) {
