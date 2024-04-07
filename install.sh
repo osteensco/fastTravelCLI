@@ -5,6 +5,9 @@
 # add main.sh contents to users shell rc 
 
 # TODO
+# ***For powershell, need to create file located at $PROFILE if it doesn't exist. If $PROFILE variable is empty,
+# need to determine powershell version and create appropriate file based on version.
+#
 # add step to test executable after install by running `version` command (ps, add `version` command) 
 # add manual install option where user can choose what shell(s) to install fastTravel to
 
@@ -52,7 +55,7 @@ exe_install() {
 
 FT_EXE_PATH=$(exe_install)
 
-
+export PATH="$PATH:$FT_EXE_PATH"
 
 # USER_SHELL=""
 
@@ -89,8 +92,9 @@ function bash_install() {
                 echo "\$FT_EXE_PATH = \"$FT_EXE_PATH\"" >> "$HOME/Documents/PowerShell/Microsoft.PowerShell_profile.ps1"
                 echo ". '$SCRIPT_PATH'" >> "$HOME/Documents/PowerShell/Microsoft.PowerShell_profile.ps1"
             else
-                echo "echo \$FT_EXE_PATH = \"$FT_EXE_PATH\" >> PowerShell profile file"
-                echo "echo . '$SCRIPT_PATH' >> PowerShell profile file"
+                New-Item "$HOME/Documents/WindowsPowerShell/Microsoft.PowerShell_profile.ps1" 
+                echo "\$FT_EXE_PATH = \"$FT_EXE_PATH\"" >> "$HOME/Documents/WindowsPowerShell/Microsoft.PowerShell_profile.ps1"
+                echo ". '$SCRIPT_PATH'" >> "$HOME/Documents/WindowsPowerShell/Microsoft.PowerShell_profile.ps1"
             fi
             ;;
         *)
