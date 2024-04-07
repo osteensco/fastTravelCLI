@@ -25,7 +25,7 @@ function find_target_dir() {
             echo "/usr/local/bin"
             ;;
         CYGWIN*|MINGW32*|MSYS*|MINGW*)
-            echo "%USERPROFILE%/AppData/Local"  
+            echo "$HOME/AppData/Local"  
             ;;
         *)
             echo "Error! Unsupported operating system"
@@ -82,12 +82,12 @@ function bash_install() {
             ;;
         *powershell*)
             # PowerShell profile path varies depending on the version
-            if [ -f "$%USERPROFILE%/Documents/WindowsPowerShell/Microsoft.PowerShell_profile.ps1" ]; then
-                echo "\$FT_EXE_PATH = \"$FT_EXE_PATH\"" >> "$%USERPROFILE%/Documents/WindowsPowerShell/Microsoft.PowerShell_profile.ps1"
-                echo ". '$SCRIPT_PATH'" >> "$%USERPROFILE%/Documents/WindowsPowerShell/Microsoft.PowerShell_profile.ps1"
-            elif [ -f "$%USERPROFILE%/Documents/PowerShell/Microsoft.PowerShell_profile.ps1" ]; then
-                echo "\$FT_EXE_PATH = \"$FT_EXE_PATH\"" >> "$%USERPROFILE%/Documents/PowerShell/Microsoft.PowerShell_profile.ps1"
-                echo ". '$SCRIPT_PATH'" >> "$%USERPROFILE%/Documents/PowerShell/Microsoft.PowerShell_profile.ps1"
+            if [ -f "$HOME/Documents/WindowsPowerShell/Microsoft.PowerShell_profile.ps1" ]; then
+                echo "\$FT_EXE_PATH = \"$FT_EXE_PATH\"" >> "$HOME/Documents/WindowsPowerShell/Microsoft.PowerShell_profile.ps1"
+                echo ". '$SCRIPT_PATH'" >> "$HOME/Documents/WindowsPowerShell/Microsoft.PowerShell_profile.ps1"
+            elif [ -f "$HOME/Documents/PowerShell/Microsoft.PowerShell_profile.ps1" ]; then
+                echo "\$FT_EXE_PATH = \"$FT_EXE_PATH\"" >> "$HOME/Documents/PowerShell/Microsoft.PowerShell_profile.ps1"
+                echo ". '$SCRIPT_PATH'" >> "$HOME/Documents/PowerShell/Microsoft.PowerShell_profile.ps1"
             else
                 echo "echo \$FT_EXE_PATH = \"$FT_EXE_PATH\" >> PowerShell profile file"
                 echo "echo . '$SCRIPT_PATH' >> PowerShell profile file"

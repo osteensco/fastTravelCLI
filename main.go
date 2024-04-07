@@ -7,7 +7,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/atotto/clipboard"
+	// "github.com/atotto/clipboard"
 )
 
 
