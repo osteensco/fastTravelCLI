@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-
+    "strings"
 	"github.com/atotto/clipboard"
 )
 
@@ -48,8 +48,22 @@ func changeDirectory(data cmdArgs) {
         fmt.Printf("No fast travel locations set, set locations by navigating to desired destination directory and using 'ftrav set <key>' ")
         os.Exit(1)
     }
-    path := data.allPaths[data.cmd[1]]
     
+    path := data.allPaths[data.cmd[1]]
+    distro := os.Getenv("WSL_DISTRO_NAME") 
+    if len(distro) == 0 {
+             
+        prefix := "/mnt/"
+        path = strings.Replace(path, ":", "", 1)
+        path = strings.Replace(path, "\\", "/", -1)
+        path = strings.ToLower(prefix + path)
+         
+    } 
+    // else {
+    //     fmt.Printf("distro name: __%v__, %v chars", distro, len(distro))
+    // }
+
+
     err := clipboard.WriteAll("cd "+"'"+path+"'")
     if err != nil {
         fmt.Printf("Fast travel failed! %v", err)
