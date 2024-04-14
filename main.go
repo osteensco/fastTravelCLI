@@ -1,7 +1,7 @@
 package main
 
 import (
-	"bufio"
+	// "bufio"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -66,8 +66,6 @@ func changeDirectory(data cmdArgs) {
 	// 	fmt.Printf("Fast travel failed! %v", err)
 	// 	os.Exit(1)
 	// }
-    writer := bufio.NewWriter(os.Stdout)
-    writer.Flush()
 	fmt.Println(path)
 
 }
