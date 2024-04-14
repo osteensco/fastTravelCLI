@@ -17,7 +17,7 @@ SCRIPT_PATH="./main.sh"
 
 
 
-function find_target_dir() {
+find_target_dir() {
 
     local os=$(uname)
     case "$os" in
@@ -46,9 +46,9 @@ exe_install() {
     
     ft_dir="$TARGET_DIR/fastTravel"
 
-    mkdir -p "$ft_dir"
+    sudo mkdir -p "$ft_dir"
 
-    mv ./fastTravel.exe "$ft_dir/" 
+    sudo mv ./fastTravel.exe "$ft_dir/" 
 
     echo "$ft_dir/fastTravel.exe"
 }
@@ -61,7 +61,7 @@ export PATH="$PATH:$FT_EXE_PATH"
 
 
 
-function bash_install() {
+bash_install() {
     case "$SHELL" in
         *bash*)
             echo "export FT_EXE_PATH=\"$FT_EXE_PATH\"" >> ~/.bashrc

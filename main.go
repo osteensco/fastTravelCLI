@@ -1,20 +1,19 @@
 package main
 
 import (
+	"bufio"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
-
-	"github.com/atotto/clipboard"
 	// "github.com/atotto/clipboard"
 )
 
 func passCmd(args []string) ([]string, error) {
-
-	if args[1] != "ls" && len(args) <= 2 {
+	
+    if args[1] != "ls" && len(args) <= 2 {
 		return nil, errors.New("Insufficient args provided, usage: ftrav <command> <path/key>")
 	}
 	return args[1:], nil
@@ -62,13 +61,14 @@ func changeDirectory(data cmdArgs) {
 	//     fmt.Printf("distro name: __%v__, %v chars", distro, len(distro))
 	// }
 
-	err := clipboard.WriteAll("cd " + "'" + path + "'")
-	if err != nil {
-		fmt.Printf("Fast travel failed! %v", err)
-		os.Exit(1)
-	}
-
-	fmt.Printf("cd %v copied to clipboard, paste to fast travel there", path)
+	// err := clipboard.WriteAll("cd " + "'" + path + "'")
+	// if err != nil {
+	// 	fmt.Printf("Fast travel failed! %v", err)
+	// 	os.Exit(1)
+	// }
+    writer := bufio.NewWriter(os.Stdout)
+    writer.Flush()
+	fmt.Println(path)
 
 }
 
@@ -162,7 +162,7 @@ func main() {
 	allPaths := readMap(jsonPath)
 
 	// sanitize input
-	inputCommand, err := passCmd(os.Args)
+    inputCommand, err := passCmd(os.Args)
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
