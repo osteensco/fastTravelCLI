@@ -1,8 +1,6 @@
 
 
 
-FT_EXE_PATH="./fastTravel.exe"
-
 ft() {
 
 
