@@ -1,4 +1,3 @@
-./prod
-./fastTravel.exe
-./fastTravel.json
-./.git
+prod/
+fastTravel.exe
+fastTravel.json
