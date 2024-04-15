@@ -1,20 +1,18 @@
 package main
 
 import (
-	// "bufio"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
-	// "github.com/atotto/clipboard"
 )
 
 func passCmd(args []string) ([]string, error) {
 	
     if args[1] != "ls" && len(args) <= 2 {
-		return nil, errors.New("Insufficient args provided, usage: ftrav <command> <path/key>")
+		return nil, errors.New(fmt.Sprintf("Insufficient args provided %v, usage: ftrav <command> <path/key>", args))
 	}
 	return args[1:], nil
 
@@ -57,16 +55,8 @@ func changeDirectory(data cmdArgs) {
 		path = strings.ToLower(prefix + path)
 
 	}
-	// else {
-	//     fmt.Printf("distro name: __%v__, %v chars", distro, len(distro))
-	// }
 
-	// err := clipboard.WriteAll("cd " + "'" + path + "'")
-	// if err != nil {
-	// 	fmt.Printf("Fast travel failed! %v", err)
-	// 	os.Exit(1)
-	// }
-	fmt.Println(path)
+    fmt.Println(path)
 
 }
 
@@ -138,7 +128,7 @@ type cmdArgs struct {
 	jsonPath string
 }
 
-// map of available ftrav commands
+// map of available commands
 var availCmds = map[string]func(data cmdArgs){
 	"to":  changeDirectory,
 	"set": setDirectoryVar,
