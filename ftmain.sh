@@ -1,18 +1,7 @@
 
 
-# ft() {
-#     while IFS= read -r line; do
-#         output="$line"
-#     done < <("$FT_EXE_PATH" "$@")
-                            
-#     echo "$output" 
-                                    
-#     if [ -e "$output" ]; then 
-#         cd "$output"
-#     fi
-# }
 
-
+FT_EXE_PATH="./fastTravel.exe"
 
 ft() {
 
@@ -24,5 +13,6 @@ ft() {
     fi
 
 }
+
 
 

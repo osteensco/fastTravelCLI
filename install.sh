@@ -1,17 +1,5 @@
 
 
-# based on user's os, determine correct directory for exe to save to
-# create fastTravel directory at TARGET_DIR and save exe to this location
-# add main.sh contents to users shell rc 
-
-# TODO
-# ***For powershell, need to create file located at $PROFILE if it doesn't exist. If $PROFILE variable is empty,
-# need to determine powershell version and create appropriate file based on version.
-#
-# add step to test executable after install by running `version` command (ps, add `version` command) 
-# add manual install option where user can choose what shell(s) to install fastTravel to
-
-
 
 SCRIPT_PATH="ftmain.sh"
 
