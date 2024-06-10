@@ -119,7 +119,15 @@ func setDirectoryVar(data cmdArgs) {
 }
 
 func displayAllPaths(data cmdArgs) {
-	fmt.Println(data.allPaths)
+
+    fmt.Println("")
+    for k, v := range data.allPaths {
+
+        fmt.Println(k+": "+v)
+    
+    }
+    fmt.Println("")
+
 }
 
 type cmdArgs struct {
