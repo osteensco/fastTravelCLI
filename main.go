@@ -120,13 +120,13 @@ func setDirectoryVar(data cmdArgs) {
 
 func displayAllPaths(data cmdArgs) {
 
-    fmt.Println("")
+    fmt.Println("\n")
     for k, v := range data.allPaths {
 
-        fmt.Println(k+": "+v)
+        fmt.Printf("%v: %v\n", k, v)
     
     }
-    fmt.Println("")
+    fmt.Println("\n")
 
 }
 
