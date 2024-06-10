@@ -9,11 +9,36 @@ import (
 	"strings"
 )
 
+func printMap(hashmap map[string]string) {
+
+    fmt.Println("\n")
+    for k, v := range hashmap {
+
+        fmt.Printf("%v: %v\n", k, v)
+    
+    }
+    fmt.Println("\n")
+
+}
+
 func passCmd(args []string) ([]string, error) {
-	
-    if args[1] != "ls" && len(args) <= 2 {
-		return nil, errors.New(fmt.Sprintf("Insufficient args provided %v, usage: ftrav <command> <path/key>", args))
-	}
+    
+    switch args[1] {
+        case "ls":
+            break
+        case "help":
+            break
+        default:
+            if len(args) <= 2 {
+                return nil, errors.New(fmt.Sprintf("Insufficient args provided %v, usage: ft <command> <path/key>", args[1:]))
+            }
+    }
+
+    // if cmd := args[1]; cmd != "ls" || cmd != "help" {
+    //     if len(args) <= 2 {
+    //         return nil, errors.New(fmt.Sprintf("Insufficient args provided %v, usage: ft <command> <path/key>", args[1:]))
+    //     }
+    // }
 	return args[1:], nil
 
 }
@@ -41,7 +66,7 @@ func readMap(jsonPath string) map[string]string {
 func changeDirectory(data cmdArgs) {
 
 	if len(data.allPaths) == 0 {
-		fmt.Printf("No fast travel locations set, set locations by navigating to desired destination directory and using 'ftrav set <key>' ")
+		fmt.Printf("No fast travel locations set, set locations by navigating to desired destination directory and using 'ft set <key>' ")
 		os.Exit(1)
 	}
 
@@ -120,13 +145,13 @@ func setDirectoryVar(data cmdArgs) {
 
 func displayAllPaths(data cmdArgs) {
 
-    fmt.Println("\n")
-    for k, v := range data.allPaths {
+    printMap(data.allPaths)
 
-        fmt.Printf("%v: %v\n", k, v)
+}
+
+func showHelp(data cmdArgs) {
     
-    }
-    fmt.Println("\n")
+    printMap(cmdDesc)
 
 }
 
@@ -141,6 +166,14 @@ var availCmds = map[string]func(data cmdArgs){
 	"to":  changeDirectory,
 	"set": setDirectoryVar,
 	"ls":  displayAllPaths,
+    "help": showHelp,
+}
+
+var cmdDesc = map[string]string {
+    "to": "change directory to provided key's path",
+    "set": "set current directory path to provided key",
+    "ls": "display all current key value pairs",
+    "help": "you are here :)",
 }
 
 func main() {
