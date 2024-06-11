@@ -14,7 +14,9 @@ import (
 // TODO
 // - check if valid command, display valid command response, display insuff args response if valid cmd with insuff args
 // - rm cmd
-
+     // - cannot do check prior to deletion since we are passing STDout to a bash function (callstack, duh)
+     // - need to delete in json as well, not just in memory
+         // - need to create a json update function at this point
 
 
 func printMap(hashmap map[string]string) {
@@ -173,23 +175,22 @@ func removeKey(data cmdArgs) {
     
     reader := bufio.NewReader(os.Stdin)
 
-    for {
-        fmt.Printf("Are you sure you want to delete '%v: %v'? y/n", data.cmd[1], data.allPaths[data.cmd[1]])
+        fmt.Printf("Are you sure you want to delete '%v: %v'? y/n\n", data.cmd[1], data.allPaths[data.cmd[1]])
         resp, _ := reader.ReadString('\n')
-    
+        resp = strings.Trim(resp, "\n")
+
         switch strings.ToLower(resp) {
             case "y": 
                 delete(data.allPaths, data.cmd[1])
-                fmt.Printf("forgot '%v' destination", data.cmd[1])
+                fmt.Printf("Removed '%v' destination", data.cmd[1])
                 return
             case "n":
                 fmt.Printf("Did not remove '%v: %v'", data.cmd[1], data.allPaths[data.cmd[1]])
                 return
             default:
-                fmt.Printf("%v is not a valid response, type y or n", resp)
+                fmt.Printf("'%v' is not a valid response, type y or n", resp)
         }   
 
-    } 
 
     
 }
