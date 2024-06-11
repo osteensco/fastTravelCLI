@@ -1,32 +1,40 @@
 package main
 
 import (
+	"bufio"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
-	"strings"
+	"sort"
+    "strings"
 )
 
-
 // TODO
- // - rm cmd
- // - rename (rn) cmd
- // - make help and ls output ordered
-
+// - check if valid command, display valid command response, display insuff args response if valid cmd with insuff args
+// - rm cmd
 
 
 
 func printMap(hashmap map[string]string) {
 
-    fmt.Println("\n")
-    for k, v := range hashmap {
+    fmt.Println("")
 
-        fmt.Printf("%v: %v\n", k, v)
+    keys := make([]string, 0, len(hashmap))
+    for k := range hashmap {
+        keys = append(keys, k)
+    }
+
+    sort.Strings(keys)
+
+    for i := range keys {
+
+        fmt.Printf("%v: %v\n", keys[i], hashmap[keys[i]])
     
     }
-    fmt.Println("\n")
+
+    fmt.Println("")
 
 }
 
@@ -83,10 +91,13 @@ func changeDirectory(data cmdArgs) {
 	distro := os.Getenv("WSL_DISTRO_NAME")
 	if len(distro) == 0 {
 
-		prefix := "/mnt/"
-		path = strings.Replace(path, ":", "", 1)
-		path = strings.Replace(path, "\\", "/", -1)
-		path = strings.ToLower(prefix + path)
+    	prefix := "/mnt/"
+        drive := strings.Split(path, ":")[0]
+        path = strings.Replace(path, drive, strings.ToLower(drive), 1)
+        path = strings.Replace(path, ":", "", 1)
+    	path = strings.Replace(path, "\\", "/", -1)
+    	path = prefix + path
+        // path = strings.ToLower(prefix + path)
 
 	}
 
@@ -158,6 +169,63 @@ func displayAllPaths(data cmdArgs) {
 
 }
 
+func removeKey(data cmdArgs) {
+    
+    reader := bufio.NewReader(os.Stdin)
+
+    for {
+        fmt.Printf("Are you sure you want to delete '%v: %v'? y/n", data.cmd[1], data.allPaths[data.cmd[1]])
+        resp, _ := reader.ReadString('\n')
+    
+        switch strings.ToLower(resp) {
+            case "y": 
+                delete(data.allPaths, data.cmd[1])
+                fmt.Printf("forgot '%v' destination", data.cmd[1])
+                return
+            case "n":
+                fmt.Printf("Did not remove '%v: %v'", data.cmd[1], data.allPaths[data.cmd[1]])
+                return
+            default:
+                fmt.Printf("%v is not a valid response, type y or n", resp)
+        }   
+
+    } 
+
+    
+}
+
+func renameKey(data cmdArgs) {
+    
+    originalKey := data.cmd[1]
+    newKey := data.cmd[2]
+    path := data.allPaths[originalKey]
+    delete(data.allPaths, originalKey)
+    data.allPaths[newKey] = path 
+
+	jsonData, err := json.MarshalIndent(data.allPaths, "", "  ")
+	if err != nil {
+		fmt.Println("Error marshalling JSON:", err)
+		os.Exit(1)
+	}
+
+	file, err := os.Create(data.jsonPath)
+	if err != nil {
+		fmt.Println("Error creating file:", err)
+		os.Exit(1)
+	}
+
+	defer file.Close()
+
+	_, err = file.Write(jsonData)
+	if err != nil {
+		fmt.Println("Error writing JSON to file:", err)
+		os.Exit(1)
+	}
+
+    fmt.Printf("%v renamed to %v", originalKey, newKey)
+
+}
+
 func showHelp(data cmdArgs) {
     
     printMap(cmdDesc)
@@ -175,14 +243,18 @@ var availCmds = map[string]func(data cmdArgs){
 	"to":  changeDirectory,
 	"set": setDirectoryVar,
 	"ls":  displayAllPaths,
+    "rm": removeKey,
+    "rn": renameKey,
     "help": showHelp,
 }
 
 var cmdDesc = map[string]string {
-    "to": "change directory to provided key's path",
-    "set": "set current directory path to provided key",
-    "ls": "display all current key value pairs",
-    "help": "you are here :)",
+    "to": "change directory to provided key's path - Usage: ft to [key]",
+    "set": "set current directory path to provided key - Usage: ft set [key]",
+    "ls": "display all current key value pairs - Usage: ft ls",
+    "rm": "deletes provided key - Usage: ft rm [key]",
+    "rn": "renames key to new key - Usage: ft rn [key] [new key]",
+    "help": "you are here :) - Usage: ft help",
 }
 
 func main() {
