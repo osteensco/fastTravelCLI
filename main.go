@@ -9,6 +9,15 @@ import (
 	"strings"
 )
 
+
+// TODO
+ // - rm cmd
+ // - rename (rn) cmd
+ // - make help and ls output ordered
+
+
+
+
 func printMap(hashmap map[string]string) {
 
     fmt.Println("\n")
