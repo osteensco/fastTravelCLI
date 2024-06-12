@@ -12,11 +12,13 @@ import (
 )
 
 // TODO
-// - check if valid command, display valid command response, display insuff args response if valid cmd with insuff args
 // - rm cmd
      // - cannot do check prior to deletion since we are passing STDout to a bash function (callstack, duh)
      // - need to delete in json as well, not just in memory
          // - need to create a json update function at this point
+// - check if valid command, display valid command response, display insuff args response if valid cmd with insuff args
+ // - investigate data persistence alternatives
+
 
 
 func printMap(hashmap map[string]string) {
