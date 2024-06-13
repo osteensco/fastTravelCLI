@@ -13,8 +13,7 @@ import (
 
 // TODO
 // - rm cmd
-     // - find way to add interactivity between child process and parent process
-// - passCmd: check if valid command, display valid command response, display insuff args response if valid cmd with insuff args
+     // - find way to add user interactivity between child process and parent process
 // - investigate data persistence alternatives
 
 
@@ -42,11 +41,21 @@ func printMap(hashmap map[string]string) {
 
 func passCmd(args []string) ([]string, error) {
     
-    switch args[1] {
+    cmd := args[1]
+
+    _, ok := availCmds[cmd]
+    if !ok {
+        return nil, errors.New(fmt.Sprintf("%v is not a valid command, use 'ft help' for valid commands", cmd))
+    }
+    switch cmd {
         case "ls":
             break
         case "help":
             break
+        case "rn":
+            if len(args) <= 3 {
+                return nil, errors.New(fmt.Sprintf("Insufficient args provided %v, usage: ft rn <key> <newKey>", args[1:]))
+            }
         default:
             if len(args) <= 2 {
                 return nil, errors.New(fmt.Sprintf("Insufficient args provided %v, usage: ft <command> <path/key>", args[1:]))
@@ -179,28 +188,6 @@ func removeKey(data cmdArgs) {
     delete(data.allPaths, data.cmd[1])
     jsonUpdate(data.allPaths, data.jsonPath)
     fmt.Printf("Removed '%v' destination", data.cmd[1])
-    
-
-
-    // reader := bufio.NewReader(os.Stdin)
-
-    // fmt.Printf("Are you sure you want to delete '%v: %v'? y/n\n", data.cmd[1], data.allPaths[data.cmd[1]])
-    // resp, _ := reader.ReadString('\n')
-    // resp = strings.Trim(resp, "\n")
-
-    // switch strings.ToLower(resp) {
-    //     case "y": 
-    //         delete(data.allPaths, data.cmd[1])
-    //         fmt.Printf("Removed '%v' destination", data.cmd[1])
-    //         return
-    //     case "n":
-    //         fmt.Printf("Did not remove '%v: %v'", data.cmd[1], data.allPaths[data.cmd[1]])
-    //         return
-    //     default:
-    //         fmt.Printf("'%v' is not a valid response, type y or n", resp)
-    // }   
-
-
     
 }
 
