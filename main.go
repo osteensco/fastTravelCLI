@@ -1,7 +1,7 @@
 package main
 
 import (
-	"bufio"
+	// "bufio"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -13,11 +13,9 @@ import (
 
 // TODO
 // - rm cmd
-     // - cannot do check prior to deletion since we are passing STDout to a bash function (callstack, duh)
-     // - need to delete in json as well, not just in memory
-         // - need to create a json update function at this point
-// - check if valid command, display valid command response, display insuff args response if valid cmd with insuff args
- // - investigate data persistence alternatives
+     // - find way to add interactivity between child process and parent process
+// - passCmd: check if valid command, display valid command response, display insuff args response if valid cmd with insuff args
+// - investigate data persistence alternatives
 
 
 
@@ -55,11 +53,6 @@ func passCmd(args []string) ([]string, error) {
             }
     }
 
-    // if cmd := args[1]; cmd != "ls" || cmd != "help" {
-    //     if len(args) <= 2 {
-    //         return nil, errors.New(fmt.Sprintf("Insufficient args provided %v, usage: ft <command> <path/key>", args[1:]))
-    //     }
-    // }
 	return args[1:], nil
 
 }
@@ -84,30 +77,6 @@ func readMap(jsonPath string) map[string]string {
 
 }
 
-func changeDirectory(data cmdArgs) {
-
-	if len(data.allPaths) == 0 {
-		fmt.Printf("No fast travel locations set, set locations by navigating to desired destination directory and using 'ft set <key>' ")
-		os.Exit(1)
-	}
-
-	path := data.allPaths[data.cmd[1]]
-	distro := os.Getenv("WSL_DISTRO_NAME")
-	if len(distro) == 0 {
-
-    	prefix := "/mnt/"
-        drive := strings.Split(path, ":")[0]
-        path = strings.Replace(path, drive, strings.ToLower(drive), 1)
-        path = strings.Replace(path, ":", "", 1)
-    	path = strings.Replace(path, "\\", "/", -1)
-    	path = prefix + path
-        // path = strings.ToLower(prefix + path)
-
-	}
-
-    fmt.Println(path)
-
-}
 
 func ensureJSON(filepath string) {
 
@@ -137,22 +106,15 @@ func ensureJSON(filepath string) {
 
 }
 
-func setDirectoryVar(data cmdArgs) {
-
-	path, err := os.Getwd()
-	if err != nil {
-		fmt.Println("Error:", err)
-		os.Exit(1)
-	}
-	data.allPaths[data.cmd[1]] = path
-
-	jsonData, err := json.MarshalIndent(data.allPaths, "", "  ")
+func jsonUpdate(hashmap map[string]string, filepath string) {
+    
+	jsonData, err := json.MarshalIndent(hashmap, "", "  ")
 	if err != nil {
 		fmt.Println("Error marshalling JSON:", err)
 		os.Exit(1)
 	}
 
-	file, err := os.Create(data.jsonPath)
+	file, err := os.Create(filepath)
 	if err != nil {
 		fmt.Println("Error creating file:", err)
 		os.Exit(1)
@@ -165,6 +127,45 @@ func setDirectoryVar(data cmdArgs) {
 		fmt.Println("Error writing JSON to file:", err)
 		os.Exit(1)
 	}
+
+}
+
+func changeDirectory(data cmdArgs) {
+
+	if len(data.allPaths) == 0 {
+		fmt.Printf("No fast travel locations set, set locations by navigating to desired destination directory and using 'ft set <key>' ")
+		os.Exit(1)
+	}
+
+	path := data.allPaths[data.cmd[1]]
+	distro := os.Getenv("WSL_DISTRO_NAME")
+	if len(distro) == 0 {
+
+    	prefix := "/mnt/"
+        drive := strings.Split(path, ":")[0]
+        path = strings.Replace(path, drive, strings.ToLower(drive), 1)
+        path = strings.Replace(path, ":", "", 1)
+    	path = strings.Replace(path, "\\", "/", -1)
+    	path = prefix + path
+
+	}
+
+    fmt.Println(path)
+
+}
+
+func setDirectoryVar(data cmdArgs) {
+
+	path, err := os.Getwd()
+	if err != nil {
+		fmt.Println("Error:", err)
+		os.Exit(1)
+	}
+	data.allPaths[data.cmd[1]] = path
+
+    jsonUpdate(data.allPaths, data.jsonPath)
+    fmt.Printf("Added destination %v", data.cmd[1] )
+
 }
 
 func displayAllPaths(data cmdArgs) {
@@ -175,23 +176,29 @@ func displayAllPaths(data cmdArgs) {
 
 func removeKey(data cmdArgs) {
     
-    reader := bufio.NewReader(os.Stdin)
+    delete(data.allPaths, data.cmd[1])
+    jsonUpdate(data.allPaths, data.jsonPath)
+    fmt.Printf("Removed '%v' destination", data.cmd[1])
+    
 
-        fmt.Printf("Are you sure you want to delete '%v: %v'? y/n\n", data.cmd[1], data.allPaths[data.cmd[1]])
-        resp, _ := reader.ReadString('\n')
-        resp = strings.Trim(resp, "\n")
 
-        switch strings.ToLower(resp) {
-            case "y": 
-                delete(data.allPaths, data.cmd[1])
-                fmt.Printf("Removed '%v' destination", data.cmd[1])
-                return
-            case "n":
-                fmt.Printf("Did not remove '%v: %v'", data.cmd[1], data.allPaths[data.cmd[1]])
-                return
-            default:
-                fmt.Printf("'%v' is not a valid response, type y or n", resp)
-        }   
+    // reader := bufio.NewReader(os.Stdin)
+
+    // fmt.Printf("Are you sure you want to delete '%v: %v'? y/n\n", data.cmd[1], data.allPaths[data.cmd[1]])
+    // resp, _ := reader.ReadString('\n')
+    // resp = strings.Trim(resp, "\n")
+
+    // switch strings.ToLower(resp) {
+    //     case "y": 
+    //         delete(data.allPaths, data.cmd[1])
+    //         fmt.Printf("Removed '%v' destination", data.cmd[1])
+    //         return
+    //     case "n":
+    //         fmt.Printf("Did not remove '%v: %v'", data.cmd[1], data.allPaths[data.cmd[1]])
+    //         return
+    //     default:
+    //         fmt.Printf("'%v' is not a valid response, type y or n", resp)
+    // }   
 
 
     
@@ -205,26 +212,7 @@ func renameKey(data cmdArgs) {
     delete(data.allPaths, originalKey)
     data.allPaths[newKey] = path 
 
-	jsonData, err := json.MarshalIndent(data.allPaths, "", "  ")
-	if err != nil {
-		fmt.Println("Error marshalling JSON:", err)
-		os.Exit(1)
-	}
-
-	file, err := os.Create(data.jsonPath)
-	if err != nil {
-		fmt.Println("Error creating file:", err)
-		os.Exit(1)
-	}
-
-	defer file.Close()
-
-	_, err = file.Write(jsonData)
-	if err != nil {
-		fmt.Println("Error writing JSON to file:", err)
-		os.Exit(1)
-	}
-
+    jsonUpdate(data.allPaths, data.jsonPath)
     fmt.Printf("%v renamed to %v", originalKey, newKey)
 
 }
