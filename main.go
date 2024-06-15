@@ -14,7 +14,11 @@ import (
 // TODO
 // - rm cmd
      // - find way to add user interactivity between child process and parent process
+         // - try using 'trap' in bash to trigger commands based on exe output
 // - investigate data persistence alternatives
+     // - read raw bytes
+     // - memory map
+     // - ???
 
 
 
