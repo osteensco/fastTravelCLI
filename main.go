@@ -2,23 +2,24 @@ package main
 
 import (
 	// "bufio"
-	"encoding/json"
+	"encoding/binary"
+	// "encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"sort"
-    "strings"
+	"strings"
+	// "time"
 )
 
 // TODO
 // - rm cmd
-     // - find way to add user interactivity between child process and parent process
-         // - try using 'trap' in bash to trigger commands based on exe output
+//      - find way to add user interactivity between child process and parent process
+//          - try using 'trap' in bash to trigger commands based on exe output
 // - investigate data persistence alternatives
-     // - read raw bytes
-     // - memory map
-     // - ???
+//      - read raw bytes
 
 
 
@@ -70,78 +71,200 @@ func passCmd(args []string) ([]string, error) {
 
 }
 
-func readMap(jsonPath string) map[string]string {
-	file, err := os.Open(jsonPath)
-	if err != nil {
-		fmt.Println("Error:", err)
-		os.Exit(1)
-	}
+// func readMap(jsonPath string) map[string]string {
+// 	file, err := os.Open(jsonPath)
+// 	if err != nil {
+// 		fmt.Println("Error:", err)
+// 		os.Exit(1)
+// 	}
 
-	defer file.Close()
+// 	defer file.Close()
 
-	var pathMap map[string]string
-	decoder := json.NewDecoder(file)
-	if err := decoder.Decode(&pathMap); err != nil {
-		fmt.Println("Error:", err)
-		os.Exit(1)
-	}
+// 	var pathMap map[string]string
+// 	decoder := json.NewDecoder(file)
+// 	if err := decoder.Decode(&pathMap); err != nil {
+// 		fmt.Println("Error:", err)
+// 		os.Exit(1)
+// 	}
+
+// 	return pathMap
+
+// }
+
+
+func readMap(file *os.File) map[string]string {
+
+    pathMap := make(map[string]string)
+
+    _, err := file.Seek(0,0) 
+    if err != nil {
+        fmt.Println("Error seeking to beginning of file: ", err)
+        os.Exit(1)
+    }
+
+    // key length integer should always fit in 8 bits
+    var keyLen uint8
+    // value length integer should always fit in 16 bits
+    var valLen uint16
+
+    // this should iterate until the end of the file
+    for {
+        // read length of key, use length to read in key
+        err = binary.Read(file, binary.LittleEndian, &keyLen)
+        // End Of File error should only ever happen here
+        if err == io.EOF {
+            break
+        }
+        if err != nil {
+            fmt.Println("Error reading keyLen binary: ", err)
+            os.Exit(1)
+        }
+        keyBytes := make([]byte, keyLen)
+        _, err = file.Read(keyBytes)
+        if err != nil {
+            fmt.Println("Error reading in keyBytes: ", err)
+        }
+
+
+        // read length of value, use length to read in value
+        err = binary.Read(file, binary.LittleEndian, &valLen)
+        if err != nil {
+            fmt.Println("Error reading valLen binary: ", err)
+            os.Exit(1)
+        }
+        valBytes := make([]byte, valLen)
+        _, err = file.Read(valBytes)
+        if err != nil {
+            fmt.Println("Error reading in valBytes: ", err)
+        }
+
+
+        pathMap[string(keyBytes)] = string(valBytes)
+
+    }
 
 	return pathMap
 
 }
 
 
-func ensureJSON(filepath string) {
+// func ensureJSON(filepath string) {
 
-	_, err := os.Stat(filepath)
-	if err == nil {
-		return
-	}
+// 	_, err := os.Stat(filepath)
+// 	if err == nil {
+// 		return
+// 	}
 
-	if !os.IsNotExist(err) {
-		fmt.Println("Error: ", err)
-		os.Exit(1)
-	}
+// 	if !os.IsNotExist(err) {
+// 		fmt.Println("Error: ", err)
+// 		os.Exit(1)
+// 	}
 
-	newFile, err := os.Create(filepath)
-	if err != nil {
-		fmt.Println("Error: ", err)
-		os.Exit(1)
-	}
+// 	newFile, err := os.Create(filepath)
+// 	if err != nil {
+// 		fmt.Println("Error: ", err)
+// 		os.Exit(1)
+// 	}
 
-	defer newFile.Close()
+// 	defer newFile.Close()
 
-	_, err = newFile.WriteString("{}")
-	if err != nil {
-		fmt.Println("Error: ", err)
-		os.Exit(1)
-	}
+// 	_, err = newFile.WriteString("{}")
+// 	if err != nil {
+// 		fmt.Println("Error: ", err)
+// 		os.Exit(1)
+// 	}
+
+// }
+
+
+func ensureJSON(filepath string) *os.File {
+
+    file, err := os.OpenFile(filepath, os.O_CREATE|os.O_RDWR, 0644)
+    if err != nil {
+        fmt.Println("Error opening file: ", err)
+        os.Exit(1)
+    }
+
+    return file
 
 }
 
-func jsonUpdate(hashmap map[string]string, filepath string) {
+
+// func jsonUpdate(hashmap map[string]string, filepath string) {
     
-	jsonData, err := json.MarshalIndent(hashmap, "", "  ")
-	if err != nil {
-		fmt.Println("Error marshalling JSON:", err)
-		os.Exit(1)
-	}
+// 	jsonData, err := json.MarshalIndent(hashmap, "", "  ")
+// 	if err != nil {
+// 		fmt.Println("Error marshalling JSON:", err)
+// 		os.Exit(1)
+// 	}
 
-	file, err := os.Create(filepath)
-	if err != nil {
-		fmt.Println("Error creating file:", err)
-		os.Exit(1)
-	}
+// 	file, err := os.Create(filepath)
+// 	if err != nil {
+// 		fmt.Println("Error creating file:", err)
+// 		os.Exit(1)
+// 	}
 
-	defer file.Close()
+// 	defer file.Close()
 
-	_, err = file.Write(jsonData)
-	if err != nil {
-		fmt.Println("Error writing JSON to file:", err)
-		os.Exit(1)
-	}
+// 	_, err = file.Write(jsonData)
+// 	if err != nil {
+// 		fmt.Println("Error writing JSON to file:", err)
+// 		os.Exit(1)
+// 	}
+
+// }
+
+
+
+func jsonUpdate(hashmap map[string]string, file *os.File) {
+    
+    err := file.Truncate(0) 
+    if err != nil {
+        fmt.Println("Error truncating file: ", err)
+        os.Exit(1)
+    }
+    
+    _, err = file.Seek(0,0) 
+    if err != nil {
+        fmt.Println("Error seeking to beginning of file: ", err)
+        os.Exit(1)
+    }
+
+
+    for key, val := range hashmap {
+
+        keyBytes := []byte(key)
+        valBytes := []byte(val)
+        keyLen := uint8(len(keyBytes))
+        valLen := uint16(len(valBytes))
+
+        
+        err = binary.Write(file, binary.LittleEndian, keyLen)
+        if err != nil {
+            fmt.Println("Error writing keyLen binary: ", err)
+            os.Exit(1)
+        }
+        _, err = file.Write(keyBytes)
+        if err != nil {
+            fmt.Println("Error writing keyBytes binary: ", err)
+            os.Exit(1)
+        }
+
+        err = binary.Write(file, binary.LittleEndian, valLen)
+        if err != nil {
+            fmt.Println("Error writing valLen binary: ", err)
+            os.Exit(1)
+        }
+        _, err = file.Write(valBytes)
+        if err != nil {
+            fmt.Println("Error writing valBytes binary: ", err)
+            os.Exit(1)
+        }
+
+    }
 
 }
+
 
 func changeDirectory(data cmdArgs) {
 
@@ -176,7 +299,8 @@ func setDirectoryVar(data cmdArgs) {
 	}
 	data.allPaths[data.cmd[1]] = path
 
-    jsonUpdate(data.allPaths, data.jsonPath)
+    // jsonUpdate(data.allPaths, data.jsonPath)
+    jsonUpdate(data.allPaths, data.file)
     fmt.Printf("Added destination %v", data.cmd[1] )
 
 }
@@ -190,7 +314,8 @@ func displayAllPaths(data cmdArgs) {
 func removeKey(data cmdArgs) {
     
     delete(data.allPaths, data.cmd[1])
-    jsonUpdate(data.allPaths, data.jsonPath)
+    // jsonUpdate(data.allPaths, data.jsonPath)
+    jsonUpdate(data.allPaths, data.file)
     fmt.Printf("Removed '%v' destination", data.cmd[1])
     
 }
@@ -203,7 +328,8 @@ func renameKey(data cmdArgs) {
     delete(data.allPaths, originalKey)
     data.allPaths[newKey] = path 
 
-    jsonUpdate(data.allPaths, data.jsonPath)
+    // jsonUpdate(data.allPaths, data.jsonPath)
+    jsonUpdate(data.allPaths, data.file)
     fmt.Printf("%v renamed to %v", originalKey, newKey)
 
 }
@@ -217,7 +343,8 @@ func showHelp(data cmdArgs) {
 type cmdArgs struct {
 	cmd      []string
 	allPaths map[string]string
-	jsonPath string
+	// jsonPath string
+    file *os.File
 }
 
 // map of available commands
@@ -239,9 +366,15 @@ var cmdDesc = map[string]string {
     "help": "you are here :) - Usage: ft help",
 }
 
+// func measureSpeed(start time.Time) {
+//     fmt.Printf("execution took %v", time.Since(start))
+// }
+
 func main() {
 
-	// read in json file
+    // defer measureSpeed(time.Now())
+	
+    // read in json file
 	exePath, err := os.Executable()
 	if err != nil {
 		fmt.Println("Error:", err)
@@ -249,9 +382,12 @@ func main() {
 	}
 
 	jsonDirPath := filepath.Dir(exePath)
-	jsonPath := jsonDirPath + "\\fastTravel.json"
-	ensureJSON(jsonPath)
-	allPaths := readMap(jsonPath)
+	// jsonPath := jsonDirPath + "\\fastTravel.json"
+	jsonPath := jsonDirPath + "\\fastTravel.bin"
+    file := ensureJSON(jsonPath)
+    defer file.Close()
+	// allPaths := readMap(jsonPath)
+    allPaths := readMap(file)
 
 	// sanitize input
     inputCommand, err := passCmd(os.Args)
@@ -271,7 +407,8 @@ func main() {
 	data := cmdArgs{
 		cmd:      inputCommand,
 		allPaths: allPaths,
-		jsonPath: jsonPath,
+		// jsonPath: jsonPath,
+        file: file,
 	}
 
 	exeCmd(data)
