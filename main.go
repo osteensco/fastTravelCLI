@@ -20,7 +20,8 @@ import (
 //          - try using 'trap' in bash to trigger commands based on exe output
 // - investigate data persistence alternatives
 //      - read raw bytes
-
+// - explore more efficient ways of reading in data
+// - rename json functions to 'data'
 
 
 func printMap(hashmap map[string]string) {
