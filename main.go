@@ -16,12 +16,18 @@ import (
 
 // TODO
 // - rm cmd
+//      - this cmd should prompt the user to confirm before removing
+//          - probably for rn cmd as well
 //      - find way to add user interactivity between child process and parent process
 //          - try using 'trap' in bash to trigger commands based on exe output
 // - investigate data persistence alternatives
-//      - read raw bytes
+//      - need to test json vs bin files, at maybe 10mb?
 // - explore more efficient ways of reading in data
+//      - should entire file be read into memory one every use?
+//      - what would be the alternative? don't want to use a db, trying to avoid dependencies.
 // - rename json functions to 'data'
+
+
 
 
 func printMap(hashmap map[string]string) {
