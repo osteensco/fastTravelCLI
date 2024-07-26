@@ -78,72 +78,51 @@ func passCmd(args []string) ([]string, error) {
 
 }
 
-// func readMap(jsonPath string) map[string]string {
-// 	file, err := os.Open(jsonPath)
-// 	if err != nil {
-// 		fmt.Println("Error:", err)
-// 		os.Exit(1)
-// 	}
-
-// 	defer file.Close()
-
-// 	var pathMap map[string]string
-// 	decoder := json.NewDecoder(file)
-// 	if err := decoder.Decode(&pathMap); err != nil {
-// 		fmt.Println("Error:", err)
-// 		os.Exit(1)
-// 	}
-
-// 	return pathMap
-
-// }
 
 
 func readMap(file *os.File) map[string]string {
 
     pathMap := make(map[string]string)
+    
 
-    _, err := file.Seek(0,0) 
+    fileInfo, err := file.Stat()
     if err != nil {
-        fmt.Println("Error seeking to beginning of file: ", err)
+        fmt.Println("Error getting file info: ", err)
         os.Exit(1)
     }
 
-    // key length integer should always fit in 8 bits
+    // take file size in bytes and make a buffer of that size
+    size := fileInfo.Size()
+    buff := make([]byte, size)
+
+    // read entire file into memory
+    _, err = file.Read(buff)
+    if err != nil {
+        fmt.Println("Error reading file into buffer: ", err)
+        os.Exit(1)
+    }
+
+    // key length integer should always fit in 1 byte
     var keyLen uint8
-    // value length integer should always fit in 16 bits
+    // value length integer should always fit in 2 bytes
     var valLen uint16
+    
+    var offset uint
 
-    // this should iterate until the end of the file
-    for {
-        // read length of key, use length to read in key
-        err = binary.Read(file, binary.LittleEndian, &keyLen)
-        // End Of File error should only ever happen here
-        if err == io.EOF {
-            break
-        }
-        if err != nil {
-            fmt.Println("Error reading keyLen binary: ", err)
-            os.Exit(1)
-        }
-        keyBytes := make([]byte, keyLen)
-        _, err = file.Read(keyBytes)
-        if err != nil {
-            fmt.Println("Error reading in keyBytes: ", err)
-        }
-
-
-        // read length of value, use length to read in value
-        err = binary.Read(file, binary.LittleEndian, &valLen)
-        if err != nil {
-            fmt.Println("Error reading valLen binary: ", err)
-            os.Exit(1)
-        }
-        valBytes := make([]byte, valLen)
-        _, err = file.Read(valBytes)
-        if err != nil {
-            fmt.Println("Error reading in valBytes: ", err)
-        }
+    // iterate through buffer and deserialize
+    for offset < uint(len(buff)) {
+        // read length of key, use length to read in key, adjust offset
+        keyLen = uint8(buff[offset])
+        offset++
+        kl := uint(keyLen)
+        keyBytes := buff[offset:offset+kl]
+        offset += kl
+        // read length of key, use length to read in key, adjust offset
+        valLen = binary.LittleEndian.Uint16(buff[offset:offset+2])
+        offset += 2
+        vl := uint(valLen)
+        valBytes := buff[offset:offset+vl]
+        offset += kl
 
 
         pathMap[string(keyBytes)] = string(valBytes)
@@ -237,39 +216,39 @@ func jsonUpdate(hashmap map[string]string, file *os.File) {
         os.Exit(1)
     }
 
-
+    var buffer []byte
     for key, val := range hashmap {
 
         keyBytes := []byte(key)
         valBytes := []byte(val)
-        keyLen := uint8(len(keyBytes))
-        valLen := uint16(len(valBytes))
+        keyLen := make([]byte, 1)
+        keyLen[0] = byte(uint8(len(keyBytes)))
+        var valLen []byte
+        binary.LittleEndian.PutUint16(valLen, uint16(len(valBytes)))
 
+        allBytes := [][]byte{keyLen, keyBytes, valLen, valBytes}
+
+        var pairLen int
+        for _, s := range allBytes {
+            pairLen += len(s)
+        }
+        pair := make([]byte, pairLen)
+        var i int
+        for _, s := range allBytes {
+            i += copy(pair[i:], s)
+        }
         
-        err = binary.Write(file, binary.LittleEndian, keyLen)
-        if err != nil {
-            fmt.Println("Error writing keyLen binary: ", err)
-            os.Exit(1)
-        }
-        _, err = file.Write(keyBytes)
-        if err != nil {
-            fmt.Println("Error writing keyBytes binary: ", err)
-            os.Exit(1)
-        }
-
-        err = binary.Write(file, binary.LittleEndian, valLen)
-        if err != nil {
-            fmt.Println("Error writing valLen binary: ", err)
-            os.Exit(1)
-        }
-        _, err = file.Write(valBytes)
-        if err != nil {
-            fmt.Println("Error writing valBytes binary: ", err)
-            os.Exit(1)
-        }
+        allPairs := make([]byte, len(buffer)+len(pair))
+        copy(allPairs, allPairs)
+        copy(allPairs[len(allPairs):], pair)
+        buffer = allPairs
 
     }
 
+    _, err = file.Write(buffer)
+    if err != nil {
+        fmt.Println("Error writing contents of buffer to file: ", err)
+    }
 }
 
 
