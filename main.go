@@ -1,18 +1,15 @@
 package main
 
 import (
-	// "bufio"
 	"encoding/binary"
-	// "encoding/json"
 	"errors"
 	"fmt"
-	"io"
 	"os"
 	"path/filepath"
 	"sort"
 	"strings"
-	// "time"
 )
+
 
 // TODO
 // - rm cmd
@@ -20,12 +17,6 @@ import (
 //          - probably for rn cmd as well
 //      - find way to add user interactivity between child process and parent process
 //          - try using 'trap' in bash to trigger commands based on exe output
-// - investigate data persistence alternatives
-//      - need to test json vs bin files, at maybe 10mb?
-// - explore more efficient ways of reading in data
-//      - should entire file be read into memory one every use?
-//      - what would be the alternative? don't want to use a db, trying to avoid dependencies.
-// - rename json functions to 'data'
 
 
 
@@ -106,25 +97,28 @@ func readMap(file *os.File) map[string]string {
     var keyLen uint8
     // value length integer should always fit in 2 bytes
     var valLen uint16
-    
+    // sliding pointer to navigate buffer
     var offset uint
-
+    
     // iterate through buffer and deserialize
     for offset < uint(len(buff)) {
+
         // read length of key, use length to read in key, adjust offset
+        // simple type conversion since length is only 1 byte and not a []byte
         keyLen = uint8(buff[offset])
         offset++
         kl := uint(keyLen)
         keyBytes := buff[offset:offset+kl]
         offset += kl
-        // read length of key, use length to read in key, adjust offset
+        
+        // read length of value, use length to read in value, adjust offset
+        // length contained in 2 bytes, nedd to convert []byte to a uint16 value
         valLen = binary.LittleEndian.Uint16(buff[offset:offset+2])
         offset += 2
         vl := uint(valLen)
         valBytes := buff[offset:offset+vl]
-        offset += kl
-
-
+        offset += vl
+        // add key-value to map
         pathMap[string(keyBytes)] = string(valBytes)
 
     }
@@ -134,36 +128,8 @@ func readMap(file *os.File) map[string]string {
 }
 
 
-// func ensureJSON(filepath string) {
 
-// 	_, err := os.Stat(filepath)
-// 	if err == nil {
-// 		return
-// 	}
-
-// 	if !os.IsNotExist(err) {
-// 		fmt.Println("Error: ", err)
-// 		os.Exit(1)
-// 	}
-
-// 	newFile, err := os.Create(filepath)
-// 	if err != nil {
-// 		fmt.Println("Error: ", err)
-// 		os.Exit(1)
-// 	}
-
-// 	defer newFile.Close()
-
-// 	_, err = newFile.WriteString("{}")
-// 	if err != nil {
-// 		fmt.Println("Error: ", err)
-// 		os.Exit(1)
-// 	}
-
-// }
-
-
-func ensureJSON(filepath string) *os.File {
+func ensureData(filepath string) *os.File {
 
     file, err := os.OpenFile(filepath, os.O_CREATE|os.O_RDWR, 0644)
     if err != nil {
@@ -176,33 +142,42 @@ func ensureJSON(filepath string) *os.File {
 }
 
 
-// func jsonUpdate(hashmap map[string]string, filepath string) {
+
+
+func dataUpdate(hashmap map[string]string, file *os.File) {
     
-// 	jsonData, err := json.MarshalIndent(hashmap, "", "  ")
-// 	if err != nil {
-// 		fmt.Println("Error marshalling JSON:", err)
-// 		os.Exit(1)
-// 	}
+    var buffer []byte
+    for key, val := range hashmap {
 
-// 	file, err := os.Create(filepath)
-// 	if err != nil {
-// 		fmt.Println("Error creating file:", err)
-// 		os.Exit(1)
-// 	}
+        keyBytes := []byte(key)
+        valBytes := []byte(val)
+        
+        keyLen := make([]byte, 1)
+        keyLen[0] = byte(uint8(len(keyBytes)))
+        
+        valLen := make([]byte,2)
+        binary.LittleEndian.PutUint16(valLen, uint16(len(valBytes)))
 
-// 	defer file.Close()
+        // create an array of array of bytes for optimal concatenation
+        allBytes := [][]byte{keyLen, keyBytes, valLen, valBytes}
 
-// 	_, err = file.Write(jsonData)
-// 	if err != nil {
-// 		fmt.Println("Error writing JSON to file:", err)
-// 		os.Exit(1)
-// 	}
-
-// }
-
-
-
-func jsonUpdate(hashmap map[string]string, file *os.File) {
+        // get the length for key-value pair to allocate memory
+        var pairLen int
+        for _, s := range allBytes {
+            pairLen += len(s)
+        }
+        // create new slice and append all []byte from allBytes
+        pair := make([]byte, pairLen)
+        var i int
+        for _, s := range allBytes {
+            i += copy(pair[i:], s)
+        }
+        // append completed pair to buffer []byte
+        allPairs := make([]byte, len(buffer)+len(pair))
+        copy(allPairs, buffer)
+        copy(allPairs[len(buffer):], pair)
+        buffer = allPairs
+    }
     
     err := file.Truncate(0) 
     if err != nil {
@@ -216,38 +191,10 @@ func jsonUpdate(hashmap map[string]string, file *os.File) {
         os.Exit(1)
     }
 
-    var buffer []byte
-    for key, val := range hashmap {
-
-        keyBytes := []byte(key)
-        valBytes := []byte(val)
-        keyLen := make([]byte, 1)
-        keyLen[0] = byte(uint8(len(keyBytes)))
-        var valLen []byte
-        binary.LittleEndian.PutUint16(valLen, uint16(len(valBytes)))
-
-        allBytes := [][]byte{keyLen, keyBytes, valLen, valBytes}
-
-        var pairLen int
-        for _, s := range allBytes {
-            pairLen += len(s)
-        }
-        pair := make([]byte, pairLen)
-        var i int
-        for _, s := range allBytes {
-            i += copy(pair[i:], s)
-        }
-        
-        allPairs := make([]byte, len(buffer)+len(pair))
-        copy(allPairs, allPairs)
-        copy(allPairs[len(allPairs):], pair)
-        buffer = allPairs
-
-    }
-
     _, err = file.Write(buffer)
     if err != nil {
         fmt.Println("Error writing contents of buffer to file: ", err)
+        os.Exit(1)
     }
 }
 
@@ -285,8 +232,7 @@ func setDirectoryVar(data cmdArgs) {
 	}
 	data.allPaths[data.cmd[1]] = path
 
-    // jsonUpdate(data.allPaths, data.jsonPath)
-    jsonUpdate(data.allPaths, data.file)
+    dataUpdate(data.allPaths, data.file)
     fmt.Printf("Added destination %v", data.cmd[1] )
 
 }
@@ -300,8 +246,7 @@ func displayAllPaths(data cmdArgs) {
 func removeKey(data cmdArgs) {
     
     delete(data.allPaths, data.cmd[1])
-    // jsonUpdate(data.allPaths, data.jsonPath)
-    jsonUpdate(data.allPaths, data.file)
+    dataUpdate(data.allPaths, data.file)
     fmt.Printf("Removed '%v' destination", data.cmd[1])
     
 }
@@ -314,8 +259,7 @@ func renameKey(data cmdArgs) {
     delete(data.allPaths, originalKey)
     data.allPaths[newKey] = path 
 
-    // jsonUpdate(data.allPaths, data.jsonPath)
-    jsonUpdate(data.allPaths, data.file)
+    dataUpdate(data.allPaths, data.file)
     fmt.Printf("%v renamed to %v", originalKey, newKey)
 
 }
@@ -329,7 +273,6 @@ func showHelp(data cmdArgs) {
 type cmdArgs struct {
 	cmd      []string
 	allPaths map[string]string
-	// jsonPath string
     file *os.File
 }
 
@@ -352,27 +295,21 @@ var cmdDesc = map[string]string {
     "help": "you are here :) - Usage: ft help",
 }
 
-// func measureSpeed(start time.Time) {
-//     fmt.Printf("execution took %v", time.Since(start))
-// }
+
 
 func main() {
 
-    // defer measureSpeed(time.Now())
 	
-    // read in json file
+    // read in bin file
 	exePath, err := os.Executable()
 	if err != nil {
 		fmt.Println("Error:", err)
 		os.Exit(1)
 	}
-
-	jsonDirPath := filepath.Dir(exePath)
-	// jsonPath := jsonDirPath + "\\fastTravel.json"
-	jsonPath := jsonDirPath + "\\fastTravel.bin"
-    file := ensureJSON(jsonPath)
+	dataDirPath := filepath.Dir(exePath)
+	dataPath := dataDirPath + "\\fastTravel.bin"
+    file := ensureData(dataPath)
     defer file.Close()
-	// allPaths := readMap(jsonPath)
     allPaths := readMap(file)
 
 	// sanitize input
@@ -393,7 +330,6 @@ func main() {
 	data := cmdArgs{
 		cmd:      inputCommand,
 		allPaths: allPaths,
-		// jsonPath: jsonPath,
         file: file,
 	}
 
