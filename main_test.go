@@ -69,8 +69,9 @@ func TestPassCmd(t *testing.T) {
 		    return
         }
 
-        fmt.Println("passCmd: Success")
 	}
+        
+    fmt.Println("passCmd: Success")
 
 }
 
@@ -157,7 +158,7 @@ func TestSetDirectoryVar(t *testing.T) {
 	}
 
 	setDirectoryVar(data)
-
+    fmt.Println("")
 	expected, _ := os.Getwd()
 	if data.allPaths["testKey"] != expected {
 		t.Errorf("Expected key 'testKey' to have value %s, got %s", expected, data.allPaths["testKey"])
@@ -236,7 +237,7 @@ func TestRemoveKey(t *testing.T) {
 	}
 
 	removeKey(data)
-
+    fmt.Println("")
 	if _, ok := data.allPaths["key1"]; ok {
 		t.Errorf("Expected key 'key1' to be removed")
         fail = true
@@ -277,7 +278,7 @@ func TestRenameKey(t *testing.T) {
 	}
 
 	renameKey(data)
-
+    fmt.Println("")
 	if _, ok := data.allPaths["key1"]; ok {
 		t.Errorf("Expected key 'key1' to be renamed")
         fail = true
@@ -330,7 +331,7 @@ func TestShowHelp(t *testing.T) {
 	os.Stdout = old
     actual := <- outChan
 
-	expected := "\nhelp: you are here :)\nls: display all current key value pairs - Usage: ft ls\nrm: deletes provided key - Usage: ft rm [key]\nrn: renames key to new key - Usage: ft rn [key] [new key]\nset: set current directory path to provided key - Usage: ft set [key]\nto: change directory to provided key's path - Usage: ft to [key]\n\n"
+    expected := "\nhelp: you are here :) - Usage: ft help\nls: display all current key value pairs - Usage: ft ls\nrm: deletes provided key - Usage: ft rm [key]\nrn: renames key to new key - Usage: ft rn [key] [new key]\nset: set current directory path to provided key - Usage: ft set [key]\nto: change directory to provided key's path - Usage: ft to [key]\n\n"
 	if actual != expected {
 		t.Errorf("Expected %s, got %s", expected, actual)
 	} else {
@@ -391,7 +392,7 @@ func TestMainFunc(t *testing.T) {
 	os.Stdout = old
     actual := <- outChan
 
-	expected := "\nhelp: you are here :)\nls: display all current key value pairs - Usage: ft ls\nrm: deletes provided key - Usage: ft rm [key]\nrn: renames key to new key - Usage: ft rn [key] [new key]\nset: set current directory path to provided key - Usage: ft set [key]\nto: change directory to provided key's path - Usage: ft to [key]\n\n"
+    expected := "\nhelp: you are here :) - Usage: ft help\nls: display all current key value pairs - Usage: ft ls\nrm: deletes provided key - Usage: ft rm [key]\nrn: renames key to new key - Usage: ft rn [key] [new key]\nset: set current directory path to provided key - Usage: ft set [key]\nto: change directory to provided key's path - Usage: ft to [key]\n\n"
 	if actual != expected {
 		t.Errorf("Expected %s, got %s", expected, actual)
 	} else {
