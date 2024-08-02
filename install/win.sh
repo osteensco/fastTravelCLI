@@ -22,11 +22,13 @@ FT_EXE_PATH=$(exe_install)
 
 export PATH="$PATH:$FT_EXE_PATH"
 
-# USER_SHELL=""
+# SHELL="echo $SHELL"
 
 
+#if on windows, need to verify if using wsl so 
+#that a symbolic link can be created
 
-bash_install() {
+shell_install() {
     case "$SHELL" in
         *bash*)
             echo "export FT_EXE_PATH=\"$FT_EXE_PATH\"" >> ~/.bashrc
@@ -36,30 +38,10 @@ bash_install() {
             echo "export FT_EXE_PATH=\"$FT_EXE_PATH\"" >> ~/.zshrc
             echo ". ~/$SCRIPT_PATH" >> ~/.zshrc
             ;;
-        *fish*)
-            echo "set -x FT_EXE_PATH \"$FT_EXE_PATH\"" >> ~/.config/fish/config.fish
-            echo "source ~/$SCRIPT_PATH" >> ~/.config/fish/config.fish
-            ;;
-        *csh* | *tcsh*)
-            echo "setenv FT_EXE_PATH \"$FT_EXE_PATH\"" >> ~/.cshrc
-            echo "source ~/$SCRIPT_PATH" >> ~/.cshrc
-            ;;
-        *ksh* | *sh*)
-            echo "export FT_EXE_PATH=\"$FT_EXE_PATH\"" >> ~/.kshrc
-            echo ". ~/$SCRIPT_PATH" >> ~/.kshrc
-            ;;
         *powershell*)
-            # PowerShell profile path varies depending on the version
-            if [ -f "$HOME/Documents/WindowsPowerShell/Microsoft.PowerShell_profile.ps1" ]; then
-                echo "\$FT_EXE_PATH = \"$FT_EXE_PATH\"" >> "$HOME/Documents/WindowsPowerShell/Microsoft.PowerShell_profile.ps1"
-                echo ". '~/$SCRIPT_PATH'" >> "$HOME/Documents/WindowsPowerShell/Microsoft.PowerShell_profile.ps1"
-            elif [ -f "$HOME/Documents/PowerShell/Microsoft.PowerShell_profile.ps1" ]; then
-                echo "\$FT_EXE_PATH = \"$FT_EXE_PATH\"" >> "$HOME/Documents/PowerShell/Microsoft.PowerShell_profile.ps1"
-                echo ". '~/$SCRIPT_PATH'" >> "$HOME/Documents/PowerShell/Microsoft.PowerShell_profile.ps1"
-            else
-                New-Item "$HOME/Documents/WindowsPowerShell/Microsoft.PowerShell_profile.ps1" 
-                echo "\$FT_EXE_PATH = \"$FT_EXE_PATH\"" >> "$HOME/Documents/WindowsPowerShell/Microsoft.PowerShell_profile.ps1"
-                echo ". '~/$SCRIPT_PATH'" >> "$HOME/Documents/WindowsPowerShell/Microsoft.PowerShell_profile.ps1"
+            if [ -f "$PROFILE" ]; then
+                echo "\$FT_EXE_PATH = \"$FT_EXE_PATH\"" >> "$PROFILE"
+                echo ". '~/$SCRIPT_PATH'" >> "$PROFILE"
             fi
             ;;
         *)
@@ -74,7 +56,7 @@ bash_install() {
 
 
 
-bash_install
+shell_install
 
 
 
