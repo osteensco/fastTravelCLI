@@ -3,14 +3,21 @@
 
 ft() {
 
-    start=`date +%s%N`
-    output="$( "$FT_EXE_PATH" "$@" )"
-    echo -E $output; 
-    if [ -e "$output" ]; then 
+    # start=`date +%s%N`
+    
+    temp_output=$(mktemp)
+    
+    "$FT_EXE_PATH" "$@" | tee "$temp_output"
+
+    output="$(tail -n 1 "$temp_output")"
+
+    if [ -d "$output" ]; then 
         cd "$output";
     fi
-    end=`date +%s%N`
-    echo Execution time `expr $end - $start`
+
+    rm "$temp_output"
+    # end=`date +%s%N`
+    # echo Execution time `expr $end - $start`
 }
 
 
