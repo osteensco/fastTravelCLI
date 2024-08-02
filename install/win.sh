@@ -4,7 +4,7 @@
 
 SCRIPT_PATH="ftmain.sh"
 
-TARGET_DIR=$("$HOME/AppData/Local"
+TARGET_DIR="$HOME/AppData/Local"
 
 
 exe_install() {
@@ -22,14 +22,20 @@ FT_EXE_PATH=$(exe_install)
 
 export PATH="$PATH:$FT_EXE_PATH"
 
-# SHELL="echo $SHELL"
+USER_SHELL="echo $SHELL"
+if command -v pwsh &> /dev/null || command -v powershell &> /dev/null; then
+    if (pwsh -Command "& {Write-Output 'PSH'}" &> /dev/null || powershell -Command "& {Write-Output 'PSH'}" &> /dev/null); then
+        USER_SHELL = "powershell"
+    fi
+fi
+
 
 
 #if on windows, need to verify if using wsl so 
 #that a symbolic link can be created
 
 shell_install() {
-    case "$SHELL" in
+    case "$USER_SHELL" in
         *bash*)
             echo "export FT_EXE_PATH=\"$FT_EXE_PATH\"" >> ~/.bashrc
             echo ". ~/$SCRIPT_PATH" >> ~/.bashrc
@@ -45,7 +51,7 @@ shell_install() {
             fi
             ;;
         *)
-            echo "Unrecognized shell. Please add the script to your shell's configuration file manually."
+            echo "Unrecognized shell. Please add the appropriate ftmain.sh to your shell's configuration file manually. Consider submitting a PR as well :)"
             exit 1
             ;;
     esac
