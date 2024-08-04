@@ -30,23 +30,38 @@ FT_EXE_PATH="$TARGET_DIR/fastTravel.exe"
 shell_install() {
     case "$SHELL" in
         *bash*)
-            SCRIPT_PATH="./shells/bash/ftmain.sh"
-            echo "export FT_EXE_PATH=\"$FT_EXE_PATH\"" >> ~/.bashrc
-            echo ". ~/$SCRIPT_PATH" >> ~/.bashrc
+            SCRIPT_PATH="shells/bash/ftmain.sh"
+            CONFIG=~/.bashrc
+            echo "export FT_EXE_PATH=\"$FT_EXE_PATH\"" >> $CONFIG
+            echo ". ~/ftmain.sh" >> $CONFIG
+            echo "export FT_PATH=\"~/ftmain.sh\"" >> $CONFIG
             ;;
         *zsh*)
-            SCRIPT_PATH="./shells/bash/ftmain.sh"
-            echo "export FT_EXE_PATH=\"$FT_EXE_PATH\"" >> ~/.zshrc
-            echo ". ~/$SCRIPT_PATH" >> ~/.zshrc
+            SCRIPT_PATH="shells/bash/ftmain.sh"
+            CONFIG=~/.zshrc
+            echo "export FT_EXE_PATH=\"$FT_EXE_PATH\"" >> $CONFIG
+            echo ". ~/ftmain.sh" >> $CONFIG
+            echo "export FT_PATH=\"~/ftmain.sh\"" >> $CONFIG
             ;;
         *)
-            echo "Unrecognized shell. Please add the appropriate ftmain.sh to your shell's configuration file manually. Consider submitting a PR as well :)"
+            echo "
+                Unrecognized shell. 
+                Please add the appropriate ftmain.sh to your shell's configuration file manually. 
+                Consider submitting a PR as well :)
+            "
             exit 1
             ;;
     esac
+    
+    echo "Adding ftmain.sh to home folder"
+    sudo cp $SCRIPT_PATH ~/.
+    
 
-    sudo cp $SCRIPT_PATH ~/
+    echo "fancy fastTravel ascii here"
 
+
+    echo "Config updated, please source $CONFIG or restart shell"
+    
 }
 
 
