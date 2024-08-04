@@ -2,53 +2,42 @@
 
 
 
-SCRIPT_PATH="ftmain.sh"
 
-TARGET_DIR="$HOME/AppData/Local"
+
+TARGET_DIR="/mnt/c/fastTravelCLI"
+
 
 
 exe_install() {
     
-    ft_dir="$TARGET_DIR/fastTravel"
+    sudo mkdir -p "$TARGET_DIR"
+    echo "Created dir $TARGET_DIR"
 
-    sudo mkdir -p "$ft_dir"
+    echo "Attempting to compile go binary..."
+    go build
 
-    sudo mv ./fastTravel.exe "$ft_dir/" 
+    echo "Moving exe to $TARGET_DIR"
+    sudo mv ./fastTravel.exe "$TARGET_DIR/fastTravel.exe" 
 
-    echo "$ft_dir/fastTravel.exe"
 }
 
-FT_EXE_PATH=$(exe_install)
 
-export PATH="$PATH:$FT_EXE_PATH"
-
-USER_SHELL="echo $SHELL"
-if command -v pwsh &> /dev/null || command -v powershell &> /dev/null; then
-    if (pwsh -Command "& {Write-Output 'PSH'}" &> /dev/null || powershell -Command "& {Write-Output 'PSH'}" &> /dev/null); then
-        USER_SHELL = "powershell"
-    fi
-fi
+exe_install
+FT_EXE_PATH="$TARGET_DIR/fastTravel.exe"
 
 
-
-#if on windows, need to verify if using wsl so 
-#that a symbolic link can be created
 
 shell_install() {
-    case "$USER_SHELL" in
+    case "$SHELL" in
         *bash*)
+            SCRIPT_PATH="./shells/bash/ftmain.sh"
             echo "export FT_EXE_PATH=\"$FT_EXE_PATH\"" >> ~/.bashrc
             echo ". ~/$SCRIPT_PATH" >> ~/.bashrc
             ;;
         *zsh*)
+            SCRIPT_PATH="./shells/bash/ftmain.sh"
             echo "export FT_EXE_PATH=\"$FT_EXE_PATH\"" >> ~/.zshrc
             echo ". ~/$SCRIPT_PATH" >> ~/.zshrc
-            ;;
-        *powershell*)
-            if [ -f "$PROFILE" ]; then
-                echo "\$FT_EXE_PATH = \"$FT_EXE_PATH\"" >> "$PROFILE"
-                echo ". '~/$SCRIPT_PATH'" >> "$PROFILE"
-            fi
             ;;
         *)
             echo "Unrecognized shell. Please add the appropriate ftmain.sh to your shell's configuration file manually. Consider submitting a PR as well :)"
