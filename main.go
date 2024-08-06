@@ -19,7 +19,14 @@ import (
 //          - probably for rn cmd as well
 //      - find way to add user interactivity between child process and parent process
 //          - try using 'trap' in bash to trigger commands based on exe output
-
+// - set cmd
+//      - should tell you if you already have the dir saved
+//      - should tell you if you are about to overwrite a key
+// - features:
+//      - ft ?
+//          - ask fastTravel if the curr dir is saved
+//      - remember prev n directories? n=10?15?20?
+//      - add a spinner?
 
 
 
