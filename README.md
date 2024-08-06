@@ -2,7 +2,7 @@
 
 <h3>CD to a directory super fast</h4>
 
-Instead of remembering the exact dir path, using a fuzzy search, or even a ML model to improve the CD experience, fastTravelCLI saves a destination as a key-value pair, then you can fast travel to that location by just using the key you set.
+Instead of tracking frequently visited directories which will change over time, using a fuzzy search, or even a ML model to improve the cd experience, fastTravelCLI allows you to save a destination as a key-value pair, then you can fast travel to that location by just using the key you set.
 <br></br>
 <br></br>
 
