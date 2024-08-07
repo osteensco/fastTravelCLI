@@ -22,7 +22,11 @@ import (
 // - set cmd
 //      - should tell you if you already have the dir saved
 //      - should tell you if you are about to overwrite a key
+// - rn cmd
+//      - should display error when attempting to rename key that doesn't exist
 // - features:
+//      - ft swap [key1] [key2]
+//          - swaps the dirs of the two keys given
 //      - ft ?
 //          - ask fastTravel if the curr dir is saved
 //      - remember prev n directories? n=10?15?20?
@@ -264,7 +268,12 @@ func renameKey(data cmdArgs) {
     
     originalKey := data.cmd[1]
     newKey := data.cmd[2]
-    path := data.allPaths[originalKey]
+    path, ok := data.allPaths[originalKey]
+    if !ok {
+        err := errors.New(fmt.Sprintf("Cannot rename %v, key does not exist. Run 'ft ls' to see all keys.", originalKey))
+        fmt.Println(err)
+        return
+   }
     delete(data.allPaths, originalKey)
     data.allPaths[newKey] = path 
 
