@@ -14,6 +14,7 @@ import (
 // TODO
 // - tests
 //      - main() test should loop over every command, not just help
+//      - install test should automagically run cleanup.sh
 // - rm cmd
 //      - this cmd should prompt the user to confirm before removing
 //          - probably for rn cmd as well

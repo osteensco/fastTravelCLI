@@ -29,6 +29,11 @@ function T.cleanup()
     os.remove(T["FT_PATH"]) 
     os.rename(T["FT_EXE_PATH_tmp"], T["FT_EXE_PATH"])
     os.rename(T["FT_PATH_tmp"], T["FT_PATH"]) 
+
+    local handle = io.popen("bash \"" .. "./install/tests/cleanup.sh" .. "\" 2>&1")
+    local result = handle:read("*a")
+    assert(type(result) == "string", "cleanup.sh contents read is type " .. type(result) .. " expected string")
+    local success = handle:close()
 end
 
 function T.main()
@@ -44,7 +49,7 @@ function T.main()
     end
     
     T.cleanup()
-    print("to cleanup rc file run cleanup script, usage: ./install/tests/cleanup.sh [profile]")
+    -- print("to cleanup rc file run cleanup script, usage: ./install/tests/cleanup.sh [profile]")
 end
 
 return T

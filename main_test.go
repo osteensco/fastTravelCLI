@@ -340,7 +340,7 @@ func TestShowHelp(t *testing.T) {
 }
 
 func TestMainFunc(t *testing.T) {
-	// Create a temporary executable path
+	// Create a temp dir to run tests in
 	tmpdir, err := os.MkdirTemp("", "testdata")
 	if err != nil {
 		t.Fatalf("Failed to create temp dir: %v", err)
@@ -355,9 +355,7 @@ func TestMainFunc(t *testing.T) {
 	}
 	defer file.Close()
 
-	// Set the executable path for testing
-	os.Args = []string{"ft", "help"}
-
+    // Move working dir to tempdir 
 	oldGetwd, err := os.Getwd()
     if err != nil {
         t.Fatalf("Unable to establish working directory")
@@ -373,13 +371,30 @@ func TestMainFunc(t *testing.T) {
         t.Fatalf("Failed to navigate to temp directory")
     }
 
+    // Create pipe for capturing output
 	old := os.Stdout
-	r, w, _ := os.Pipe()
+	r, w, err := os.Pipe()
+    if err != nil {
+        t.Fatalf("Failed to create pipe for testing main()")
+    }
 	os.Stdout = w
-
+    
+    // this should probably be a loop or go routines
+	os.Args = []string{"ft", "help"}
+	main()
+	os.Args = []string{"ft", "set", "key"}
+	main()
+	os.Args = []string{"ft", "to", "key"}
+	main()
+	os.Args = []string{"ft", "ls"}
+	main()
+	os.Args = []string{"ft", "rn", "key", "key2"}
+	main()
+	os.Args = []string{"ft", "rm", "key2"}
 	main()
 
-    // Use go routine so printing doesn't block program
+    // Move output to a buffer so it can be passed to a queue
+    // Go routine and chan so data transfer doesn't block 
     outChan := make(chan string)
     go func() {
         var buf bytes.Buffer
@@ -387,14 +402,16 @@ func TestMainFunc(t *testing.T) {
         outChan <- buf.String()
             
     }()
-
+    
+    // Capture queue contents for comparison against expected output
 	w.Close()
 	os.Stdout = old
     actual := <- outChan
 
+    //stackoverflow.com/questions/7933460/how-do-you-write-multiline-strings-in-go
     expected := "\nhelp: you are here :) - Usage: ft help\nls: display all current key value pairs - Usage: ft ls\nrm: deletes provided key - Usage: ft rm [key]\nrn: renames key to new key - Usage: ft rn [key] [new key]\nset: set current directory path to provided key - Usage: ft set [key]\nto: change directory to provided key's path - Usage: ft to [key]\n\n"
 	if actual != expected {
-		t.Errorf("Expected %s, got %s", expected, actual)
+		t.Errorf("Expected --> %s\n____________\nGot --> %s", expected, actual)
 	} else {
         fmt.Println("main: Success")
     }
