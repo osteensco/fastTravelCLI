@@ -141,7 +141,20 @@ func readMap(file *os.File) map[string]string {
 
 }
 
+func sanitizeDir(path string) string {
+	distro := os.Getenv("WSL_DISTRO_NAME")
+	if len(distro) == 0 {
 
+    	prefix := "/mnt/"
+        drive := strings.Split(path, ":")[0]
+        path = strings.Replace(path, drive, strings.ToLower(drive), 1)
+        path = strings.Replace(path, ":", "", 1)
+    	path = strings.Replace(path, "\\", "/", -1)
+    	path = prefix + path
+
+	}
+    return path
+}
 
 func ensureData(filepath string) *os.File {
 
@@ -220,19 +233,8 @@ func changeDirectory(data cmdArgs) {
 		os.Exit(1)
 	}
 
-	path := data.allPaths[data.cmd[1]]
-	distro := os.Getenv("WSL_DISTRO_NAME")
-	if len(distro) == 0 {
-
-    	prefix := "/mnt/"
-        drive := strings.Split(path, ":")[0]
-        path = strings.Replace(path, drive, strings.ToLower(drive), 1)
-        path = strings.Replace(path, ":", "", 1)
-    	path = strings.Replace(path, "\\", "/", -1)
-    	path = prefix + path
-
-	}
-
+	p := data.allPaths[data.cmd[1]]
+    path := sanitizeDir(p)
     fmt.Println(path)
 
 }
