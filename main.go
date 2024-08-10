@@ -22,7 +22,7 @@ import (
 //          - try using 'trap' in bash to trigger commands based on exe output
 // - set cmd
 //      - should tell you if you already have the dir saved
-//      - should tell you if you are about to overwrite a key
+//      - should tell you if you are using a key that already exists
 // - rn cmd
 //      - should display error when attempting to rename key that doesn't exist
 // - features:
@@ -34,6 +34,17 @@ import (
 //      - add a spinner?
 
 
+
+func verifyInput(s string) (bool, error) {
+    switch strings.ToLower(s) {
+        case "y":
+            return true, nil
+        case "n":
+            return false, nil
+        default:
+            return false, errors.New(fmt.Sprintf("%v is not a valid response, please type y/n",s))
+    } 
+}
 
 func printMap(hashmap map[string]string) {
 
@@ -240,16 +251,30 @@ func changeDirectory(data cmdArgs) {
 }
 
 func setDirectoryVar(data cmdArgs) {
-
+    
+    key := data.cmd[1]
 	path, err := os.Getwd()
 	if err != nil {
 		fmt.Println("Error:", err)
 		os.Exit(1)
 	}
-	data.allPaths[data.cmd[1]] = path
 
-    dataUpdate(data.allPaths, data.file)
-    fmt.Printf("Added destination %v", data.cmd[1] )
+    for _,v := range data.allPaths {
+        if path == v {
+            fmt.Printf("Path '%v' already exists", path)
+            return
+        }
+    }
+
+    _, ok := data.allPaths[key]
+    if !ok {
+	    data.allPaths[key] = path
+        dataUpdate(data.allPaths, data.file)
+        fmt.Printf("Added destination %v", data.cmd[1] )
+    } else {
+        fmt.Printf("Key '%v' already exists", key)
+    }
+
 
 }
 
@@ -261,9 +286,27 @@ func displayAllPaths(data cmdArgs) {
 
 func removeKey(data cmdArgs) {
     
-    delete(data.allPaths, data.cmd[1])
+    var res string
+    key := data.cmd[1]
+
+    fmt.Printf("Are you sure you want to remove the key '%v'?", key)
+    _, err := fmt.Scan(&res)
+    if err != nil {
+		fmt.Println("Error:", err)
+		os.Exit(1) 
+    }
+    if rm, err := verifyInput(res); rm {
+        fmt.Printf("Aborted removal of key %v", key)
+        return
+    } else {
+        if err != nil {
+            fmt.Println("Error:", err)
+            os.Exit(1) 
+        }
+    }
+    delete(data.allPaths, key)
     dataUpdate(data.allPaths, data.file)
-    fmt.Printf("Removed '%v' destination", data.cmd[1])
+    fmt.Printf("Removed '%v' destination", key)
     
 }
 
@@ -271,12 +314,36 @@ func renameKey(data cmdArgs) {
     
     originalKey := data.cmd[1]
     newKey := data.cmd[2]
+    
+    _, ok := data.allPaths[newKey]
+    if ok {
+        fmt.Printf("Key %v already exists, please choose something else.", newKey)
+        return
+    }
     path, ok := data.allPaths[originalKey]
     if !ok {
         err := errors.New(fmt.Sprintf("Cannot rename %v, key does not exist. Run 'ft ls' to see all keys.", originalKey))
         fmt.Println(err)
         return
-   }
+    }
+    
+    var res string
+    
+    fmt.Printf("Are you sure you want to rename the key '%v'?", newKey)
+    _, err := fmt.Scan(&res)
+    if err != nil {
+		fmt.Println("Error:", err)
+		os.Exit(1) 
+    }
+    if rm, err := verifyInput(res); rm {
+        fmt.Printf("Aborted renaming of key %v", newKey)
+        return
+    } else {
+        if err != nil {
+            fmt.Println("Error:", err)
+            os.Exit(1) 
+        }
+    }
     delete(data.allPaths, originalKey)
     data.allPaths[newKey] = path 
 
