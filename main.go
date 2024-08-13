@@ -289,7 +289,7 @@ func removeKey(data cmdArgs) {
     }
     if rm, err := verifyInput(res); rm {
         fmt.Printf("Aborted removal of key %v", key)
-        return
+        os.Exit(1)
     } else {
         if err != nil {
             fmt.Println("Error:", err)
@@ -310,13 +310,13 @@ func renameKey(data cmdArgs) {
     _, ok := data.allPaths[newKey]
     if ok {
         fmt.Printf("Key %v already exists, please choose something else.", newKey)
-        return
+        os.Exit(1)
     }
     path, ok := data.allPaths[originalKey]
     if !ok {
         err := errors.New(fmt.Sprintf("Cannot rename %v, key does not exist. Run 'ft ls' to see all keys.", originalKey))
         fmt.Println(err)
-        return
+        os.Exit(1)
     }
     
     var res string
@@ -329,7 +329,7 @@ func renameKey(data cmdArgs) {
     }
     if rm, err := verifyInput(res); rm {
         fmt.Printf("Aborted renaming of key %v", newKey)
-        return
+        os.Exit(1)
     } else {
         if err != nil {
             fmt.Println("Error:", err)

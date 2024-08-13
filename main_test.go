@@ -91,6 +91,60 @@ func equalSlices(a, b []string) bool {
 	return true
 }
 
+func TestVerifyInput(t *testing.T) {
+    tests := []struct {
+        expected bool
+        data cmdArgs
+        wantErr bool
+    }{
+        {
+            true,
+            cmdArgs{
+                cmd: []string{},
+                allPaths: map[string]string{},
+                file: nil,
+                rdr: strings.NewReader("y"),
+            },
+            false,
+        },
+        {
+            false,
+            cmdArgs{
+                cmd: []string{},
+                allPaths: map[string]string{},
+                file: nil,
+                rdr: strings.NewReader("n"),
+            },
+            false,
+        },
+        {
+            false,
+            cmdArgs{
+                cmd: []string{},
+                allPaths: map[string]string{},
+                file: nil,
+                rdr: strings.NewReader("x\n"),
+            },
+            true,
+        },
+    }
+
+    for _, tt := range tests {
+        var res string
+        fmt.Fscan(tt.data.rdr, &res)
+        actual, err := verifyInput(res)
+        if !tt.wantErr && err != nil {
+            fmt.Println("Error:", err)
+            os.Exit(1) 
+        }
+        if actual != tt.expected {
+            t.Errorf("-> Expected --> %v\n____________\nGot --> %v", tt.expected, actual)
+        }
+
+    }
+
+}
+
 func TestEnsureData(t *testing.T) {
 	// Create a temporary directory for testing
 	tmpdir, err := os.MkdirTemp("", "testdata")
