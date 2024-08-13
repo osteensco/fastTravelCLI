@@ -2,3 +2,5 @@ stage/
 prod/
 fastTravel.exe
 fastTravel.json
+test.sh
+install/tests/test.lua

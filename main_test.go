@@ -6,6 +6,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 )
 
@@ -17,7 +18,10 @@ func TestPrintMap(t *testing.T) {
 
 	// Redirect stdout to capture the output
 	old := os.Stdout
-	r, w, _ := os.Pipe()
+	r, w, err := os.Pipe()
+    if err != nil {
+        t.Fatalf("Failed to create pipe for testing printMap()")
+    }
 	os.Stdout = w
 
 	printMap(hashmap)
@@ -61,11 +65,11 @@ func TestPassCmd(t *testing.T) {
 	for _, tt := range tests {
 		got, err := passCmd(tt.args)
 		if (err != nil) != tt.wantErr {
-			t.Errorf("passCmd() error = %v, wantErr %v", err, tt.wantErr)
+            t.Errorf("passCmd err %v, want err: %v", err, tt.wantErr)
 			return
 		}
 		if !tt.wantErr && !equalSlices(got, tt.want) {
-			t.Errorf("passCmd() = %v, want %v", got, tt.want)
+            t.Errorf("passCmd Args: %v\nexpected: %v\ngot:%v\n_________\n", tt.args, tt.want, got)
 		    return
         }
 
@@ -85,6 +89,60 @@ func equalSlices(a, b []string) bool {
 		}
 	}
 	return true
+}
+
+func TestVerifyInput(t *testing.T) {
+    tests := []struct {
+        expected bool
+        data cmdArgs
+        wantErr bool
+    }{
+        {
+            true,
+            cmdArgs{
+                cmd: []string{},
+                allPaths: map[string]string{},
+                file: nil,
+                rdr: strings.NewReader("y"),
+            },
+            false,
+        },
+        {
+            false,
+            cmdArgs{
+                cmd: []string{},
+                allPaths: map[string]string{},
+                file: nil,
+                rdr: strings.NewReader("n"),
+            },
+            false,
+        },
+        {
+            false,
+            cmdArgs{
+                cmd: []string{},
+                allPaths: map[string]string{},
+                file: nil,
+                rdr: strings.NewReader("x\n"),
+            },
+            true,
+        },
+    }
+
+    for _, tt := range tests {
+        var res string
+        fmt.Fscan(tt.data.rdr, &res)
+        actual, err := verifyInput(res)
+        if !tt.wantErr && err != nil {
+            fmt.Println("Error:", err)
+            os.Exit(1) 
+        }
+        if actual != tt.expected {
+            t.Errorf("-> Expected --> %v\n____________\nGot --> %v", tt.expected, actual)
+        }
+
+    }
+
 }
 
 func TestEnsureData(t *testing.T) {
@@ -113,6 +171,7 @@ func TestChangeDirectory(t *testing.T) {
 			"testKey": "C:\\Users\\Test\\Documents",
 		},
 		file: nil,
+        rdr: nil,
 	}
 
 	old := os.Stdout
@@ -155,10 +214,15 @@ func TestSetDirectoryVar(t *testing.T) {
 		cmd:      []string{"set", "testKey"},
 		allPaths: make(map[string]string),
 		file:     tmpfile,
+        rdr: nil,
 	}
 
+    stdout := os.Stdout
+    _,w,_ := os.Pipe()
+    os.Stdout = w
 	setDirectoryVar(data)
-    fmt.Println("")
+    os.Stdout = stdout
+
 	expected, _ := os.Getwd()
 	if data.allPaths["testKey"] != expected {
 		t.Errorf("Expected key 'testKey' to have value %s, got %s", expected, data.allPaths["testKey"])
@@ -185,10 +249,13 @@ func TestSetDirectoryVar(t *testing.T) {
 
 func TestDisplayAllPaths(t *testing.T) {
 	data := cmdArgs{
+        cmd: []string{"ls"},
 		allPaths: map[string]string{
 			"key1": "value1",
 			"key2": "value2",
 		},
+        file: nil,
+        rdr: nil,
 	}
 
 	old := os.Stdout
@@ -227,6 +294,7 @@ func TestRemoveKey(t *testing.T) {
 	defer os.Remove(tmpfile.Name())
 	defer tmpfile.Close()
 
+    input := "y"
 	data := cmdArgs{
 		cmd: []string{"rm", "key1"},
 		allPaths: map[string]string{
@@ -234,10 +302,14 @@ func TestRemoveKey(t *testing.T) {
 			"key2": "value2",
 		},
 		file: tmpfile,
-	}
-
+	    rdr: strings.NewReader(input),
+    }
+    stdout := os.Stdout
+    _,w,_ := os.Pipe()
+    os.Stdout = w
 	removeKey(data)
-    fmt.Println("")
+    os.Stdout = stdout
+    // fmt.Println("")
 	if _, ok := data.allPaths["key1"]; ok {
 		t.Errorf("Expected key 'key1' to be removed")
         fail = true
@@ -268,17 +340,23 @@ func TestRenameKey(t *testing.T) {
 	}
 	defer os.Remove(tmpfile.Name())
 	defer tmpfile.Close()
-
+    
+    input := "y"
 	data := cmdArgs{
 		cmd: []string{"rn", "key1", "newKey"},
 		allPaths: map[string]string{
 			"key1": "value1",
 		},
 		file: tmpfile,
-	}
+        rdr: strings.NewReader(input),
+    }
 
+    stdout := os.Stdout
+    _,w,_ := os.Pipe()
+    os.Stdout = w
 	renameKey(data)
-    fmt.Println("")
+    os.Stdout = stdout
+
 	if _, ok := data.allPaths["key1"]; ok {
 		t.Errorf("Expected key 'key1' to be renamed")
         fail = true
@@ -310,7 +388,12 @@ func TestRenameKey(t *testing.T) {
 }
 
 func TestShowHelp(t *testing.T) {
-	data := cmdArgs{}
+	data := cmdArgs{
+		cmd: []string{"help"},
+		allPaths: map[string]string{},
+		file: nil,
+        rdr: nil,
+    }
 
 	old := os.Stdout
 	r, w, _ := os.Pipe()
@@ -340,11 +423,12 @@ func TestShowHelp(t *testing.T) {
 }
 
 func TestMainFunc(t *testing.T) {
-	// Create a temporary executable path
+	// Create a temp dir to run tests in
 	tmpdir, err := os.MkdirTemp("", "testdata")
-	if err != nil {
+    if err != nil {
 		t.Fatalf("Failed to create temp dir: %v", err)
 	}
+    tmpdir = strings.Trim(tmpdir, " ")
 	defer os.RemoveAll(tmpdir)
 
 	// Create a dummy binary file
@@ -355,9 +439,7 @@ func TestMainFunc(t *testing.T) {
 	}
 	defer file.Close()
 
-	// Set the executable path for testing
-	os.Args = []string{"ft", "help"}
-
+    // Move working dir to tempdir 
 	oldGetwd, err := os.Getwd()
     if err != nil {
         t.Fatalf("Unable to establish working directory")
@@ -372,32 +454,80 @@ func TestMainFunc(t *testing.T) {
     if err != nil {
         t.Fatalf("Failed to navigate to temp directory")
     }
+	
+    tests := []struct {
+		args    []string
+		expected    string
+	}{
+		{
+            []string{"ft", "help"}, 
+            "\nhelp: you are here :) - Usage: ft help\nls: display all current key value pairs - Usage: ft ls\nrm: deletes provided key - Usage: ft rm [key]\nrn: renames key to new key - Usage: ft rn [key] [new key]\nset: set current directory path to provided key - Usage: ft set [key]\nto: change directory to provided key's path - Usage: ft to [key]\n\n", 
+        },
+		{
+            []string{"ft", "set", "key"}, 
+            "Added destination key", 
+        },
+		{
+            []string{"ft", "to", "key"}, 
+            fmt.Sprintf("%v\n",sanitizeDir(tmpdir)), 
+        },
+		{
+            []string{"ft", "ls"},
+            fmt.Sprintf("\nkey: %v\n\n", tmpdir), 
+        },
+		{
+	        []string{"ft", "rn", "key", "key2"},
+            "key renamed to key2", 
+        },
+		{
+	        []string{"ft", "rm", "key2"},
+            "Removed 'key2' destination", 
+        },
+	}
+	
 
-	old := os.Stdout
-	r, w, _ := os.Pipe()
-	os.Stdout = w
+    for _, tt := range tests {
+        
+        // Create pipe for capturing output
+        stdout := os.Stdout
+        r, w, err := os.Pipe()
+        if err != nil {
+            t.Fatalf("Failed to create pipe for testing main()")
+        }
+        os.Stdout = w
+        
+        os.Args = tt.args
+        main()
 
-	main()
+        // Move output to a buffer so it can be passed to a queue
+        // Go routine and chan so data transfer doesn't block 
+        outChan := make(chan string)
+        go func() {
+            var buf bytes.Buffer
+            io.Copy(&buf, r)
+            outChan <- buf.String()
+                
+        }()
+        
+        // Capture queue contents for comparison against expected output
+        w.Close()
+        os.Stdout = stdout
+        actual := <- outChan
+        
 
-    // Use go routine so printing doesn't block program
-    outChan := make(chan string)
-    go func() {
-        var buf bytes.Buffer
-        io.Copy(&buf, r)
-        outChan <- buf.String()
-            
-    }()
+        if actual != tt.expected {
+            t.Errorf("-> ARGS: %v\nExpected --> %v\n____________\nGot --> %v", tt.args, tt.expected, actual)
+        } 
+        
+        
+    }
 
-	w.Close()
-	os.Stdout = old
-    actual := <- outChan
-
-    expected := "\nhelp: you are here :) - Usage: ft help\nls: display all current key value pairs - Usage: ft ls\nrm: deletes provided key - Usage: ft rm [key]\nrn: renames key to new key - Usage: ft rn [key] [new key]\nset: set current directory path to provided key - Usage: ft set [key]\nto: change directory to provided key's path - Usage: ft to [key]\n\n"
-	if actual != expected {
-		t.Errorf("Expected %s, got %s", expected, actual)
-	} else {
+    if !t.Failed() {
         fmt.Println("main: Success")
     }
+
+
+
 }
 
 

@@ -57,7 +57,14 @@ shell_install() {
     sudo cp $SCRIPT_PATH ~/.
     
 
-    echo "fancy fastTravel ascii here"
+    echo """
+     __           _  _____                     _   ___   __   _____ 
+    / _| ____ ___| |/__   \___  ______   _____| | / __\ / /   \_   \ 
+   | |_ / _  / __| __|/ /\/  _\/ _  \ \ / / _ \ |/ /   / /     / /\/ 
+   |  _| (_| \__ \ |_/ /  | | | (_| |\ V /  __/ / /___/ /___/\/ /_  
+   |_|  \__._|___/\__\/   |_|  \__._| \_/ \___|_\____/\____/\____/  
+                                                                    
+    """
 
 
     echo "Config updated, please source $CONFIG or restart shell"

@@ -4,31 +4,39 @@ import (
 	"encoding/binary"
 	"errors"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"sort"
 	"strings"
 )
 
-
 // TODO
+// ***FIX TESTS TO ACCOUNT FOR EDGE CASES***
 // - tests
-//      - main() test should loop over every command, not just help
-// - rm cmd
-//      - this cmd should prompt the user to confirm before removing
-//          - probably for rn cmd as well
-//      - find way to add user interactivity between child process and parent process
-//          - try using 'trap' in bash to trigger commands based on exe output
-// - set cmd
-//      - should tell you if you already have the dir saved
-//      - should tell you if you are about to overwrite a key
+//      - currently focuses on happy path
+//      - add tests for edge cases
+
 // - features:
+//      - ft swap [key1] [key2]
+//          - swaps the dirs of the two keys given
 //      - ft ?
 //          - ask fastTravel if the curr dir is saved
 //      - remember prev n directories? n=10?15?20?
 //      - add a spinner?
 
 
+
+func verifyInput(s string) (bool, error) {
+    switch strings.ToLower(s) {
+        case "y":
+            return true, nil
+        case "n":
+            return false, nil
+        default:
+            return false, errors.New(fmt.Sprintf("%v is not a valid response, please type y/n",s))
+    } 
+}
 
 func printMap(hashmap map[string]string) {
 
@@ -136,7 +144,20 @@ func readMap(file *os.File) map[string]string {
 
 }
 
+func sanitizeDir(path string) string {
+	distro := os.Getenv("WSL_DISTRO_NAME")
+	if len(distro) == 0 {
 
+    	prefix := "/mnt/"
+        drive := strings.Split(path, ":")[0]
+        path = strings.Replace(path, drive, strings.ToLower(drive), 1)
+        path = strings.Replace(path, ":", "", 1)
+    	path = strings.Replace(path, "\\", "/", -1)
+    	path = prefix + path
+
+	}
+    return path
+}
 
 func ensureData(filepath string) *os.File {
 
@@ -215,34 +236,37 @@ func changeDirectory(data cmdArgs) {
 		os.Exit(1)
 	}
 
-	path := data.allPaths[data.cmd[1]]
-	distro := os.Getenv("WSL_DISTRO_NAME")
-	if len(distro) == 0 {
-
-    	prefix := "/mnt/"
-        drive := strings.Split(path, ":")[0]
-        path = strings.Replace(path, drive, strings.ToLower(drive), 1)
-        path = strings.Replace(path, ":", "", 1)
-    	path = strings.Replace(path, "\\", "/", -1)
-    	path = prefix + path
-
-	}
-
+	p := data.allPaths[data.cmd[1]]
+    path := sanitizeDir(p)
     fmt.Println(path)
 
 }
 
 func setDirectoryVar(data cmdArgs) {
-
+    
+    key := data.cmd[1]
 	path, err := os.Getwd()
 	if err != nil {
 		fmt.Println("Error:", err)
 		os.Exit(1)
 	}
-	data.allPaths[data.cmd[1]] = path
 
-    dataUpdate(data.allPaths, data.file)
-    fmt.Printf("Added destination %v", data.cmd[1] )
+    for _,v := range data.allPaths {
+        if path == v {
+            fmt.Printf("Path '%v' already exists", path)
+            return
+        }
+    }
+
+    _, ok := data.allPaths[key]
+    if !ok {
+	    data.allPaths[key] = path
+        dataUpdate(data.allPaths, data.file)
+        fmt.Printf("Added destination %v", data.cmd[1] )
+    } else {
+        fmt.Printf("Key '%v' already exists", key)
+    }
+
 
 }
 
@@ -254,9 +278,27 @@ func displayAllPaths(data cmdArgs) {
 
 func removeKey(data cmdArgs) {
     
-    delete(data.allPaths, data.cmd[1])
+    var res string
+    key := data.cmd[1]
+
+    fmt.Printf("Are you sure you want to remove the key '%v'?", key)
+    _, err := fmt.Fscan(data.rdr, &res)
+    if err != nil {
+		fmt.Println("Error:", err)
+		os.Exit(1) 
+    }
+    if rm, err := verifyInput(res); rm {
+        fmt.Printf("Aborted removal of key %v", key)
+        os.Exit(1)
+    } else {
+        if err != nil {
+            fmt.Println("Error:", err)
+            os.Exit(1) 
+        }
+    }
+    delete(data.allPaths, key)
     dataUpdate(data.allPaths, data.file)
-    fmt.Printf("Removed '%v' destination", data.cmd[1])
+    fmt.Printf("Removed '%v' destination", key)
     
 }
 
@@ -264,7 +306,36 @@ func renameKey(data cmdArgs) {
     
     originalKey := data.cmd[1]
     newKey := data.cmd[2]
-    path := data.allPaths[originalKey]
+    
+    _, ok := data.allPaths[newKey]
+    if ok {
+        fmt.Printf("Key %v already exists, please choose something else.", newKey)
+        os.Exit(1)
+    }
+    path, ok := data.allPaths[originalKey]
+    if !ok {
+        err := errors.New(fmt.Sprintf("Cannot rename %v, key does not exist. Run 'ft ls' to see all keys.", originalKey))
+        fmt.Println(err)
+        os.Exit(1)
+    }
+    
+    var res string
+    
+    fmt.Printf("Are you sure you want to rename the key '%v'?", newKey)
+    _, err := fmt.Fscan(data.rdr, &res)
+    if err != nil {
+		fmt.Println("Error:", err)
+		os.Exit(1) 
+    }
+    if rm, err := verifyInput(res); rm {
+        fmt.Printf("Aborted renaming of key %v", newKey)
+        os.Exit(1)
+    } else {
+        if err != nil {
+            fmt.Println("Error:", err)
+            os.Exit(1) 
+        }
+    }
     delete(data.allPaths, originalKey)
     data.allPaths[newKey] = path 
 
@@ -283,6 +354,7 @@ type cmdArgs struct {
 	cmd      []string
 	allPaths map[string]string
     file *os.File
+    rdr io.Reader
 }
 
 // map of available commands
@@ -340,8 +412,9 @@ func main() {
 		cmd:      inputCommand,
 		allPaths: allPaths,
         file: file,
+        rdr: os.Stdin,
 	}
-
+    
 	exeCmd(data)
 
 }
