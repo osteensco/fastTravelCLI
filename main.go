@@ -4,27 +4,19 @@ import (
 	"encoding/binary"
 	"errors"
 	"fmt"
+	"io"
 	"os"
 	"path/filepath"
 	"sort"
 	"strings"
 )
 
-
 // TODO
+// ***FIX TESTS TO ACCOUNT FOR EDGE CASES***
 // - tests
-//      - main() test should loop over every command, not just help
-//      - install test should automagically run cleanup.sh
-// - rm cmd
-//      - this cmd should prompt the user to confirm before removing
-//          - probably for rn cmd as well
-//      - find way to add user interactivity between child process and parent process
-//          - try using 'trap' in bash to trigger commands based on exe output
-// - set cmd
-//      - should tell you if you already have the dir saved
-//      - should tell you if you are using a key that already exists
-// - rn cmd
-//      - should display error when attempting to rename key that doesn't exist
+//      - currently focuses on happy path
+//      - add tests for edge cases
+
 // - features:
 //      - ft swap [key1] [key2]
 //          - swaps the dirs of the two keys given
@@ -290,7 +282,7 @@ func removeKey(data cmdArgs) {
     key := data.cmd[1]
 
     fmt.Printf("Are you sure you want to remove the key '%v'?", key)
-    _, err := fmt.Scan(&res)
+    _, err := fmt.Fscan(data.rdr, &res)
     if err != nil {
 		fmt.Println("Error:", err)
 		os.Exit(1) 
@@ -330,7 +322,7 @@ func renameKey(data cmdArgs) {
     var res string
     
     fmt.Printf("Are you sure you want to rename the key '%v'?", newKey)
-    _, err := fmt.Scan(&res)
+    _, err := fmt.Fscan(data.rdr, &res)
     if err != nil {
 		fmt.Println("Error:", err)
 		os.Exit(1) 
@@ -362,6 +354,7 @@ type cmdArgs struct {
 	cmd      []string
 	allPaths map[string]string
     file *os.File
+    rdr io.Reader
 }
 
 // map of available commands
@@ -419,8 +412,9 @@ func main() {
 		cmd:      inputCommand,
 		allPaths: allPaths,
         file: file,
+        rdr: os.Stdin,
 	}
-
+    
 	exeCmd(data)
 
 }

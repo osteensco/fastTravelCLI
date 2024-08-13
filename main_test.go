@@ -117,6 +117,7 @@ func TestChangeDirectory(t *testing.T) {
 			"testKey": "C:\\Users\\Test\\Documents",
 		},
 		file: nil,
+        rdr: nil,
 	}
 
 	old := os.Stdout
@@ -159,6 +160,7 @@ func TestSetDirectoryVar(t *testing.T) {
 		cmd:      []string{"set", "testKey"},
 		allPaths: make(map[string]string),
 		file:     tmpfile,
+        rdr: nil,
 	}
 
     stdout := os.Stdout
@@ -193,10 +195,13 @@ func TestSetDirectoryVar(t *testing.T) {
 
 func TestDisplayAllPaths(t *testing.T) {
 	data := cmdArgs{
+        cmd: []string{"ls"},
 		allPaths: map[string]string{
 			"key1": "value1",
 			"key2": "value2",
 		},
+        file: nil,
+        rdr: nil,
 	}
 
 	old := os.Stdout
@@ -235,6 +240,7 @@ func TestRemoveKey(t *testing.T) {
 	defer os.Remove(tmpfile.Name())
 	defer tmpfile.Close()
 
+    input := "y"
 	data := cmdArgs{
 		cmd: []string{"rm", "key1"},
 		allPaths: map[string]string{
@@ -242,7 +248,8 @@ func TestRemoveKey(t *testing.T) {
 			"key2": "value2",
 		},
 		file: tmpfile,
-	}
+	    rdr: strings.NewReader(input),
+    }
     stdout := os.Stdout
     _,w,_ := os.Pipe()
     os.Stdout = w
@@ -279,14 +286,16 @@ func TestRenameKey(t *testing.T) {
 	}
 	defer os.Remove(tmpfile.Name())
 	defer tmpfile.Close()
-
+    
+    input := "y"
 	data := cmdArgs{
 		cmd: []string{"rn", "key1", "newKey"},
 		allPaths: map[string]string{
 			"key1": "value1",
 		},
 		file: tmpfile,
-	}
+        rdr: strings.NewReader(input),
+    }
 
     stdout := os.Stdout
     _,w,_ := os.Pipe()
@@ -325,7 +334,12 @@ func TestRenameKey(t *testing.T) {
 }
 
 func TestShowHelp(t *testing.T) {
-	data := cmdArgs{}
+	data := cmdArgs{
+		cmd: []string{"help"},
+		allPaths: map[string]string{},
+		file: nil,
+        rdr: nil,
+    }
 
 	old := os.Stdout
 	r, w, _ := os.Pipe()
