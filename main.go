@@ -17,7 +17,14 @@ import (
 //      - currently focuses on happy path
 //      - add tests for edge cases
 
+// - flags
+//      - flags for commands, like -h
+//      - global flags like -v
+//          - essentially shortcuts for other commands
+
 // - features:
+//      - ft version
+//      - ft update
 //      - ft swap [key1] [key2]
 //          - swaps the dirs of the two keys given
 //      - ft ?
