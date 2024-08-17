@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+    
     "github.com/osteensco/fastTravelCLI/ft"
 )
 
@@ -48,12 +49,12 @@ func main() {
 	}
 	dataDirPath := filepath.Dir(exePath)
 	dataPath := dataDirPath + "\\fastTravel.bin"
-    file := ft.ensureData(dataPath)
+    file := ft.EnsureData(dataPath)
     defer file.Close()
-    allPaths := ft.readMap(file)
+    allPaths := ft.ReadMap(file)
 
 	// sanitize input
-    inputCommand, err := ft.passCmd(os.Args)
+    inputCommand, err := ft.PassCmd(os.Args)
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
@@ -61,17 +62,17 @@ func main() {
 	action := inputCommand[0]
 
 	// execute user provided action
-	exeCmd, ok := ft.availCmds[action]
+	exeCmd, ok := ft.AvailCmds[action]
 	if !ok {
 		fmt.Println("Invalid command, use 'help' for available commands.")
 		os.Exit(1)
 	}
 
-	data := ft.cmdArgs{
+	data := ft.CmdArgs{
 		cmd:      inputCommand,
 		allPaths: allPaths,
-        file: file,
-        rdr: os.Stdin,
+        file:     file,
+        rdr:      os.Stdin,
 	}
     
 	exeCmd(data)

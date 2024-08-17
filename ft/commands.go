@@ -8,11 +8,11 @@ import (
 
 
 
-func passCmd(args []string) ([]string, error) {
+func PassCmd(args []string) ([]string, error) {
     
     cmd := args[1]
 
-    _, ok := availCmds[cmd]
+    _, ok := AvailCmds[cmd]
     if !ok {
         return nil, errors.New(fmt.Sprintf("%v is not a valid command, use 'ft help' for valid commands", cmd))
     }
@@ -35,7 +35,7 @@ func passCmd(args []string) ([]string, error) {
 
 }
 
-func changeDirectory(data cmdArgs) {
+func changeDirectory(data CmdArgs) {
 
 	if len(data.allPaths) == 0 {
 		fmt.Printf("No fast travel locations set, set locations by navigating to desired destination directory and using 'ft set <key>' ")
@@ -43,12 +43,12 @@ func changeDirectory(data cmdArgs) {
 	}
 
 	p := data.allPaths[data.cmd[1]]
-	path := sanitizeDir(p)
+	path := SanitizeDir(p)
 	fmt.Println(path)
 
 }
 
-func setDirectoryVar(data cmdArgs) {
+func setDirectoryVar(data CmdArgs) {
 
 	key := data.cmd[1]
 	path, err := os.Getwd()
@@ -75,13 +75,13 @@ func setDirectoryVar(data cmdArgs) {
 
 }
 
-func displayAllPaths(data cmdArgs) {
+func displayAllPaths(data CmdArgs) {
 
 	printMap(data.allPaths)
 
 }
 
-func removeKey(data cmdArgs) {
+func removeKey(data CmdArgs) {
 
 	var res string
 	key := data.cmd[1]
@@ -107,7 +107,7 @@ func removeKey(data cmdArgs) {
 
 }
 
-func renameKey(data cmdArgs) {
+func renameKey(data CmdArgs) {
 
 	originalKey := data.cmd[1]
 	newKey := data.cmd[2]
@@ -149,7 +149,7 @@ func renameKey(data cmdArgs) {
 
 }
 
-func showHelp(data cmdArgs) {
+func showHelp(data CmdArgs) {
 
 	printMap(cmdDesc)
 

@@ -8,7 +8,7 @@ import (
 
 
 // api
-type cmdArgs struct {
+type CmdArgs struct {
 	cmd      []string
 	allPaths map[string]string
     file *os.File
@@ -16,7 +16,7 @@ type cmdArgs struct {
 }
 
 // map of available commands
-var availCmds = map[string]func(data cmdArgs){
+var AvailCmds = map[string]func(data CmdArgs){
 	"to":  changeDirectory,
 	"set": setDirectoryVar,
 	"ls":  displayAllPaths,

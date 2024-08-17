@@ -1,3 +1,3 @@
-module github.com/osteensco/fastTravel
+module github.com/osteensco/fastTravelCLI
 
 go 1.20
