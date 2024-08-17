@@ -92,7 +92,7 @@ func removeKey(data *CmdArgs) {
 		fmt.Println("Error:", err)
 		os.Exit(1)
 	}
-	if rm, err := verifyInput(res); rm {
+	if rm, err := verifyInput(res); !rm {
 		fmt.Printf("Aborted removal of key %v", key)
 		os.Exit(1)
 	} else {
@@ -132,7 +132,7 @@ func renameKey(data *CmdArgs) {
 		fmt.Println("Error:", err)
 		os.Exit(1)
 	}
-	if rm, err := verifyInput(res); rm {
+	if rm, err := verifyInput(res); !rm {
 		fmt.Printf("Aborted renaming of key %v", newKey)
 		os.Exit(1)
 	} else {

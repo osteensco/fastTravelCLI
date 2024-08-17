@@ -175,7 +175,7 @@ func TestRemoveKey(t *testing.T) {
 	defer tmpfile.Close()
 
     input := "y"
-	data := NewCmdArgs(
+	data := &CmdArgs{
 		[]string{"rm", "key1"},
 		map[string]string{
 			"key1": "value1",
@@ -183,13 +183,16 @@ func TestRemoveKey(t *testing.T) {
 		},
 		tmpfile,
 	    strings.NewReader(input),
-    )
+    }
     stdout := os.Stdout
-    _,w,_ := os.Pipe()
+    _,w,err := os.Pipe()
+    if err != nil {
+        t.Errorf("Error establishing Pipe: %v", err)
+    }
+ 
     os.Stdout = w
 	removeKey(data)
     os.Stdout = stdout
-    // fmt.Println("")
 	if _, ok := data.allPaths["key1"]; ok {
 		t.Errorf("Expected key 'key1' to be removed")
         fail = true
@@ -232,7 +235,11 @@ func TestRenameKey(t *testing.T) {
     )
 
     stdout := os.Stdout
-    _,w,_ := os.Pipe()
+    _,w,err := os.Pipe()
+    if err != nil {
+        t.Errorf("Error establishing Pipe: %v", err)
+    }
+
     os.Stdout = w
 	renameKey(data)
     os.Stdout = stdout
