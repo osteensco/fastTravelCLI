@@ -15,8 +15,12 @@ type CmdArgs struct {
     rdr io.Reader
 }
 
+func NewCmdArgs(inputCmd []string, allPaths map[string]string, file *os.File, rdr io.Reader) *CmdArgs {
+    return &CmdArgs{inputCmd, allPaths, file, rdr}
+}
+
 // map of available commands
-var AvailCmds = map[string]func(data CmdArgs){
+var AvailCmds = map[string]func(data *CmdArgs){
 	"to":  changeDirectory,
 	"set": setDirectoryVar,
 	"ls":  displayAllPaths,
