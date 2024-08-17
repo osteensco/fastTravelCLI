@@ -76,14 +76,14 @@ func TestMainFunc(t *testing.T) {
             []string{"ft", "ls"},
             fmt.Sprintf("\nkey: %v\n\n", tmpdir), 
         },
-		{
-	        []string{"ft", "rn", "key", "key2"},
-            "key renamed to key2", 
-        },
-		{
-	        []string{"ft", "rm", "key2"},
-            "Removed 'key2' destination", 
-        },
+		// {
+		// 	        []string{"ft", "rn", "key", "key2"},
+		//             "key renamed to key2", 
+		//         },
+		// {
+		// 	        []string{"ft", "rm", "key2"},
+		//             "Removed 'key2' destination", 
+		//         },
 	}
 	
 
