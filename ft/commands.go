@@ -35,7 +35,7 @@ func PassCmd(args []string) ([]string, error) {
 
 }
 
-func changeDirectory(data CmdArgs) {
+func changeDirectory(data *CmdArgs) {
 
 	if len(data.allPaths) == 0 {
 		fmt.Printf("No fast travel locations set, set locations by navigating to desired destination directory and using 'ft set <key>' ")
@@ -48,7 +48,7 @@ func changeDirectory(data CmdArgs) {
 
 }
 
-func setDirectoryVar(data CmdArgs) {
+func setDirectoryVar(data *CmdArgs) {
 
 	key := data.cmd[1]
 	path, err := os.Getwd()
@@ -75,13 +75,13 @@ func setDirectoryVar(data CmdArgs) {
 
 }
 
-func displayAllPaths(data CmdArgs) {
+func displayAllPaths(data *CmdArgs) {
 
 	printMap(data.allPaths)
 
 }
 
-func removeKey(data CmdArgs) {
+func removeKey(data *CmdArgs) {
 
 	var res string
 	key := data.cmd[1]
@@ -107,7 +107,7 @@ func removeKey(data CmdArgs) {
 
 }
 
-func renameKey(data CmdArgs) {
+func renameKey(data *CmdArgs) {
 
 	originalKey := data.cmd[1]
 	newKey := data.cmd[2]
@@ -149,8 +149,10 @@ func renameKey(data CmdArgs) {
 
 }
 
-func showHelp(data CmdArgs) {
+func showHelp(data *CmdArgs) {
 
 	printMap(cmdDesc)
 
 }
+
+

@@ -68,12 +68,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	data := ft.CmdArgs{
-		cmd:      inputCommand,
-		allPaths: allPaths,
-        file:     file,
-        rdr:      os.Stdin,
-	}
+	data := ft.NewCmdArgs(inputCommand, allPaths, file, os.Stdin)
     
 	exeCmd(data)
 

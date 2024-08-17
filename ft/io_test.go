@@ -18,7 +18,7 @@ func TestEnsureData(t *testing.T) {
 	defer os.RemoveAll(tmpdir)
 
 	testFilePath := filepath.Join(tmpdir, "test.bin")
-	file := ensureData(testFilePath)
+	file := EnsureData(testFilePath)
 	defer file.Close()
 
 	if _, err := os.Stat(testFilePath); os.IsNotExist(err) {

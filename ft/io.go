@@ -8,7 +8,7 @@ import (
 
 
 
-func readMap(file *os.File) map[string]string {
+func ReadMap(file *os.File) map[string]string {
 
     pathMap := make(map[string]string)
     
@@ -65,7 +65,7 @@ func readMap(file *os.File) map[string]string {
 }
 
 
-func ensureData(filepath string) *os.File {
+func EnsureData(filepath string) *os.File {
 
     file, err := os.OpenFile(filepath, os.O_CREATE|os.O_RDWR, 0644)
     if err != nil {

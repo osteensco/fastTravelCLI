@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strings"
 	"testing"
-    "strings"
 )
 
 
@@ -45,14 +45,14 @@ func TestPassCmd(t *testing.T) {
 }
 
 func TestChangeDirectory(t *testing.T) {
-	data := CmdArgs{
-		cmd: []string{"to", "testKey"},
-		allPaths: map[string]string{
+    data := NewCmdArgs(
+		[]string{"to", "testKey"},
+		map[string]string{
 			"testKey": "C:\\Users\\Test\\Documents",
 		},
-		file: nil,
-        rdr: nil,
-	}
+		nil,
+        nil,
+    )
 
 	old := os.Stdout
 	r, w, _ := os.Pipe()
@@ -90,12 +90,12 @@ func TestSetDirectoryVar(t *testing.T) {
 	defer os.Remove(tmpfile.Name())
 	defer tmpfile.Close()
 
-	data := CmdArgs{
-		cmd:      []string{"set", "testKey"},
-		allPaths: make(map[string]string),
-		file:     tmpfile,
-        rdr: nil,
-	}
+	data := NewCmdArgs(
+		[]string{"set", "testKey"},
+		make(map[string]string),
+		tmpfile,
+        nil,
+    )
 
     stdout := os.Stdout
     _,w,_ := os.Pipe()
@@ -115,7 +115,7 @@ func TestSetDirectoryVar(t *testing.T) {
 	}
 	defer file.Close()
 
-	result := readMap(file)
+	result := ReadMap(file)
 	if result["testKey"] != expected {
 		t.Errorf("Expected file to have key 'testKey' with value %s, got %s", expected, result["testKey"])
         fail = true
@@ -128,15 +128,15 @@ func TestSetDirectoryVar(t *testing.T) {
 }
 
 func TestDisplayAllPaths(t *testing.T) {
-	data := CmdArgs{
-        cmd: []string{"ls"},
-		allPaths: map[string]string{
+	data := NewCmdArgs(
+        []string{"ls"},
+		map[string]string{
 			"key1": "value1",
 			"key2": "value2",
 		},
-        file: nil,
-        rdr: nil,
-	}
+        nil,
+        nil,
+    )
 
 	old := os.Stdout
 	r, w, _ := os.Pipe()
@@ -175,15 +175,15 @@ func TestRemoveKey(t *testing.T) {
 	defer tmpfile.Close()
 
     input := "y"
-	data := CmdArgs{
-		cmd: []string{"rm", "key1"},
-		allPaths: map[string]string{
+	data := NewCmdArgs(
+		[]string{"rm", "key1"},
+		map[string]string{
 			"key1": "value1",
 			"key2": "value2",
 		},
-		file: tmpfile,
-	    rdr: strings.NewReader(input),
-    }
+		tmpfile,
+	    strings.NewReader(input),
+    )
     stdout := os.Stdout
     _,w,_ := os.Pipe()
     os.Stdout = w
@@ -201,7 +201,7 @@ func TestRemoveKey(t *testing.T) {
 	}
 	defer file.Close()
 
-	result := readMap(file)
+	result := ReadMap(file)
 	if _, ok := result["key1"]; ok {
 		t.Errorf("Expected file to not have key 'key1'")
         fail = true
@@ -222,14 +222,14 @@ func TestRenameKey(t *testing.T) {
 	defer tmpfile.Close()
     
     input := "y"
-	data := CmdArgs{
-		cmd: []string{"rn", "key1", "newKey"},
-		allPaths: map[string]string{
+    data := NewCmdArgs(
+        []string{"rn", "key1", "newKey"},
+        map[string]string{
 			"key1": "value1",
 		},
-		file: tmpfile,
-        rdr: strings.NewReader(input),
-    }
+        tmpfile,
+        strings.NewReader(input),
+    )
 
     stdout := os.Stdout
     _,w,_ := os.Pipe()
@@ -252,7 +252,7 @@ func TestRenameKey(t *testing.T) {
 	}
 	defer file.Close()
 
-	result := readMap(file)
+	result := ReadMap(file)
 	if _, ok := result["key1"]; ok {
 		t.Errorf("Expected file to not have key 'key1'")
         fail = true
@@ -268,12 +268,7 @@ func TestRenameKey(t *testing.T) {
 }
 
 func TestShowHelp(t *testing.T) {
-	data := CmdArgs{
-		cmd: []string{"help"},
-		allPaths: map[string]string{},
-		file: nil,
-        rdr: nil,
-    }
+    data := NewCmdArgs([]string{"help"}, map[string]string{}, nil, nil)
 
 	old := os.Stdout
 	r, w, _ := os.Pipe()

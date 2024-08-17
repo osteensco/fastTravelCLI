@@ -14,7 +14,7 @@ exe_install() {
     echo "Created dir $TARGET_DIR"
 
     echo "Attempting to compile go binary..."
-    go build
+    go build -o fastTravel.exe
 
     echo "Moving exe to $TARGET_DIR"
     sudo mv ./fastTravel.exe "$TARGET_DIR/fastTravel.exe" 
