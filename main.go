@@ -25,6 +25,10 @@ import (
 // - features:
 //      - ft version
 //      - ft update
+//      - ft set ?
+//          - open live fuzzy finder
+//          - interactively set a key
+//          - results matching current entry can be selected with arrow keys and pressing enter
 //      - ft swap [key1] [key2]
 //          - swaps the dirs of the two keys given
 //      - ft ?
