@@ -51,12 +51,12 @@ func TestPrintMap(t *testing.T) {
 func TestVerifyInput(t *testing.T) {
     tests := []struct {
         expected bool
-        data cmdArgs
+        data CmdArgs
         wantErr bool
     }{
         {
             true,
-            cmdArgs{
+            CmdArgs{
                 cmd: []string{},
                 allPaths: map[string]string{},
                 file: nil,
@@ -66,7 +66,7 @@ func TestVerifyInput(t *testing.T) {
         },
         {
             false,
-            cmdArgs{
+            CmdArgs{
                 cmd: []string{},
                 allPaths: map[string]string{},
                 file: nil,
@@ -76,7 +76,7 @@ func TestVerifyInput(t *testing.T) {
         },
         {
             false,
-            cmdArgs{
+            CmdArgs{
                 cmd: []string{},
                 allPaths: map[string]string{},
                 file: nil,

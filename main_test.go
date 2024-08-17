@@ -9,7 +9,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/osteensco/fastTravel/ft"
+	"github.com/osteensco/fastTravelCLI/ft"
 )
 
 
@@ -70,7 +70,7 @@ func TestMainFunc(t *testing.T) {
         },
 		{
             []string{"ft", "to", "key"}, 
-            fmt.Sprintf("%v\n",ft.sanitizeDir(tmpdir)), 
+            fmt.Sprintf("%v\n",ft.SanitizeDir(tmpdir)), 
         },
 		{
             []string{"ft", "ls"},

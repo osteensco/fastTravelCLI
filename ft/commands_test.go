@@ -28,7 +28,7 @@ func TestPassCmd(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		got, err := passCmd(tt.args)
+		got, err := PassCmd(tt.args)
 		if (err != nil) != tt.wantErr {
             t.Errorf("passCmd err %v, want err: %v", err, tt.wantErr)
 			return
@@ -45,7 +45,7 @@ func TestPassCmd(t *testing.T) {
 }
 
 func TestChangeDirectory(t *testing.T) {
-	data := cmdArgs{
+	data := CmdArgs{
 		cmd: []string{"to", "testKey"},
 		allPaths: map[string]string{
 			"testKey": "C:\\Users\\Test\\Documents",
@@ -90,7 +90,7 @@ func TestSetDirectoryVar(t *testing.T) {
 	defer os.Remove(tmpfile.Name())
 	defer tmpfile.Close()
 
-	data := cmdArgs{
+	data := CmdArgs{
 		cmd:      []string{"set", "testKey"},
 		allPaths: make(map[string]string),
 		file:     tmpfile,
@@ -128,7 +128,7 @@ func TestSetDirectoryVar(t *testing.T) {
 }
 
 func TestDisplayAllPaths(t *testing.T) {
-	data := cmdArgs{
+	data := CmdArgs{
         cmd: []string{"ls"},
 		allPaths: map[string]string{
 			"key1": "value1",
@@ -175,7 +175,7 @@ func TestRemoveKey(t *testing.T) {
 	defer tmpfile.Close()
 
     input := "y"
-	data := cmdArgs{
+	data := CmdArgs{
 		cmd: []string{"rm", "key1"},
 		allPaths: map[string]string{
 			"key1": "value1",
@@ -222,7 +222,7 @@ func TestRenameKey(t *testing.T) {
 	defer tmpfile.Close()
     
     input := "y"
-	data := cmdArgs{
+	data := CmdArgs{
 		cmd: []string{"rn", "key1", "newKey"},
 		allPaths: map[string]string{
 			"key1": "value1",
@@ -268,7 +268,7 @@ func TestRenameKey(t *testing.T) {
 }
 
 func TestShowHelp(t *testing.T) {
-	data := cmdArgs{
+	data := CmdArgs{
 		cmd: []string{"help"},
 		allPaths: map[string]string{},
 		file: nil,

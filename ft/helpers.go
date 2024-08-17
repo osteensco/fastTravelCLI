@@ -42,7 +42,7 @@ func printMap(hashmap map[string]string) {
 
 }
 
-func sanitizeDir(path string) string {
+func SanitizeDir(path string) string {
 	distro := os.Getenv("WSL_DISTRO_NAME")
 	if len(distro) == 0 {
 
