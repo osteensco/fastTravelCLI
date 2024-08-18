@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-    
-    "github.com/osteensco/fastTravelCLI/ft"
+
+	"github.com/osteensco/fastTravelCLI/ft"
 )
 
 // TODO
@@ -33,15 +33,9 @@ import (
 //      - remember prev n directories? n=10?15?20?
 //      - add a spinner?
 
-
-
-
-
-
 func main() {
 
-	
-    // read in bin file
+	// read in bin file
 	exePath, err := os.Executable()
 	if err != nil {
 		fmt.Println("Error:", err)
@@ -49,12 +43,12 @@ func main() {
 	}
 	dataDirPath := filepath.Dir(exePath)
 	dataPath := dataDirPath + "\\fastTravel.bin"
-    file := ft.EnsureData(dataPath)
-    defer file.Close()
-    allPaths := ft.ReadMap(file)
+	file := ft.EnsureData(dataPath)
+	defer file.Close()
+	allPaths := ft.ReadMap(file)
 
 	// sanitize input
-    inputCommand, err := ft.PassCmd(os.Args)
+	inputCommand, err := ft.PassCmd(os.Args)
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
@@ -69,7 +63,7 @@ func main() {
 	}
 
 	data := ft.NewCmdArgs(inputCommand, allPaths, file, os.Stdin)
-    
+
 	exeCmd(data)
 
 }
