@@ -6,30 +6,28 @@ import (
 	"os"
 )
 
-
-
 func PassCmd(args []string) ([]string, error) {
-    
-    cmd := args[1]
 
-    _, ok := AvailCmds[cmd]
-    if !ok {
-        return nil, errors.New(fmt.Sprintf("%v is not a valid command, use 'ft help' for valid commands", cmd))
-    }
-    switch cmd {
-        case "ls":
-            break
-        case "help":
-            break
-        case "rn":
-            if len(args) <= 3 {
-                return nil, errors.New(fmt.Sprintf("Insufficient args provided %v, usage: ft rn <key> <newKey>", args[1:]))
-            }
-        default:
-            if len(args) <= 2 {
-                return nil, errors.New(fmt.Sprintf("Insufficient args provided %v, usage: ft <command> <path/key>", args[1:]))
-            }
-    }
+	cmd := args[1]
+
+	_, ok := AvailCmds[cmd]
+	if !ok {
+		return nil, errors.New(fmt.Sprintf("%v is not a valid command, use 'ft help' for valid commands", cmd))
+	}
+	switch cmd {
+	case "ls":
+		break
+	case "help":
+		break
+	case "rn":
+		if len(args) <= 3 {
+			return nil, errors.New(fmt.Sprintf("Insufficient args provided %v, usage: ft rn <key> <newKey>", args[1:]))
+		}
+	default:
+		if len(args) <= 2 {
+			return nil, errors.New(fmt.Sprintf("Insufficient args provided %v, usage: ft <command> <path/key>", args[1:]))
+		}
+	}
 
 	return args[1:], nil
 
@@ -154,5 +152,3 @@ func showHelp(data *CmdArgs) {
 	printMap(cmdDesc)
 
 }
-
-

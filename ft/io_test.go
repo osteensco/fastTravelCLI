@@ -7,8 +7,6 @@ import (
 	"testing"
 )
 
-
-
 func TestEnsureData(t *testing.T) {
 	// Create a temporary directory for testing
 	tmpdir, err := os.MkdirTemp("", "testdata")
@@ -24,8 +22,6 @@ func TestEnsureData(t *testing.T) {
 	if _, err := os.Stat(testFilePath); os.IsNotExist(err) {
 		t.Fatalf("File was not created")
 	} else {
-        fmt.Println("ensureData: Success")
-    }
+		fmt.Println("ensureData: Success")
+	}
 }
-
-
