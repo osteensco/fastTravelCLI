@@ -14,13 +14,18 @@ import (
 //      - currently focuses on happy path
 //      - add tests for edge cases
 
+// - wsl
+//      - original implementation was based on my ingorance of wsl environment
+//      - fastTravel should be installed within wsl environment, not windows
+//          - this should streamline implementation for other linux like environments
+
 // - to command
 //      - instead of using 'to', use ft [key]
 //          - more inline with cd like experience
 //      - use flags for all other commands
 
 // - flags
-//      - 
+//      -
 //      - flags for commands, like -h (help)
 //      - global flags like -v (version)
 //          - essentially shortcuts for other commands
