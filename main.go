@@ -14,13 +14,20 @@ import (
 //      - currently focuses on happy path
 //      - add tests for edge cases
 
+// - to command
+//      - instead of using 'to', use ft [key]
+//          - more inline with cd like experience
+//      - use flags for all other commands
+
 // - flags
-//      - flags for commands, like -h
-//      - global flags like -v
+//      - 
+//      - flags for commands, like -h (help)
+//      - global flags like -v (version)
 //          - essentially shortcuts for other commands
 
 // - features:
 //      - ft version
+//          - have this also disply ascii art
 //      - ft update
 //      - ft set ?
 //          - open live fuzzy finder
