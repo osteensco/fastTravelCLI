@@ -1,4 +1,15 @@
-<h1>fastTravelCLI</h1>
+
+
+<!--- <h1>fastTravelCLI</h1> --->
+```
+     __           _  _____                     _   ___   __   _____ 
+    / _| ____ ___| |/__   \___  ______   _____| | / __\ / /   \_   \ 
+   | |_ / _  / __| __|/ /\/  _\/ _  \ \ / / _ \ |/ /   / /     / /\/ 
+   |  _| (_| \__ \ |_/ /  | | | (_| |\ V /  __/ / /___/ /___/\/ /_  
+   |_|  \__._|___/\__\/   |_|  \__._| \_/ \___|_\____/\____/\____/  
+                                                                    
+```
+
 
 <h3>CD to a directory super fast</h4>
 
@@ -9,39 +20,34 @@ Instead of tracking frequently visited directories which will change over time, 
 <h1>Usage:</h1>
 <br></br>
 
-Go to a directory you would like to set a waypoint for and run 
-```
+```golang
+// Go to a directory you would like to set a waypoint for and run 
+
 ft set [key]
-```
-<br></br>
 
-Travel to that location by running
-```
+
+// Travel to that location by running
+
 ft to [key]
-```
-<br></br>
 
-View your saved locations with 
-```
+
+// View your saved locations with 
+
 ft ls
-```
-<br></br>
 
-To remove a location run
-```
+
+// To remove a location run
+
 ft rm [key]
-```
-<br></br>
 
-To rename a location run
-```
+
+// To rename a location run
+
 ft rn [key] [new key]
-```
-<br></br>
 
-And of course if you need help just run
-```
+
+// And of course if you need help just run
+
 ft help
 ```
-<br></br>
 
