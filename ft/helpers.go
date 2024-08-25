@@ -40,6 +40,7 @@ func printMap(hashmap map[string]string) {
 
 }
 
+// rework to just account for linux vs other path separators
 func SanitizeDir(path string) string {
 	distro := os.Getenv("WSL_DISTRO_NAME")
 	if len(distro) == 0 {
@@ -53,16 +54,4 @@ func SanitizeDir(path string) string {
 
 	}
 	return path
-}
-
-func equalSlices(a, b []string) bool {
-	if len(a) != len(b) {
-		return false
-	}
-	for i, v := range a {
-		if v != b[i] {
-			return false
-		}
-	}
-	return true
 }

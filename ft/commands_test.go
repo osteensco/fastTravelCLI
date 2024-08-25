@@ -9,19 +9,34 @@ import (
 	"testing"
 )
 
+// test helpers
+func equalSlices(a, b []string) bool {
+	if len(a) != len(b) {
+		return false
+	}
+	for i, v := range a {
+		if v != b[i] {
+			return false
+		}
+	}
+	return true
+}
+
+// tests
 func TestPassCmd(t *testing.T) {
 	tests := []struct {
 		args    []string
 		want    []string
 		wantErr bool
 	}{
-		{[]string{"ft", "ls"}, []string{"ls"}, false},
-		{[]string{"ft", "help"}, []string{"help"}, false},
-		{[]string{"ft", "rn", "key", "newKey"}, []string{"rn", "key", "newKey"}, false},
-		{[]string{"ft", "set", "key"}, []string{"set", "key"}, false},
-		{[]string{"ft", "invalid"}, nil, true},
-		{[]string{"ft", "rn"}, nil, true},
-		{[]string{"ft", "set"}, nil, true},
+		{[]string{"ft", "mypath/dir"}, []string{"_", "mypath/dir"}, false},
+		{[]string{"ft", "-ls"}, []string{"-ls"}, false},
+		{[]string{"ft", "-help"}, []string{"-help"}, false},
+		{[]string{"ft", "-rn", "key", "newKey"}, []string{"-rn", "key", "newKey"}, false},
+		{[]string{"ft", "-set", "key"}, []string{"-set", "key"}, false},
+		{[]string{"ft", "-invalid"}, nil, true},
+		{[]string{"ft", "-rn"}, nil, true},
+		{[]string{"ft", "-set"}, nil, true},
 	}
 
 	for _, tt := range tests {
