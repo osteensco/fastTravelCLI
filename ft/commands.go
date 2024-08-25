@@ -164,6 +164,6 @@ func renameKey(data *CmdArgs) {
 
 func showHelp(data *CmdArgs) {
 
-	printMap(cmdDesc)
+	printMap(CmdDesc)
 
 }

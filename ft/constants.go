@@ -28,7 +28,7 @@ var AvailCmds = map[string]func(data *CmdArgs){
 	"-h":    showHelp,
 }
 
-var cmdDesc = map[string]string{
+var CmdDesc = map[string]string{
 	"[key]": "change directory to provided key's path - Usage: ft [key]",
 	"-set":  "set current directory path to provided key - Usage: ft -set [key]",
 	"-ls":   "display all current key value pairs - Usage: ft -ls",
