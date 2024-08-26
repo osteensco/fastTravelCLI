@@ -47,7 +47,7 @@ ft wknotes
 <br></br>
 <br></br>
 
-<h1>Usage:</h1>
+<h1>Usage</h1>
 <br></br>
 
 ```golang
@@ -84,7 +84,7 @@ ft -h
 <br></br>
 <br></br>
 
-<h1>Installation:</h1>
+<h1>Installation</h1>
 <br></br>
 
 Clone the repo, cd into it, and run the following based on your OS - 
