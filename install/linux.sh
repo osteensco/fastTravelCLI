@@ -56,7 +56,7 @@ shell_install() {
     sudo cp $SCRIPT_PATH $TARGET_DIR
     
 
-    ./logo.sh
+    install/logo.sh
     echo "Config updated, please source $CONFIG or restart shell"
     
 }
