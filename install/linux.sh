@@ -29,6 +29,7 @@ shell_install() {
         *bash*)
             SCRIPT_PATH="shells/bash/ftmain.sh"
             CONFIG=~/.bashrc
+            echo "#FastTravel" >> $CONFIG
             echo "export FT_EXE_PATH=\"$FT_EXE_PATH\"" >> $CONFIG
             echo ". $TARGET_DIR/ftmain.sh" >> $CONFIG
             echo "export FT_PATH=\"$TARGET_DIR/ftmain.sh\"" >> $CONFIG
@@ -36,6 +37,7 @@ shell_install() {
         *zsh*)
             SCRIPT_PATH="shells/bash/ftmain.sh"
             CONFIG=~/.zshrc
+            echo "#FastTravel" >> $CONFIG
             echo "export FT_EXE_PATH=\"$FT_EXE_PATH\"" >> $CONFIG
             echo ". $TARGET_DIR/ftmain.sh" >> $CONFIG
             echo "export FT_PATH=\"$TARGET_DIR/ftmain.sh\"" >> $CONFIG

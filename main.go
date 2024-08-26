@@ -54,7 +54,7 @@ func main() {
 		os.Exit(1)
 	}
 	dataDirPath := filepath.Dir(exePath)
-	dataPath := dataDirPath + "\\fastTravel.bin"
+	dataPath := fmt.Sprintf("%s/fastTravel.bin", dataDirPath)
 	file := ft.EnsureData(dataPath)
 	defer file.Close()
 	allPaths := ft.ReadMap(file)
@@ -62,7 +62,7 @@ func main() {
 	// sanitize input
 	inputCommand, err := ft.PassCmd(os.Args)
 	if err != nil {
-		fmt.Println(err)
+		fmt.Println("Error: ", err)
 		os.Exit(1)
 	}
 	action := inputCommand[0]
