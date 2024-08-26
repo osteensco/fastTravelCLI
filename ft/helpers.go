@@ -3,7 +3,6 @@ package ft
 import (
 	"errors"
 	"fmt"
-	"os"
 	"sort"
 	"strings"
 )
@@ -40,18 +39,18 @@ func printMap(hashmap map[string]string) {
 
 }
 
-// rework to just account for linux vs other path separators
-func SanitizeDir(path string) string {
-	distro := os.Getenv("WSL_DISTRO_NAME")
-	if len(distro) == 0 {
+// not needed
+// func SanitizeDir(path string) string {
+// 	distro := os.Getenv("WSL_DISTRO_NAME")
+// 	if len(distro) == 0 {
 
-		prefix := "/mnt/"
-		drive := strings.Split(path, ":")[0]
-		path = strings.Replace(path, drive, strings.ToLower(drive), 1)
-		path = strings.Replace(path, ":", "", 1)
-		path = strings.Replace(path, "\\", "/", -1)
-		path = prefix + path
+// 		prefix := "/mnt/"
+// 		drive := strings.Split(path, ":")[0]
+// 		path = strings.Replace(path, drive, strings.ToLower(drive), 1)
+// 		path = strings.Replace(path, ":", "", 1)
+// 		path = strings.Replace(path, "\\", "/", -1)
+// 		path = prefix + path
 
-	}
-	return path
-}
+// 	}
+// 	return path
+// }

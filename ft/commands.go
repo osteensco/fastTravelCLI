@@ -63,8 +63,7 @@ func changeDirectory(data *CmdArgs) {
 		os.Exit(1)
 	}
 
-	path := SanitizeDir(p)
-	fmt.Println(path)
+	fmt.Println(p)
 
 }
 

@@ -101,3 +101,5 @@ install/mac.sh
 ```
 install/win.sh
 ```
+
+If you experience permission issues trying to run the install scrip you may need to prefix it with ```bash install/[myOS].sh```

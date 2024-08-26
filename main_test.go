@@ -67,7 +67,7 @@ func TestMainFunc(t *testing.T) {
 		},
 		{
 			[]string{"ft", "key"},
-			fmt.Sprintf("%v\n", ft.SanitizeDir(tmpdir)),
+			fmt.Sprintf("%v\n", tmpdir),
 		},
 		{
 			[]string{"ft", "-ls"},
