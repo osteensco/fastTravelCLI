@@ -102,4 +102,4 @@ install/mac.sh
 install/win.sh
 ```
 
-If you experience permission issues trying to run the install scrip you may need to prefix it with ```bash install/[myOS].sh```
+If you experience issues trying to run the install script as shown, you may need to prefix it with ```bash install/[myOS].sh```
