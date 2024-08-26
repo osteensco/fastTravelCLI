@@ -14,23 +14,7 @@ import (
 //      - currently focuses on happy path
 //      - add tests for edge cases
 
-// - wsl
-//      - original implementation was based on my ingorance of wsl environment
-//      - fastTravel should be installed within wsl environment, not windows
-//          - this should streamline implementation for other linux like environments
-
-// - to command
-//      - instead of using 'to', use ft [key]
-//          - more inline with cd like experience
-//      - use flags for all other commands
-
-// - flags
-//      -
-//      - flags for commands, like -h (help)
-//      - global flags like -v (version)
-//          - essentially shortcuts for other commands
-
-// - features:
+// - new features:
 //      - ft version
 //          - have this also disply ascii art
 //      - ft update
@@ -54,7 +38,7 @@ func main() {
 		os.Exit(1)
 	}
 	dataDirPath := filepath.Dir(exePath)
-	dataPath := dataDirPath + "\\fastTravel.bin"
+	dataPath := fmt.Sprintf("%s/fastTravel.bin", dataDirPath)
 	file := ft.EnsureData(dataPath)
 	defer file.Close()
 	allPaths := ft.ReadMap(file)
@@ -62,7 +46,7 @@ func main() {
 	// sanitize input
 	inputCommand, err := ft.PassCmd(os.Args)
 	if err != nil {
-		fmt.Println(err)
+		fmt.Println("Error: ", err)
 		os.Exit(1)
 	}
 	action := inputCommand[0]

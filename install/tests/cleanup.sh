@@ -1,4 +1,6 @@
 
+# Cleans up shell config file
+
 case "$SHELL" in
     *bash*)
         CONFIG=~/.bashrc
@@ -31,5 +33,5 @@ if [ ! -f "$CONFIG" ]; then
     exit 1
 fi
 
-head -n -3 "$CONFIG" > temp_file && mv temp_file "$CONFIG"
-    
+head -n -4 "$CONFIG" > temp_file && mv temp_file "$CONFIG"
+

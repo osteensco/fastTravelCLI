@@ -50,19 +50,27 @@ func TestMainFunc(t *testing.T) {
 		expected string
 	}{
 		{
-			[]string{"ft", "help"},
-			"\nhelp: you are here :) - Usage: ft help\nls: display all current key value pairs - Usage: ft ls\nrm: deletes provided key - Usage: ft rm [key]\nrn: renames key to new key - Usage: ft rn [key] [new key]\nset: set current directory path to provided key - Usage: ft set [key]\nto: change directory to provided key's path - Usage: ft to [key]\n\n",
+			[]string{"ft", "-help"},
+			fmt.Sprintf(
+				"\n-help: %s\n-ls: %s\n-rm: %s\n-rn: %s\n-set: %s\n[key]: %s\n\n",
+				ft.CmdDesc["-help"],
+				ft.CmdDesc["-ls"],
+				ft.CmdDesc["-rm"],
+				ft.CmdDesc["-rn"],
+				ft.CmdDesc["-set"],
+				ft.CmdDesc["[key]"],
+			),
 		},
 		{
-			[]string{"ft", "set", "key"},
+			[]string{"ft", "-set", "key"},
 			"Added destination key",
 		},
 		{
-			[]string{"ft", "to", "key"},
+			[]string{"ft", "key"},
 			fmt.Sprintf("%v\n", ft.SanitizeDir(tmpdir)),
 		},
 		{
-			[]string{"ft", "ls"},
+			[]string{"ft", "-ls"},
 			fmt.Sprintf("\nkey: %v\n\n", tmpdir),
 		},
 		// {
@@ -79,12 +87,13 @@ func TestMainFunc(t *testing.T) {
 
 		// Create pipe for capturing output
 		stdout := os.Stdout
+		stderr := os.Stderr
 		r, w, err := os.Pipe()
 		if err != nil {
 			t.Fatalf("Failed to create pipe for testing main()")
 		}
 		os.Stdout = w
-
+		os.Stderr = w
 		os.Args = tt.args
 		main()
 
@@ -101,6 +110,7 @@ func TestMainFunc(t *testing.T) {
 		// Capture queue contents for comparison against expected output
 		w.Close()
 		os.Stdout = stdout
+		os.Stderr = stderr
 		actual := <-outChan
 
 		if actual != tt.expected {

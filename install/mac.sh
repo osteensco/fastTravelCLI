@@ -2,8 +2,7 @@
 
 
 
-# THIS WILL NEED REFACTORING FOR POWERSHELL ONCE INTEGRATED
-TARGET_DIR="~/AppData/Local/fastTravelCLI"
+TARGET_DIR="$HOME/fastTravelCLI"
 
 
 
@@ -26,7 +25,6 @@ FT_EXE_PATH="$TARGET_DIR/fastTravel.exe"
 
 
 
-# ONLY WINDOW SHELL TO BE SUPPORTED WILL BE POWERSHELL
 shell_install() {
     case "$SHELL" in
         *bash*)
@@ -34,16 +32,16 @@ shell_install() {
             CONFIG=~/.bashrc
             echo "#FastTravel" >> $CONFIG
             echo "export FT_EXE_PATH=\"$FT_EXE_PATH\"" >> $CONFIG
-            echo ". ~/ftmain.sh" >> $CONFIG
-            echo "export FT_PATH=\"~/ftmain.sh\"" >> $CONFIG
+            echo ". $TARGET_DIR/ftmain.sh" >> $CONFIG
+            echo "export FT_PATH=\"$TARGET_DIR/ftmain.sh\"" >> $CONFIG
             ;;
         *zsh*)
             SCRIPT_PATH="shells/bash/ftmain.sh"
             CONFIG=~/.zshrc
             echo "#FastTravel" >> $CONFIG
             echo "export FT_EXE_PATH=\"$FT_EXE_PATH\"" >> $CONFIG
-            echo ". ~/ftmain.sh" >> $CONFIG
-            echo "export FT_PATH=\"~/ftmain.sh\"" >> $CONFIG
+            echo ". $TARGET_DIR/ftmain.sh" >> $CONFIG
+            echo "export FT_PATH=\"$TARGET_DIR/ftmain.sh\"" >> $CONFIG
             ;;
         *)
             echo "
