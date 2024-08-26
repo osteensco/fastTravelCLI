@@ -18,7 +18,8 @@ fastTravelCLI takes an experience like this:
 ```
 cd $(find * -type d | fzf)
 ```
-```» |
+```
+» |
   7/7 (0)
 › mystuff
   mystuff/personal
@@ -30,12 +31,14 @@ cd $(find * -type d | fzf)
   mystuff/work/projects/notes
   mystuff/work/projects/
 ```
-```» notes|
+```
+» notes|
   2/7 (0)
 › mystuff/personal/projects/notes
   mystuff/work/projects/notes
 ```
-```» notes|
+```
+» notes|
   2/7 (0)
   mystuff/personal/projects/notes
 › mystuff/work/projects/notes
