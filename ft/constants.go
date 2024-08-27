@@ -5,7 +5,7 @@ import (
 	"os"
 )
 
-// ft api
+// ft command api
 type CmdArgs struct {
 	cmd      []string
 	allPaths map[string]string

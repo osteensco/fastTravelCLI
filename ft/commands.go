@@ -31,7 +31,7 @@ func PassCmd(args []string) ([]string, error) {
 	case "-ls":
 		break
 	// providing help for a specific command may be needed in the future
-	case "-help":
+	case "-help", "-h":
 		break
 	case "-rn":
 		if len(args) <= 3 {

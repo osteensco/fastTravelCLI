@@ -46,7 +46,7 @@ func ReadMap(file *os.File) map[string]string {
 		offset += kl
 
 		// read length of value, use length to read in value, adjust offset
-		// length contained in 2 bytes, nedd to convert []byte to a uint16 value
+		// length contained in 2 bytes, need to convert []byte to a uint16 value
 		valLen = binary.LittleEndian.Uint16(buff[offset : offset+2])
 		offset += 2
 		vl := uint(valLen)

@@ -15,19 +15,26 @@ import (
 //      - add tests for edge cases
 
 // - new features:
-//      - ft version
+//      - lua bindings to change command syntax
+//          - ie user wants to change "-set" to "-s"
+//      - track directories visited
+//          - use dirs -v, pushd, popd
+//              - ft seems to already add to session stack
+//              - currently, when popd is called, path is removed from stack
+//                  - add global stack variable to config file to capture popd output
+//                  - ft bash function will need to implement push/pop stack operations
+//          - ft < and ft > to navigate stack
+//      - ft some/path/given should simply pass path to stdout (mimick cd)
+//          - ft ~[key]/subdir should evaluate to [keyValue]/subdir and pass to stdout
+//      - ft -version, -v
 //          - have this also disply ascii art
-//      - ft update
-//      - ft set ?
+//      - ft -update, -u
+//      - ft -set ?
 //          - open live fuzzy finder
 //          - interactively set a key
 //          - results matching current entry can be selected with arrow keys and pressing enter
-//      - ft swap [key1] [key2]
-//          - swaps the dirs of the two keys given
 //      - ft ?
 //          - ask fastTravel if the curr dir is saved
-//      - remember prev n directories? n=10?15?20?
-//      - add a spinner?
 
 func main() {
 

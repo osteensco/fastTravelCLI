@@ -38,19 +38,3 @@ func printMap(hashmap map[string]string) {
 	fmt.Println("")
 
 }
-
-// not needed
-// func SanitizeDir(path string) string {
-// 	distro := os.Getenv("WSL_DISTRO_NAME")
-// 	if len(distro) == 0 {
-
-// 		prefix := "/mnt/"
-// 		drive := strings.Split(path, ":")[0]
-// 		path = strings.Replace(path, drive, strings.ToLower(drive), 1)
-// 		path = strings.Replace(path, ":", "", 1)
-// 		path = strings.Replace(path, "\\", "/", -1)
-// 		path = prefix + path
-
-// 	}
-// 	return path
-// }
