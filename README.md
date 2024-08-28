@@ -53,7 +53,7 @@ ft wknotes
 <h1>Usage</h1>
 <br></br>
 
-```golang
+```rust
 // Go to a directory you would like to set a waypoint for and run 
 
 ft -set [key]
@@ -103,3 +103,11 @@ install/win.sh
 ```
 
 If you experience issues trying to run the install script as shown, you may need to prefix it with ```bash install/[myOS].sh```
+
+<br></br>
+<br></br>
+
+<h1>Contributing</h1>
+<br></br>
+
+PRs and suggestions are welcome. I originally made this for myself and took it as a bit of a learning opportunity with some of the features I wanted to add, so there's not alot of structure or official-ness to this. This is why the install steps are just 'clone and run the shell script' instead of being available on Homebrew and other package managers. If for some reason this starts to gain a bit of interest then I'd be more than happy to implement these sort of things or accept PRs that do.
