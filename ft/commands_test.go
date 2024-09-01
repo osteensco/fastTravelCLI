@@ -57,39 +57,105 @@ func TestPassCmd(t *testing.T) {
 }
 
 func TestChangeDirectory(t *testing.T) {
-	data := NewCmdArgs(
-		[]string{"_", "testKey"},
-		map[string]string{
-			"testKey": "\\usr\\Test\\Documents",
+
+	tmpdir := t.TempDir()
+	tmpdir2, err := os.MkdirTemp(tmpdir, "")
+	if err != nil {
+		t.Error(err)
+	}
+
+	tests := []struct {
+		name     string
+		command  []string
+		expected string
+		allPaths map[string]string
+		file     *os.File
+		rdr      io.Reader
+	}{
+		{
+			name:     "1. Valid key provided, standalone.",
+			command:  []string{"_", "testKey"},
+			expected: tmpdir,
+			allPaths: map[string]string{
+				"testKey": tmpdir,
+			},
+			file: nil,
+			rdr:  nil,
 		},
-		nil,
-		nil,
-	)
+		{
+			name:     "2. Valid key provided, evaluate path.",
+			command:  []string{"_", "testKey/subdir"},
+			expected: tmpdir2,
+			allPaths: map[string]string{
+				"testKey": tmpdir2,
+			},
+			file: nil,
+			rdr:  nil,
+		},
+		{
+			name:     "3. Invalid key provided.",
+			command:  []string{"_", "testKye"},
+			expected: "",
+			allPaths: map[string]string{
+				"testKey": tmpdir,
+			},
+			file: nil,
+			rdr:  nil,
+		},
+		{
+			name:     "4. Invalid key provided, evaluate path.",
+			command:  []string{"_", "testKye/subdir"},
+			expected: "",
+			allPaths: map[string]string{
+				"testKey": tmpdir,
+			},
+			file: nil,
+			rdr:  nil,
+		},
+	}
 
-	old := os.Stdout
-	r, w, _ := os.Pipe()
-	os.Stdout = w
+	for _, tt := range tests {
 
-	changeDirectory(data)
+		data := NewCmdArgs(
+			tt.command,
+			tt.allPaths,
+			tt.file,
+			tt.rdr,
+		)
 
-	// Use go routine so printing doesn't block program
-	outChan := make(chan string)
-	go func() {
-		var buf bytes.Buffer
-		io.Copy(&buf, r)
-		outChan <- buf.String()
+		stdout := os.Stdout
+		stderr := os.Stderr
+		r, w, err := os.Pipe()
+		if err != nil {
+			t.Error("Error establishing pipe.")
+		}
+		os.Stdout = w
+		os.Stderr = w
+		err = changeDirectory(data)
+		if err != nil {
+			t.Error(err)
+		}
+		// Use go routine so printing doesn't block program
+		outChan := make(chan string)
+		go func() {
+			var buf bytes.Buffer
+			io.Copy(&buf, r)
+			outChan <- buf.String()
 
-	}()
+		}()
 
-	w.Close()
-	os.Stdout = old
-	actual := <-outChan
+		w.Close()
+		os.Stdout = stdout
+		os.Stderr = stderr
+		actual := <-outChan
+		actual = strings.Trim(actual, "\n")
 
-	expected := "\\usr\\Test\\Documents\n"
-	if actual != expected {
-		t.Errorf("Expected %s, got %s", expected, actual)
-	} else {
-		fmt.Println("ChangeDirectory: Success")
+		fmt.Println(tt.name)
+		if actual != tt.expected {
+			t.Errorf("Expected %s, got %s", tt.expected, actual)
+		} else {
+			fmt.Println("    --Success")
+		}
 	}
 }
 

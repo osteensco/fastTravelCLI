@@ -18,7 +18,7 @@ func NewCmdArgs(inputCmd []string, allPaths map[string]string, file *os.File, rd
 }
 
 // map of available commands
-var AvailCmds = map[string]func(data *CmdArgs){
+var AvailCmds = map[string]func(data *CmdArgs) error{
 	"_":     changeDirectory,
 	"-set":  setDirectoryVar,
 	"-ls":   displayAllPaths,
