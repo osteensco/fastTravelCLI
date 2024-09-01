@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"io"
+	"io/fs"
 	"os"
 	"strings"
 	"testing"
@@ -58,11 +59,17 @@ func TestPassCmd(t *testing.T) {
 
 func TestChangeDirectory(t *testing.T) {
 
-	tmpdir := t.TempDir()
-	tmpdir2, err := os.MkdirTemp(tmpdir, "")
+	tmpdir, err := os.MkdirTemp("", "testing")
+	if err != nil {
+		t.Fatal(err)
+	}
+	tmpdir2 := tmpdir + "/subdir"
+	err = os.Mkdir(tmpdir2, fs.ModeDir)
 	if err != nil {
 		t.Error(err)
+		return
 	}
+	defer os.RemoveAll(tmpdir)
 
 	tests := []struct {
 		name     string
@@ -71,6 +78,7 @@ func TestChangeDirectory(t *testing.T) {
 		allPaths map[string]string
 		file     *os.File
 		rdr      io.Reader
+		wanterr  bool
 	}{
 		{
 			name:     "1. Valid key provided, standalone.",
@@ -79,18 +87,20 @@ func TestChangeDirectory(t *testing.T) {
 			allPaths: map[string]string{
 				"testKey": tmpdir,
 			},
-			file: nil,
-			rdr:  nil,
+			file:    nil,
+			rdr:     nil,
+			wanterr: false,
 		},
 		{
 			name:     "2. Valid key provided, evaluate path.",
 			command:  []string{"_", "testKey/subdir"},
 			expected: tmpdir2,
 			allPaths: map[string]string{
-				"testKey": tmpdir2,
+				"testKey": tmpdir,
 			},
-			file: nil,
-			rdr:  nil,
+			file:    nil,
+			rdr:     nil,
+			wanterr: false,
 		},
 		{
 			name:     "3. Invalid key provided.",
@@ -99,8 +109,9 @@ func TestChangeDirectory(t *testing.T) {
 			allPaths: map[string]string{
 				"testKey": tmpdir,
 			},
-			file: nil,
-			rdr:  nil,
+			file:    nil,
+			rdr:     nil,
+			wanterr: true,
 		},
 		{
 			name:     "4. Invalid key provided, evaluate path.",
@@ -109,13 +120,15 @@ func TestChangeDirectory(t *testing.T) {
 			allPaths: map[string]string{
 				"testKey": tmpdir,
 			},
-			file: nil,
-			rdr:  nil,
+			file:    nil,
+			rdr:     nil,
+			wanterr: true,
 		},
 	}
 
 	for _, tt := range tests {
 
+		fmt.Println(tt.name)
 		data := NewCmdArgs(
 			tt.command,
 			tt.allPaths,
@@ -132,7 +145,11 @@ func TestChangeDirectory(t *testing.T) {
 		os.Stdout = w
 		os.Stderr = w
 		err = changeDirectory(data)
-		if err != nil {
+		if tt.wanterr {
+			if err == nil {
+				t.Error(fmt.Sprintf("%s wanted error, go none.", tt.name))
+			}
+		} else if err != nil {
 			t.Error(err)
 		}
 		// Use go routine so printing doesn't block program
@@ -154,6 +171,7 @@ func TestChangeDirectory(t *testing.T) {
 		if actual != tt.expected {
 			t.Errorf("Expected %s, got %s", tt.expected, actual)
 		} else {
+			fmt.Printf("%s == %s", actual, tt.expected)
 			fmt.Println("    --Success")
 		}
 	}

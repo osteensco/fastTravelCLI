@@ -90,8 +90,7 @@ func changeDirectory(data *CmdArgs) error {
 		key = provided_string
 		p, ok := data.allPaths[key]
 		if !ok {
-			fmt.Printf("Attempt to fast travel to key %s failed! Use 'ft -ls' to see all saved destinations.", key)
-			os.Exit(1)
+			return errors.New(fmt.Sprintf("Attempt to fast travel to key %s failed! Use 'ft -ls' to see all saved destinations.", key))
 		}
 
 		fmt.Println(p)
