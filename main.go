@@ -24,8 +24,7 @@ import (
 //                  - add global stack variable to config file to capture popd output
 //                  - ft bash function will need to implement push/pop stack operations
 //          - ft < and ft > to navigate stack
-//      - ft some/path/given should simply pass path to stdout (mimick cd)
-//          - ft ~[key]/subdir should evaluate to [keyValue]/subdir and pass to stdout
+
 //      - ft -version, -v
 //          - have this also disply ascii art
 //      - ft -update, -u

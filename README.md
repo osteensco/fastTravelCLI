@@ -64,6 +64,11 @@ ft -set [key]
 ft [key]
 
 
+// You can also travel to a subdirectory of a key
+
+ft [key]/some/subdir
+
+
 // View your saved locations with 
 
 ft -ls
