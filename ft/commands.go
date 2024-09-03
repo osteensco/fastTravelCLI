@@ -231,7 +231,7 @@ func showHelp(data *CmdArgs) error {
 
 func navStack(data *CmdArgs) error {
 
-	nav := data.cmd[1]
+	nav := data.cmd[0]
 
 	switch nav {
 	case ">":

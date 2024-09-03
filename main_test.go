@@ -52,12 +52,14 @@ func TestMainFunc(t *testing.T) {
 		{
 			[]string{"ft", "-help"},
 			fmt.Sprintf(
-				"\n-help: %s\n-ls: %s\n-rm: %s\n-rn: %s\n-set: %s\n[key]: %s\n\n",
+				"\n-help: %s\n-ls: %s\n-rm: %s\n-rn: %s\n-set: %s\n<: %s\n>: %s\n[key]: %s\n\n",
 				ft.CmdDesc["-help"],
 				ft.CmdDesc["-ls"],
 				ft.CmdDesc["-rm"],
 				ft.CmdDesc["-rn"],
 				ft.CmdDesc["-set"],
+				ft.CmdDesc["<"],
+				ft.CmdDesc[">"],
 				ft.CmdDesc["[key]"],
 			),
 		},

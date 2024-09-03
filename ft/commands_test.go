@@ -39,7 +39,7 @@ func TestPassCmd(t *testing.T) {
 		{"6. Pass in invalid command.", []string{"ft", "-invalid"}, nil, true},
 		{"7. Pass in not enough arguments for -rn.", []string{"ft", "-rn"}, nil, true},
 		{"8. Pass in not enough arguments for -set.", []string{"ft", "-set"}, nil, true},
-		{"9. Pass in stack navigation.", []string{"ft", ">"}, nil, false},
+		{"9. Pass in stack navigation.", []string{"ft", ">"}, []string{">"}, false},
 	}
 
 	for _, tt := range tests {
