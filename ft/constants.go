@@ -26,6 +26,8 @@ var AvailCmds = map[string]func(data *CmdArgs) error{
 	"-rn":   renameKey,
 	"-help": showHelp,
 	"-h":    showHelp,
+	"->":    navStack,
+	"-<":    navStack,
 }
 
 var CmdDesc = map[string]string{
@@ -34,5 +36,7 @@ var CmdDesc = map[string]string{
 	"-ls":   "display all current key value pairs - Usage: ft -ls",
 	"-rm":   "deletes provided key - Usage: ft -rm [key]",
 	"-rn":   "renames key to new key - Usage: ft -rn [key] [new key]",
+	">":     "navigate history forwards - Usage: ft >",
+	"<":     "navigate history backwards - Usage: ft <",
 	"-help": "you are here :) - Usage: ft -help",
 }

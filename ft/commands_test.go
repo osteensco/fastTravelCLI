@@ -26,34 +26,36 @@ func equalSlices(a, b []string) bool {
 // tests
 func TestPassCmd(t *testing.T) {
 	tests := []struct {
+		name    string
 		args    []string
 		want    []string
 		wantErr bool
 	}{
-		{[]string{"ft", "mypath/dir"}, []string{"_", "mypath/dir"}, false},
-		{[]string{"ft", "-ls"}, []string{"-ls"}, false},
-		{[]string{"ft", "-help"}, []string{"-help"}, false},
-		{[]string{"ft", "-rn", "key", "newKey"}, []string{"-rn", "key", "newKey"}, false},
-		{[]string{"ft", "-set", "key"}, []string{"-set", "key"}, false},
-		{[]string{"ft", "-invalid"}, nil, true},
-		{[]string{"ft", "-rn"}, nil, true},
-		{[]string{"ft", "-set"}, nil, true},
+		{"1. Pass in a path.", []string{"ft", "mypath/dir"}, []string{"_", "mypath/dir"}, false},
+		{"2. Pass in -ls.", []string{"ft", "-ls"}, []string{"-ls"}, false},
+		{"3. Pass in -help.", []string{"ft", "-help"}, []string{"-help"}, false},
+		{"4. Pass in -rn.", []string{"ft", "-rn", "key", "newKey"}, []string{"-rn", "key", "newKey"}, false},
+		{"5. Pass in -set.", []string{"ft", "-set", "key"}, []string{"-set", "key"}, false},
+		{"6. Pass in invalid command.", []string{"ft", "-invalid"}, nil, true},
+		{"7. Pass in not enough arguments for -rn.", []string{"ft", "-rn"}, nil, true},
+		{"8. Pass in not enough arguments for -set.", []string{"ft", "-set"}, nil, true},
+		{"9. Pass in stack navigation.", []string{"ft", ">"}, nil, false},
 	}
 
 	for _, tt := range tests {
 		got, err := PassCmd(tt.args)
+		fmt.Println(tt.name)
 		if (err != nil) != tt.wantErr {
 			t.Errorf("passCmd err %v, want err: %v", err, tt.wantErr)
-			return
+			continue
 		}
 		if !tt.wantErr && !equalSlices(got, tt.want) {
 			t.Errorf("passCmd Args: %v\nexpected: %v\ngot:%v\n_________\n", tt.args, tt.want, got)
-			return
+			continue
 		}
 
+		fmt.Println("Success")
 	}
-
-	fmt.Println("passCmd: Success")
 
 }
 
@@ -398,4 +400,80 @@ func TestShowHelp(t *testing.T) {
 	} else {
 		fmt.Println("showHelp: Success")
 	}
+}
+
+func TestNavStack(t *testing.T) {
+
+	tests := []struct {
+		name     string
+		command  []string
+		expected string
+		wanterr  bool
+	}{
+		{
+			name:     "1. Move down stack.",
+			command:  []string{"<"},
+			expected: "<",
+			wanterr:  false,
+		},
+		{
+			name:     "2. Move up stack.",
+			command:  []string{">"},
+			expected: ">",
+			wanterr:  false,
+		},
+		{
+			name:     "3. Not a stack navigation.",
+			command:  []string{"_"},
+			expected: "",
+			wanterr:  true,
+		},
+	}
+
+	for _, tt := range tests {
+
+		data := NewCmdArgs(tt.command, map[string]string{}, nil, nil)
+
+		stdout := os.Stdout
+		stderr := os.Stderr
+		r, w, err := os.Pipe()
+		if err != nil {
+			t.Error(err)
+		}
+		os.Stdout = w
+		os.Stderr = w
+
+		err = navStack(data)
+
+		// Use go routine so printing doesn't block program
+		outChan := make(chan string)
+		go func() {
+			var buf bytes.Buffer
+			io.Copy(&buf, r)
+			outChan <- buf.String()
+
+		}()
+
+		w.Close()
+		os.Stdout = stdout
+		os.Stderr = stderr
+		actual := <-outChan
+
+		fmt.Println(tt.name)
+		if tt.wanterr {
+			if err == nil {
+				t.Error("Expected error, got nil")
+			}
+		} else {
+			if err != nil {
+				t.Errorf("Unexpected error: %s", err)
+			}
+		}
+		if actual != tt.expected {
+			t.Errorf("Expected %s, got %s", tt.expected, actual)
+		} else if !tt.wanterr && err == nil {
+			fmt.Println("Success")
+		}
+	}
+
 }

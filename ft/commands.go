@@ -13,6 +13,11 @@ func PassCmd(args []string) ([]string, error) {
 
 	// all commands are expected to lead with "-"
 	// the only command that doesn't is a CD to provided key
+	// this includes navigation history stack
+	if cmd == ">" || cmd == "<" {
+		cmd = fmt.Sprintf("-%s", cmd)
+	}
+
 	if string(cmd[0]) != "-" {
 		cmd = "_"
 		parsedCmd := make([]string, 3)
@@ -21,6 +26,7 @@ func PassCmd(args []string) ([]string, error) {
 		parsedCmd[2] = args[1]
 		args = parsedCmd
 	}
+
 	_, ok := AvailCmds[cmd]
 	if !ok {
 		return nil, errors.New(fmt.Sprintf("%v is not a valid command, use 'ft help' for valid commands", cmd))
@@ -29,7 +35,7 @@ func PassCmd(args []string) ([]string, error) {
 	// verify user provided correct minimum number of arguments
 	// too many args will work, any args beyond expected number are simply ignored
 	switch cmd {
-	case "-ls":
+	case "-ls", "->", "-<":
 		break
 	// providing help for a specific command may be needed in the future
 	case "-help", "-h":
@@ -220,5 +226,21 @@ func renameKey(data *CmdArgs) error {
 func showHelp(data *CmdArgs) error {
 
 	printMap(CmdDesc)
+	return nil
+}
+
+func navStack(data *CmdArgs) error {
+
+	nav := data.cmd[1]
+
+	switch nav {
+	case ">":
+		fmt.Print(">")
+	case "<":
+		fmt.Print("<")
+	default:
+		return errors.New(fmt.Sprintf("Expected stack navigation '<' or '>' but got %s", nav))
+	}
+
 	return nil
 }
