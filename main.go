@@ -15,8 +15,6 @@ import (
 //      - add tests for edge cases
 
 // - new features:
-//      - lua bindings to change command syntax
-//          - ie user wants to change "-set" to "-s"
 //      - track directories visited
 //          - use dirs -v, pushd, popd
 //              - ft seems to already add to session stack
@@ -34,6 +32,8 @@ import (
 //          - results matching current entry can be selected with arrow keys and pressing enter
 //      - ft ?
 //          - ask fastTravel if the curr dir is saved
+//      - lua bindings to change command syntax
+//          - ie user wants to change "-set" to "-s"
 
 func main() {
 
