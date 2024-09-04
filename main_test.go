@@ -46,34 +46,44 @@ func TestMainFunc(t *testing.T) {
 	}
 
 	tests := []struct {
+		name     string
 		args     []string
 		expected string
 	}{
 		{
-			[]string{"ft", "-help"},
-			fmt.Sprintf(
-				"\n-help: %s\n-ls: %s\n-rm: %s\n-rn: %s\n-set: %s\n<: %s\n>: %s\n[key]: %s\n\n",
+			name: "1. Check help command.",
+			args: []string{"ft", "-help"},
+			expected: fmt.Sprintf(
+				"\n-help: %s\n-ls: %s\n-rm: %s\n-rn: %s\n-set: %s\n[: %s\n]: %s\nkey: %s\n\n",
 				ft.CmdDesc["-help"],
 				ft.CmdDesc["-ls"],
 				ft.CmdDesc["-rm"],
 				ft.CmdDesc["-rn"],
 				ft.CmdDesc["-set"],
-				ft.CmdDesc["<"],
-				ft.CmdDesc[">"],
-				ft.CmdDesc["[key]"],
+				ft.CmdDesc["["],
+				ft.CmdDesc["]"],
+				ft.CmdDesc["key"],
 			),
 		},
 		{
-			[]string{"ft", "-set", "key"},
-			"Added destination key",
+			name:     "2. Check set command.",
+			args:     []string{"ft", "-set", "key"},
+			expected: "Added destination key",
 		},
 		{
-			[]string{"ft", "key"},
-			fmt.Sprintf("%v\n", tmpdir),
+			name:     "3. Check cd command.",
+			args:     []string{"ft", "key"},
+			expected: fmt.Sprintf("%v\n", tmpdir),
 		},
 		{
-			[]string{"ft", "-ls"},
-			fmt.Sprintf("\nkey: %v\n\n", tmpdir),
+			name:     "4. Check ls command.",
+			args:     []string{"ft", "-ls"},
+			expected: fmt.Sprintf("\nkey: %v\n\n", tmpdir),
+		},
+		{
+			name:     "5. Check navigate stack.",
+			args:     []string{"ft", "["},
+			expected: "[",
 		},
 		// {
 		// 	        []string{"ft", "rn", "key", "key2"},
@@ -116,13 +126,10 @@ func TestMainFunc(t *testing.T) {
 		actual := <-outChan
 
 		if actual != tt.expected {
-			t.Errorf("-> ARGS: %v\nExpected --> %v\n____________\nGot --> %v", tt.args, tt.expected, actual)
+			fmt.Println(tt.name)
+			t.Errorf("-> ARGS: %v\nExpected -> %v\n____________\nGot -> %v", tt.args, tt.expected, actual)
 		}
 
-	}
-
-	if !t.Failed() {
-		fmt.Println("main: Success")
 	}
 
 }

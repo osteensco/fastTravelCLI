@@ -3,14 +3,13 @@
 upperStack=()
 
 pushup() {
-    local path=$1
-    upperStack+=("$path")    
+    local _path="$1"
+    upperStack+=("$_path")
 }
 
 popup() {
-    local path="${upperStack[-1]}"
     unset 'upperStack[-1]'
-    echo "$path"
+    upperStack=(${upperStack[@]})
 }
 
 ft() {
@@ -22,18 +21,31 @@ ft() {
     output="$(tail -n 1 "$temp_output")"
 
     if [ -d "$output" ]; then 
+        upperStack=()
         cd "$output";
-    elif [[ "$output" == ">" ]]; then    
+    elif [[ "$output" == "]" ]]; then    
         if [ ${#upperStack[@]} -eq 0 ]; then
             echo Already at head of history stack.
+            rm "$temp_output"
+            return 1
+        
+        fi
+        local p="${upperStack[-1]}"
+        popup
+        cd "$p"
+
+    elif [[ "$output" == "[" ]]; then
+        local lowerStackLen=$(dirs -v | awk '{print $1}' | sort -n | tail -1)
+        if [ "$lowerStackLen" -eq 0 ]; then
+            echo Already at tail of history stack.
+            rm "$temp_output"
             return 1
         fi
-        p=$(popup)
-        cd "$p"
-    elif [[ "$output" == "<" ]]; then
-        p=$(dirs +0)
-        pushup "$p"
+
+        local p=$(pwd)
+        pushup "${p}"
         popd > /dev/null
+    
     fi
 
     rm "$temp_output"

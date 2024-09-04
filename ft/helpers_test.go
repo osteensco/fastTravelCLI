@@ -41,8 +41,6 @@ func TestPrintMap(t *testing.T) {
 	expected := "\nkey1: value1\nkey2: value2\n\n"
 	if actual != expected {
 		t.Errorf("Expected %s, got %s", expected, actual)
-	} else {
-		fmt.Println("PrintMap: Success")
 	}
 }
 
@@ -90,7 +88,7 @@ func TestVerifyInput(t *testing.T) {
 		actual, err := verifyInput(res)
 		if !tt.wantErr && err != nil {
 			fmt.Println("Error:", err)
-			os.Exit(1)
+			t.Fatal(err)
 		}
 		if actual != tt.expected {
 			t.Errorf("-> Expected --> %v\n____________\nGot --> %v", tt.expected, actual)
