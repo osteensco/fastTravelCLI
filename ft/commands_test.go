@@ -26,34 +26,34 @@ func equalSlices(a, b []string) bool {
 // tests
 func TestPassCmd(t *testing.T) {
 	tests := []struct {
+		name    string
 		args    []string
 		want    []string
 		wantErr bool
 	}{
-		{[]string{"ft", "mypath/dir"}, []string{"_", "mypath/dir"}, false},
-		{[]string{"ft", "-ls"}, []string{"-ls"}, false},
-		{[]string{"ft", "-help"}, []string{"-help"}, false},
-		{[]string{"ft", "-rn", "key", "newKey"}, []string{"-rn", "key", "newKey"}, false},
-		{[]string{"ft", "-set", "key"}, []string{"-set", "key"}, false},
-		{[]string{"ft", "-invalid"}, nil, true},
-		{[]string{"ft", "-rn"}, nil, true},
-		{[]string{"ft", "-set"}, nil, true},
+		{"1. Pass in a path.", []string{"ft", "mypath/dir"}, []string{"_", "mypath/dir"}, false},
+		{"2. Pass in -ls.", []string{"ft", "-ls"}, []string{"-ls"}, false},
+		{"3. Pass in -help.", []string{"ft", "-help"}, []string{"-help"}, false},
+		{"4. Pass in -rn.", []string{"ft", "-rn", "key", "newKey"}, []string{"-rn", "key", "newKey"}, false},
+		{"5. Pass in -set.", []string{"ft", "-set", "key"}, []string{"-set", "key"}, false},
+		{"6. Pass in invalid command.", []string{"ft", "-invalid"}, nil, true},
+		{"7. Pass in not enough arguments for -rn.", []string{"ft", "-rn"}, nil, true},
+		{"8. Pass in not enough arguments for -set.", []string{"ft", "-set"}, nil, true},
+		{"9. Pass in stack navigation.", []string{"ft", "]"}, []string{"-]"}, false},
 	}
 
 	for _, tt := range tests {
 		got, err := PassCmd(tt.args)
 		if (err != nil) != tt.wantErr {
+			fmt.Println(tt.name)
 			t.Errorf("passCmd err %v, want err: %v", err, tt.wantErr)
-			return
 		}
 		if !tt.wantErr && !equalSlices(got, tt.want) {
+			fmt.Println(tt.name)
 			t.Errorf("passCmd Args: %v\nexpected: %v\ngot:%v\n_________\n", tt.args, tt.want, got)
-			return
 		}
 
 	}
-
-	fmt.Println("passCmd: Success")
 
 }
 
@@ -128,7 +128,6 @@ func TestChangeDirectory(t *testing.T) {
 
 	for _, tt := range tests {
 
-		fmt.Println(tt.name)
 		data := NewCmdArgs(
 			tt.command,
 			tt.allPaths,
@@ -140,6 +139,7 @@ func TestChangeDirectory(t *testing.T) {
 		stderr := os.Stderr
 		r, w, err := os.Pipe()
 		if err != nil {
+			fmt.Println(tt.name)
 			t.Error("Error establishing pipe.")
 		}
 		os.Stdout = w
@@ -147,9 +147,11 @@ func TestChangeDirectory(t *testing.T) {
 		err = changeDirectory(data)
 		if tt.wanterr {
 			if err == nil {
-				t.Error(fmt.Sprintf("%s wanted error, go none.", tt.name))
+				fmt.Println(tt.name)
+				t.Error("Wanted error, go none.")
 			}
 		} else if err != nil {
+			fmt.Println(tt.name)
 			t.Error(err)
 		}
 		// Use go routine so printing doesn't block program
@@ -167,18 +169,14 @@ func TestChangeDirectory(t *testing.T) {
 		actual := <-outChan
 		actual = strings.Trim(actual, "\n")
 
-		fmt.Println(tt.name)
 		if actual != tt.expected {
+			fmt.Println(tt.name)
 			t.Errorf("Expected %s, got %s", tt.expected, actual)
-		} else {
-			fmt.Printf("%s == %s", actual, tt.expected)
-			fmt.Println("    --Success")
 		}
 	}
 }
 
 func TestSetDirectoryVar(t *testing.T) {
-	fail := false
 	tmpfile, err := os.CreateTemp("", "testdata.bin")
 	if err != nil {
 		t.Fatalf("Failed to create temp file: %v", err)
@@ -186,46 +184,65 @@ func TestSetDirectoryVar(t *testing.T) {
 	defer os.Remove(tmpfile.Name())
 	defer tmpfile.Close()
 
-	data := NewCmdArgs(
-		[]string{"set", "testKey"},
-		make(map[string]string),
-		tmpfile,
-		nil,
-	)
-
-	stdout := os.Stdout
-	_, w, _ := os.Pipe()
-	os.Stdout = w
-	setDirectoryVar(data)
-	os.Stdout = stdout
-
-	expected, _ := os.Getwd()
-	if data.allPaths["testKey"] != expected {
-		t.Errorf("Expected key 'testKey' to have value %s, got %s", expected, data.allPaths["testKey"])
-		fail = true
-	}
-
-	file, err := os.Open(tmpfile.Name())
+	workdir, err := os.Getwd()
 	if err != nil {
-		t.Fatalf("Failed to open temp file: %v", err)
+		t.Fatal(err)
 	}
-	defer file.Close()
-
-	result := ReadMap(file)
-	if result["testKey"] != expected {
-		t.Errorf("Expected file to have key 'testKey' with value %s, got %s", expected, result["testKey"])
-		fail = true
+	tests := []struct {
+		name     string
+		command  []string
+		expected string
+		wanterr  bool
+	}{
+		{
+			name:     "1. Set key that doesn't exist.",
+			command:  []string{"-set", "testKey"},
+			expected: workdir,
+			wanterr:  false,
+		},
 	}
 
-	if !fail {
-		fmt.Println("setDirectoryVar: Success")
+	for _, tt := range tests {
+		data := NewCmdArgs(
+			tt.command,
+			make(map[string]string),
+			tmpfile,
+			nil,
+		)
+
+		stdout := os.Stdout
+		_, w, _ := os.Pipe()
+		os.Stdout = w
+		err := setDirectoryVar(data)
+		if err != nil {
+			t.Error(err)
+		}
+
+		os.Stdout = stdout
+
+		if data.allPaths["testKey"] != tt.expected {
+			t.Errorf("Expected key 'testKey' to have value %s, got %s", tt.expected, data.allPaths["testKey"])
+
+		}
+
+		file, err := os.Open(tmpfile.Name())
+		if err != nil {
+			t.Fatalf("Failed to open temp file: %v", err)
+		}
+		defer file.Close()
+
+		result := ReadMap(file)
+		if result["testKey"] != tt.expected {
+			t.Errorf("Expected file to have key 'testKey' with value %s, got %s", tt.expected, result["testKey"])
+
+		}
 	}
 
 }
 
 func TestDisplayAllPaths(t *testing.T) {
 	data := NewCmdArgs(
-		[]string{"ls"},
+		[]string{"-ls"},
 		map[string]string{
 			"key1": "value1",
 			"key2": "value2",
@@ -238,7 +255,10 @@ func TestDisplayAllPaths(t *testing.T) {
 	r, w, _ := os.Pipe()
 	os.Stdout = w
 
-	displayAllPaths(data)
+	err := displayAllPaths(data)
+	if err != nil {
+		t.Error(err)
+	}
 
 	// Use go routine so printing doesn't block program
 	outChan := make(chan string)
@@ -256,13 +276,10 @@ func TestDisplayAllPaths(t *testing.T) {
 	expected := "\nkey1: value1\nkey2: value2\n\n"
 	if actual != expected {
 		t.Errorf("Expected %s, got %s", expected, actual)
-	} else {
-		fmt.Println("DisplayAllPaths: Success")
 	}
 }
 
 func TestRemoveKey(t *testing.T) {
-	fail := false
 	tmpfile, err := os.CreateTemp("", "testdata.bin")
 	if err != nil {
 		t.Fatalf("Failed to create temp file: %v", err)
@@ -270,49 +287,66 @@ func TestRemoveKey(t *testing.T) {
 	defer os.Remove(tmpfile.Name())
 	defer tmpfile.Close()
 
-	input := "y"
-	data := &CmdArgs{
-		[]string{"rm", "key1"},
-		map[string]string{
-			"key1": "value1",
-			"key2": "value2",
+	tests := []struct {
+		name     string
+		command  []string
+		allPaths map[string]string
+		input    string
+		wanterr  bool
+	}{
+		{
+			name:    "1. Remove key that exists, confirm removal.",
+			command: []string{"-rm", "key1"},
+			allPaths: map[string]string{
+				"key1": "value1",
+				"key2": "value2",
+			},
+			input:   "y",
+			wanterr: false,
 		},
-		tmpfile,
-		strings.NewReader(input),
-	}
-	stdout := os.Stdout
-	_, w, err := os.Pipe()
-	if err != nil {
-		t.Errorf("Error establishing Pipe: %v", err)
 	}
 
-	os.Stdout = w
-	removeKey(data)
-	os.Stdout = stdout
-	if _, ok := data.allPaths["key1"]; ok {
-		t.Errorf("Expected key 'key1' to be removed")
-		fail = true
-	}
+	for _, tt := range tests {
+		data := NewCmdArgs(
+			tt.command,
+			tt.allPaths,
+			tmpfile,
+			strings.NewReader(tt.input),
+		)
+		stdout := os.Stdout
+		_, w, err := os.Pipe()
+		if err != nil {
+			t.Fatalf("Error establishing Pipe: %v", err)
+		}
 
-	file, err := os.Open(tmpfile.Name())
-	if err != nil {
-		t.Fatalf("Failed to open temp file: %v", err)
-	}
-	defer file.Close()
+		os.Stdout = w
+		err = removeKey(data)
+		if err != nil {
+			t.Error(err)
+		}
+		os.Stdout = stdout
+		if _, ok := data.allPaths["key1"]; ok {
+			fmt.Println(tt.name)
+			t.Errorf("Expected key 'key1' to be removed")
 
-	result := ReadMap(file)
-	if _, ok := result["key1"]; ok {
-		t.Errorf("Expected file to not have key 'key1'")
-		fail = true
-	}
+		}
 
-	if !fail {
-		fmt.Println("removeKey: Success")
+		file, err := os.Open(tmpfile.Name())
+		if err != nil {
+			t.Fatalf("Failed to open temp file: %v", err)
+		}
+		defer file.Close()
+
+		result := ReadMap(file)
+		if _, ok := result["key1"]; ok {
+			fmt.Println(tt.name)
+			t.Errorf("Expected file to not have key 'key1'")
+
+		}
 	}
 }
 
 func TestRenameKey(t *testing.T) {
-	fail := false
 	tmpfile, err := os.CreateTemp("", "testdata.bin")
 	if err != nil {
 		t.Fatalf("Failed to create temp file: %v", err)
@@ -320,64 +354,91 @@ func TestRenameKey(t *testing.T) {
 	defer os.Remove(tmpfile.Name())
 	defer tmpfile.Close()
 
-	input := "y"
-	data := NewCmdArgs(
-		[]string{"rn", "key1", "newKey"},
-		map[string]string{
-			"key1": "value1",
+	tests := []struct {
+		name     string
+		command  []string
+		allPaths map[string]string
+		input    string
+		wanterr  bool
+	}{
+		{
+			name:    "1. Rename key that exists, confirm rename.",
+			command: []string{"-rn", "key1", "newKey"},
+			allPaths: map[string]string{
+				"key1": "value1",
+			},
+			input:   "y",
+			wanterr: false,
 		},
-		tmpfile,
-		strings.NewReader(input),
-	)
-
-	stdout := os.Stdout
-	_, w, err := os.Pipe()
-	if err != nil {
-		t.Errorf("Error establishing Pipe: %v", err)
 	}
 
-	os.Stdout = w
-	renameKey(data)
-	os.Stdout = stdout
+	for _, tt := range tests {
+		data := NewCmdArgs(
+			tt.command,
+			tt.allPaths,
+			tmpfile,
+			strings.NewReader(tt.input),
+		)
 
-	if _, ok := data.allPaths["key1"]; ok {
-		t.Errorf("Expected key 'key1' to be renamed")
-		fail = true
-	}
-	if data.allPaths["newKey"] != "value1" {
-		t.Errorf("Expected key 'newKey' to have value 'value1', got %s", data.allPaths["newKey"])
-		fail = true
-	}
+		stdout := os.Stdout
+		_, w, err := os.Pipe()
+		if err != nil {
+			t.Errorf("Error establishing Pipe: %v", err)
+		}
 
-	file, err := os.Open(tmpfile.Name())
-	if err != nil {
-		t.Fatalf("Failed to open temp file: %v", err)
-	}
-	defer file.Close()
+		os.Stdout = w
+		err = renameKey(data)
+		if err != nil {
+			t.Error(err)
+		}
 
-	result := ReadMap(file)
-	if _, ok := result["key1"]; ok {
-		t.Errorf("Expected file to not have key 'key1'")
-		fail = true
-	}
-	if result["newKey"] != "value1" {
-		t.Errorf("Expected file to have key 'newKey' with value 'value1', got %s", result["newKey"])
-		fail = true
-	}
+		os.Stdout = stdout
 
-	if !fail {
-		fmt.Println("renameKey: Success")
+		if _, ok := data.allPaths["key1"]; ok {
+			fmt.Println(tt.name)
+			t.Errorf("Expected key 'key1' to be renamed")
+
+		}
+		if data.allPaths["newKey"] != "value1" {
+			t.Fatalf("Expected key 'newKey' to have value 'value1', got %s", data.allPaths["newKey"])
+
+		}
+
+		file, err := os.Open(tmpfile.Name())
+		if err != nil {
+			t.Fatalf("Failed to open temp file: %v", err)
+		}
+		defer file.Close()
+
+		result := ReadMap(file)
+		if _, ok := result["key1"]; ok {
+			fmt.Println(tt.name)
+			t.Errorf("Expected file to not have key 'key1'")
+
+		}
+		if result["newKey"] != "value1" {
+			fmt.Println(tt.name)
+			t.Errorf("Expected file to have key 'newKey' with value 'value1', got %s", result["newKey"])
+
+		}
 	}
 }
 
 func TestShowHelp(t *testing.T) {
-	data := NewCmdArgs([]string{"help"}, map[string]string{}, nil, nil)
+	data := NewCmdArgs([]string{"-help"}, map[string]string{}, nil, nil)
 
 	old := os.Stdout
-	r, w, _ := os.Pipe()
+	r, w, err := os.Pipe()
+	if err != nil {
+		t.Fatal(err)
+	}
+
 	os.Stdout = w
 
-	showHelp(data)
+	err = showHelp(data)
+	if err != nil {
+		t.Error(err)
+	}
 
 	// Use go routine so printing doesn't block program
 	outChan := make(chan string)
@@ -395,7 +456,81 @@ func TestShowHelp(t *testing.T) {
 	// really just need confirmation something printed out
 	if !(len(actual) > 1) {
 		t.Errorf("Expected a string of len > 1, got %s", actual)
-	} else {
-		fmt.Println("showHelp: Success")
 	}
+}
+
+func TestNavStack(t *testing.T) {
+
+	tests := []struct {
+		name     string
+		command  []string
+		expected string
+		wanterr  bool
+	}{
+		{
+			name:     "1. Move down stack.",
+			command:  []string{"-["},
+			expected: "[",
+			wanterr:  false,
+		},
+		{
+			name:     "2. Move up stack.",
+			command:  []string{"-]"},
+			expected: "]",
+			wanterr:  false,
+		},
+		{
+			name:     "3. Not a stack navigation.",
+			command:  []string{"_"},
+			expected: "",
+			wanterr:  true,
+		},
+	}
+
+	for _, tt := range tests {
+
+		data := NewCmdArgs(tt.command, map[string]string{}, nil, nil)
+
+		stdout := os.Stdout
+		stderr := os.Stderr
+		r, w, err := os.Pipe()
+		if err != nil {
+			t.Error(err)
+		}
+		os.Stdout = w
+		os.Stderr = w
+
+		err = navStack(data)
+
+		// Use go routine so printing doesn't block program
+		outChan := make(chan string)
+		go func() {
+			var buf bytes.Buffer
+			io.Copy(&buf, r)
+			outChan <- buf.String()
+
+		}()
+
+		w.Close()
+		os.Stdout = stdout
+		os.Stderr = stderr
+		actual := <-outChan
+
+		if tt.wanterr {
+			if err == nil {
+				fmt.Println(tt.name)
+				t.Error("Expected error, got nil")
+			}
+		} else {
+			if err != nil {
+				fmt.Println(tt.name)
+				t.Errorf("Unexpected error: %s", err)
+			}
+		}
+		if actual != tt.expected {
+			fmt.Println(tt.name)
+			t.Errorf("Expected %s, got %s", tt.expected, actual)
+		}
+	}
+
 }

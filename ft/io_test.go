@@ -1,7 +1,6 @@
 package ft
 
 import (
-	"fmt"
 	"os"
 	"path/filepath"
 	"testing"
@@ -20,8 +19,8 @@ func TestEnsureData(t *testing.T) {
 	defer file.Close()
 
 	if _, err := os.Stat(testFilePath); os.IsNotExist(err) {
-		t.Fatalf("File was not created")
-	} else {
-		fmt.Println("ensureData: Success")
+		t.Error("File was not created")
+	} else if err != nil {
+		t.Error(err)
 	}
 }

@@ -69,6 +69,16 @@ ft [key]
 ft [key]/some/subdir
 
 
+// You can even visit a previously visited directory
+
+ft [
+
+
+// Traverse back up your dir history using 
+
+ft ]
+
+
 // View your saved locations with 
 
 ft -ls

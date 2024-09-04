@@ -9,22 +9,14 @@ import (
 )
 
 // TODO
-// ***FIX TESTS TO ACCOUNT FOR EDGE CASES***
+
 // - tests
-//      - currently focuses on happy path
-//      - add tests for edge cases
+//      - add more tests for edge cases
+//      - add shell ft function tests
 
 // - new features:
-//      - lua bindings to change command syntax
-//          - ie user wants to change "-set" to "-s"
-//      - track directories visited
-//          - use dirs -v, pushd, popd
-//              - ft seems to already add to session stack
-//              - currently, when popd is called, path is removed from stack
-//                  - add global stack variable to config file to capture popd output
-//                  - ft bash function will need to implement push/pop stack operations
-//          - ft < and ft > to navigate stack
-
+//      - ft .. (mimick cd ..)
+//      - ? ft - (mimick cd -)
 //      - ft -version, -v
 //          - have this also disply ascii art
 //      - ft -update, -u
@@ -60,7 +52,7 @@ func main() {
 	// execute user provided action
 	exeCmd, ok := ft.AvailCmds[action]
 	if !ok {
-		fmt.Println("Invalid command, use 'help' for available commands.")
+		fmt.Printf("Invalid command '%s', use 'help' for available commands.\n", action)
 		os.Exit(1)
 	}
 
