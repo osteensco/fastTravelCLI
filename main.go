@@ -15,6 +15,8 @@ import (
 //      - add shell ft function tests
 
 // - new features:
+//      - ft .. (mimick cd ..)
+//      - ? ft - (mimick cd -)
 //      - ft -version, -v
 //          - have this also disply ascii art
 //      - ft -update, -u
