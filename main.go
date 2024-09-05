@@ -14,9 +14,14 @@ import (
 //      - add more tests for edge cases
 //      - add shell ft function tests
 
+// - fixes
+//      - prettier console prints
+//      - currently cd will not affect upperStack. should this be the same using ft?
+
 // - new features:
 //      - ft .. (mimick cd ..)
-//      - ? ft - (mimick cd -)
+//      - ft - (mimick cd -)
+//          - should this affect upperStack?
 //      - ft -version, -v
 //          - have this also disply ascii art
 //      - ft -update, -u
