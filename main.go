@@ -31,6 +31,9 @@ import (
 //          - results matching current entry can be selected with arrow keys and pressing enter
 //      - ft ?
 //          - ask fastTravel if the curr dir is saved
+//      - ft -load
+//          - add key value pairs via json file
+//          - useful for preconfigured setups like as part of a dockerfile
 
 func main() {
 
