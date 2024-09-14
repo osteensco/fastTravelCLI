@@ -34,6 +34,14 @@ import (
 //      - ft -load
 //          - add key value pairs via json file
 //          - useful for preconfigured setups like as part of a dockerfile
+//      - ft -massedit [substring] [new substring]
+//          - allows users to easily update directory names they changed
+//          - consider an example, a directory called "programming stuff"
+//              - I set a key to "programming stuff/coolProject"
+//              - I realize having spaces in a dir name is silly so I rename it to programmingStuff
+//              - this key is now broken in ft, because ft would have no way of knowing it changed
+//              - it's easy to reset one key, but if I have 10 keys saved to sub dirs of something I changed that sucks
+//              - this command would address this problem graciously
 
 func main() {
 
