@@ -23,15 +23,17 @@ import (
 //          - have this also disply ascii art
 //      - ft -update, -u
 //          - automagically pull and source if new version available
-//      - ft -set ?
+//      - ft -set?
+//          (fzf integration)
 //          - open live fuzzy finder
 //          - interactively set a key by searching for a directory
 //          - results matching current entry can be selected with arrow keys and pressing enter
 //      - ft ?
 //          - ask fastTravel if the curr dir is saved
-//      - ft -load
-//          - add key value pairs via json file
+//      - ft -set!
+//          - add key value pairs via file or entered key
 //          - useful for preconfigured setups like as part of a dockerfile
+//          - provides ability to set a key to a destination not currently at
 //      - ft -massedit [substring] [new substring]
 //          - allows users to easily update directory names they changed
 //          - consider an example, a directory called "programming stuff"
@@ -40,8 +42,9 @@ import (
 //              - this key is now broken in ft, because ft would have no way of knowing it changed
 //              - it's easy to reset one key, but if I have 10 keys saved to sub dirs of something I changed that sucks
 //              - this command would address this problem graciously
-//      - ft -q [some query]
-//          - pass a query and return keys and values that match
+//      - ft -q
+//          - interactively query for a key
+//          - filters and sorts keys using a fuzzy finder
 //      - ft -hist
 //          - display history stack
 //          - include simple indicator of where user is currently in history stack
