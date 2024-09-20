@@ -26,8 +26,10 @@ var AvailCmds = map[string]func(data *CmdArgs) error{
 	"-rn":   renameKey,
 	"-help": showHelp,
 	"-h":    showHelp,
-	"-]":    navStack,
-	"-[":    navStack,
+	"-]":    passToShell,
+	"-[":    passToShell,
+	"-..":   passToShell,
+	"--":    passToShell,
 }
 
 var CmdDesc = map[string]string{

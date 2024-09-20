@@ -69,7 +69,15 @@ ft [key]
 ft [key]/some/subdir
 
 
-// You can even visit a previously visited directory
+// ft can also replace your cd command entirely
+
+ft relative/path
+ft ..
+ft -
+ft ./path
+
+
+// You can also visit previously visited directories
 
 ft [
 
@@ -105,6 +113,14 @@ ft -h
 <h1>Installation</h1>
 <br></br>
 
+Currently available for mac/linux OS and bash/zsh shells. May work in more shell environments but not guarenteed.
+
+<br></br>
+
+Requires go version >= 1.22.0
+
+<br></br>
+
 Clone the repo, cd into it, and run the following based on your OS - 
 
 ```
@@ -113,9 +129,7 @@ install/linux.sh
 ```
 install/mac.sh
 ```
-```
-install/win.sh
-```
+
 
 If you experience issues trying to run the install script as shown, you may need to prefix it with ```bash install/[myOS].sh```
 

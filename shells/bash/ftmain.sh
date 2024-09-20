@@ -20,7 +20,7 @@ ft() {
 
     output="$(tail -n 1 "$temp_output")"
 
-    if [ -d "$output" ]; then 
+    if [[ -d "$output" || "$output" == ".." || "$output" == "-" ]]; then 
         upperStack=()
         cd "$output";
     elif [[ "$output" == "]" ]]; then    

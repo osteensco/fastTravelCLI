@@ -15,16 +15,14 @@ import (
 //      - add shell ft function tests
 
 // - fixes
-//      - prettier console prints
-//      - currently cd will not affect upperStack. should this be the same using ft?
+//      - cd does not affect upperStack. should this be the same using ft?
 
 // - new features:
-//      - ft .. (mimick cd ..)
-//      - ft - (mimick cd -)
-//          - should this affect upperStack?
+
 //      - ft -version, -v
 //          - have this also disply ascii art
 //      - ft -update, -u
+//          - automagically pull and source if new version available
 //      - ft -set ?
 //          - open live fuzzy finder
 //          - interactively set a key
@@ -44,7 +42,7 @@ import (
 //              - this command would address this problem graciously
 //      - ft -q [some query]
 //          - pass a query and return keys and values that match
-//      - ft -his
+//      - ft -hist
 //          - display history stack
 //          - include simple indicator of where user is currently in history stack
 

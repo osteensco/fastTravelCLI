@@ -13,11 +13,18 @@ func PassCmd(args []string) ([]string, error) {
 
 	// all commands are expected to lead with "-"
 	// the only command that doesn't is a change directory
-	// this includes navigation history stack
-	if cmd == "]" || cmd == "[" {
+	// commands that are symbols have this leader added to avoid logic
+	// meant for a directory path
+	switch cmd {
+	case "]", "[", "..", "-":
 		cmd = fmt.Sprintf("-%s", cmd)
+	default:
+		break
 	}
 
+	// keys and key evals are given a leader of "_"
+	// to help identify the appropriate function
+	// in the map
 	if string(cmd[0]) != "-" {
 		cmd = "_"
 		parsedCmd := make([]string, 3)
@@ -35,7 +42,7 @@ func PassCmd(args []string) ([]string, error) {
 	// verify user provided correct minimum number of arguments
 	// too many args will work, any args beyond expected number are simply ignored
 	switch cmd {
-	case "-ls", "-]", "-[":
+	case "-ls", "-]", "-[", "-..", "--":
 		return []string{cmd}, nil
 	// providing help for a specific command may be needed in the future
 	case "-help", "-h":
@@ -83,6 +90,7 @@ func changeDirectory(data *CmdArgs) error {
 			}
 		}
 
+		// handles evaluated path and relative paths
 		path := strings.Join(eval_array, "/")
 		dir, err := os.Stat(path)
 		if err == nil {
@@ -91,7 +99,8 @@ func changeDirectory(data *CmdArgs) error {
 				return nil
 			}
 		}
-		fmt.Printf("Provided path %s evaluates to %s which is not a valid directory. Use 'ft -ls' to see all saved destinations. \n", provided_string, path)
+
+		fmt.Printf("Provided path '%s' evaluates to '%s' which is not a valid directory. Use 'ft -ls' to see all saved destinations. \n", provided_string, path)
 		return nil
 
 	} else {
@@ -99,7 +108,7 @@ func changeDirectory(data *CmdArgs) error {
 		key = provided_string
 		p, ok := data.allPaths[key]
 		if !ok {
-			fmt.Printf("Did not recognize key '%s', use 'ft -ls' to see all saved destinations. \n", key)
+			fmt.Printf("Did not recognize key '%s', use 'ft -ls' to see all saved destinations. If this is a relative path use './%s' or '%s/'.\n", key, key, key)
 			return nil
 		}
 
@@ -262,17 +271,17 @@ func showHelp(data *CmdArgs) error {
 	return nil
 }
 
-func navStack(data *CmdArgs) error {
+// Used for commands that are simply handled by the shell function
+func passToShell(data *CmdArgs) error {
 
-	nav := data.cmd[0]
+	c := data.cmd[0]
+	command := string(c[1:])
 
-	switch nav {
-	case "-]":
-		fmt.Println("]")
-	case "-[":
-		fmt.Println("[")
+	switch command {
+	case "]", "[", "..", "-":
+		fmt.Println(command)
 	default:
-		return errors.New(fmt.Sprintf("Expected stack navigation '[' or ']' but got %s", nav))
+		return errors.New(fmt.Sprintf("Tried to pass command to shell, but '%s' is not a valid command for the shell function.", command))
 	}
 
 	return nil

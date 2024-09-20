@@ -500,7 +500,7 @@ func TestNavStack(t *testing.T) {
 		os.Stdout = w
 		os.Stderr = w
 
-		err = navStack(data)
+		err = passToShell(data)
 
 		// Use go routine so printing doesn't block program
 		outChan := make(chan string)
