@@ -29,7 +29,7 @@ func PassCmd(args []string) ([]string, error) {
 
 	_, ok := AvailCmds[cmd]
 	if !ok {
-		return nil, errors.New(fmt.Sprintf("%v is not a valid command, use 'ft help' for valid commands", cmd))
+		return nil, errors.New(fmt.Sprintf("%v is not a valid command, use 'ft -h' or 'ft -help' for a list of valid commands", cmd))
 	}
 
 	// verify user provided correct minimum number of arguments
@@ -58,8 +58,8 @@ func PassCmd(args []string) ([]string, error) {
 func changeDirectory(data *CmdArgs) error {
 
 	if len(data.allPaths) == 0 {
-		fmt.Printf("No fast travel locations set, set locations by navigating to desired destination directory and using 'ft -set <key>' ")
-		os.Exit(1)
+		fmt.Printf("No fast travel locations set, set locations by navigating to desired destination directory and using 'ft -set <key>' \n")
+		return nil
 	}
 
 	var key string
@@ -85,22 +85,22 @@ func changeDirectory(data *CmdArgs) error {
 
 		path := strings.Join(eval_array, "/")
 		dir, err := os.Stat(path)
-		if err != nil {
-			return err
+		if err == nil {
+			if dir.IsDir() {
+				fmt.Println(path)
+				return nil
+			}
 		}
-		if dir.IsDir() {
-			fmt.Println(path)
-			return nil
-		} else {
-			return errors.New(fmt.Sprintf("Provided path %s evaluates to %s which is not a valid directory. Use 'ft -ls' to see all saved destinations.", data.cmd[1], path))
-		}
+		fmt.Printf("Provided path %s evaluates to %s which is not a valid directory. Use 'ft -ls' to see all saved destinations. \n", provided_string, path)
+		return nil
 
 	} else {
 
 		key = provided_string
 		p, ok := data.allPaths[key]
 		if !ok {
-			return errors.New(fmt.Sprintf("Attempt to fast travel to key %s failed! Use 'ft -ls' to see all saved destinations.", key))
+			fmt.Printf("Did not recognize key '%s', use 'ft -ls' to see all saved destinations. \n", key)
+			return nil
 		}
 
 		fmt.Println(p)
@@ -120,14 +120,35 @@ func setDirectoryVar(data *CmdArgs) error {
 
 	for k, v := range data.allPaths {
 		if path == v {
-			return errors.New(fmt.Sprintf("Path '%s' already exists with key %s", path, k))
+			fmt.Printf("Path '%s' already exists with key '%s', overwrite key '%s' \n", path, k, k)
+			var res string
+			_, err := fmt.Fscan(data.rdr, &res)
+			if err != nil {
+				return err
+			}
+			if overwrite, err := verifyInput(res); !overwrite {
+				if err != nil {
+					return err
+				}
+				fmt.Printf("Aborted overwriting of key '%s' \n", key)
+				return nil
+			} else {
+				if err != nil {
+					return err
+				}
+			}
+			delete(data.allPaths, k)
+			data.allPaths[key] = path
+			dataUpdate(data.allPaths, data.file)
+			fmt.Printf("Renamed key '%s' to '%s' whose value is '%s' \n", k, key, path)
+			return nil
 		}
 	}
 
 	val, ok := data.allPaths[key]
 	if ok {
 		// capture user response and act accordingly
-		fmt.Printf("Key '%s' already exists with value %s, overwrite key '%s'?(y/n)", key, val, key)
+		fmt.Printf("Key '%s' already exists with value '%s', overwrite key '%s'?(y/n) ", key, val, key)
 		var res string
 		_, err := fmt.Fscan(data.rdr, &res)
 		if err != nil {
@@ -137,7 +158,7 @@ func setDirectoryVar(data *CmdArgs) error {
 			if err != nil {
 				return err
 			}
-			fmt.Printf("Aborted overwriting of key %v", key)
+			fmt.Printf("Aborted overwriting of key '%s' \n", key)
 			return nil
 		} else {
 			if err != nil {
@@ -150,7 +171,7 @@ func setDirectoryVar(data *CmdArgs) error {
 	// key doesn't exist yet or user wants to overwrite
 	data.allPaths[key] = path
 	dataUpdate(data.allPaths, data.file)
-	fmt.Printf("Added destination %s", data.cmd[1])
+	fmt.Printf("Added destination '%s': '%s' \n", key, path)
 	return nil
 }
 
@@ -166,7 +187,12 @@ func removeKey(data *CmdArgs) error {
 	var res string
 	key := data.cmd[1]
 
-	fmt.Printf("Are you sure you want to remove the key '%v'? (y/n)", key)
+	_, ok := data.allPaths[key]
+	if !ok {
+		fmt.Printf("Key '%s' does not exist. Run 'ft -ls' to see all keys. \n", key)
+		return nil
+	}
+	fmt.Printf("Are you sure you want to remove the key '%s'? (y/n) ", key)
 	_, err := fmt.Fscan(data.rdr, &res)
 	if err != nil {
 		return err
@@ -175,8 +201,8 @@ func removeKey(data *CmdArgs) error {
 		if err != nil {
 			return err
 		}
-		fmt.Printf("Aborted removal of key %v", key)
-		os.Exit(1)
+		fmt.Printf("Aborted removal of key '%s' \n", key)
+		return nil
 	} else {
 		if err != nil {
 			return err
@@ -184,7 +210,7 @@ func removeKey(data *CmdArgs) error {
 	}
 	delete(data.allPaths, key)
 	dataUpdate(data.allPaths, data.file)
-	fmt.Printf("Removed '%v' destination", key)
+	fmt.Printf("Removed '%s' destination \n", key)
 	return nil
 }
 
@@ -195,16 +221,18 @@ func renameKey(data *CmdArgs) error {
 
 	_, ok := data.allPaths[newKey]
 	if ok {
-		return errors.New(fmt.Sprintf("Key %v already exists, please choose something else.", newKey))
+		fmt.Printf("Key '%s' already exists, please choose something else. \n", newKey)
+		return nil
 	}
 	path, ok := data.allPaths[originalKey]
 	if !ok {
-		return errors.New(fmt.Sprintf("Cannot rename %v, key does not exist. Run 'ft ls' to see all keys.", originalKey))
+		fmt.Printf("Cannot rename '%s', key does not exist. Run 'ft -ls' to see all keys. \n", originalKey)
+		return nil
 	}
 
 	var res string
 
-	fmt.Printf("Are you sure you want to rename the key '%v'? (y/n)", newKey)
+	fmt.Printf("Are you sure you want to rename the key '%s' to '%s'? (y/n) ", originalKey, newKey)
 	_, err := fmt.Fscan(data.rdr, &res)
 	if err != nil {
 		return err
@@ -213,7 +241,8 @@ func renameKey(data *CmdArgs) error {
 		if err != nil {
 			fmt.Println("Error: ", err)
 		}
-		return errors.New(fmt.Sprintf("Aborted renaming of key %v", newKey))
+		fmt.Printf("Aborted renaming of key '%s' to '%s'. \n", originalKey, newKey)
+		return nil
 	} else {
 		if err != nil {
 			return err
@@ -223,7 +252,7 @@ func renameKey(data *CmdArgs) error {
 	data.allPaths[newKey] = path
 
 	dataUpdate(data.allPaths, data.file)
-	fmt.Printf("%v renamed to %v", originalKey, newKey)
+	fmt.Printf("Key '%s' renamed to '%s'. \n", originalKey, newKey)
 	return nil
 }
 
@@ -239,9 +268,9 @@ func navStack(data *CmdArgs) error {
 
 	switch nav {
 	case "-]":
-		fmt.Print("]")
+		fmt.Println("]")
 	case "-[":
-		fmt.Print("[")
+		fmt.Println("[")
 	default:
 		return errors.New(fmt.Sprintf("Expected stack navigation '[' or ']' but got %s", nav))
 	}

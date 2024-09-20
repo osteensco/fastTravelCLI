@@ -49,6 +49,7 @@ func TestMainFunc(t *testing.T) {
 		name     string
 		args     []string
 		expected string
+		wantErr  bool
 	}{
 		{
 			name: "1. Check help command.",
@@ -68,22 +69,32 @@ func TestMainFunc(t *testing.T) {
 		{
 			name:     "2. Check set command.",
 			args:     []string{"ft", "-set", "key"},
-			expected: "Added destination key",
+			expected: fmt.Sprintf("Added destination 'key': '%s' \n", tmpdir),
+			wantErr:  false,
 		},
 		{
 			name:     "3. Check cd command.",
 			args:     []string{"ft", "key"},
 			expected: fmt.Sprintf("%v\n", tmpdir),
+			wantErr:  false,
 		},
 		{
-			name:     "4. Check ls command.",
+			name:     "4. Check cd command with bad key.",
+			args:     []string{"ft", "badkey"},
+			expected: "Did not recognize key 'badkey', use 'ft -ls' to see all saved destinations. \n",
+			wantErr:  false,
+		},
+		{
+			name:     "5. Check ls command.",
 			args:     []string{"ft", "-ls"},
 			expected: fmt.Sprintf("\nkey: %v\n\n", tmpdir),
+			wantErr:  false,
 		},
 		{
-			name:     "5. Check navigate stack.",
+			name:     "6. Check navigate stack.",
 			args:     []string{"ft", "["},
-			expected: "[",
+			expected: "[\n",
+			wantErr:  false,
 		},
 		// {
 		// 	        []string{"ft", "rn", "key", "key2"},
@@ -104,10 +115,14 @@ func TestMainFunc(t *testing.T) {
 		if err != nil {
 			t.Fatalf("Failed to create pipe for testing main()")
 		}
+		er, ew, err := os.Pipe()
+		if err != nil {
+			t.Fatalf("Failed to create pipe for error testing main()")
+		}
+
 		os.Stdout = w
-		os.Stderr = w
+		os.Stderr = ew
 		os.Args = tt.args
-		main()
 
 		// Move output to a buffer so it can be passed to a queue
 		// Go routine and chan so data transfer doesn't block
@@ -119,13 +134,34 @@ func TestMainFunc(t *testing.T) {
 
 		}()
 
+		errOutChan := make(chan string)
+		go func() {
+			var buf bytes.Buffer
+			io.Copy(&buf, er)
+			errOutChan <- buf.String()
+
+		}()
+
+		main()
+
 		// Capture queue contents for comparison against expected output
 		w.Close()
+		if err != nil {
+			t.Fatal("Failed to close Stdout pipe.")
+		}
+		ew.Close()
+		if err != nil {
+			t.Fatal("Failed to close Stderr pipe.")
+		}
 		os.Stdout = stdout
 		os.Stderr = stderr
 		actual := <-outChan
+		errActual := <-errOutChan
 
-		if actual != tt.expected {
+		if tt.wantErr && errActual == "" {
+			fmt.Println(tt.name)
+			t.Errorf("-> ARGS: %v\nExpected Error\n____________\nGot -> %v", tt.args, actual)
+		} else if actual != tt.expected {
 			fmt.Println(tt.name)
 			t.Errorf("-> ARGS: %v\nExpected -> %v\n____________\nGot -> %v", tt.args, tt.expected, actual)
 		}

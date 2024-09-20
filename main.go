@@ -42,6 +42,11 @@ import (
 //              - this key is now broken in ft, because ft would have no way of knowing it changed
 //              - it's easy to reset one key, but if I have 10 keys saved to sub dirs of something I changed that sucks
 //              - this command would address this problem graciously
+//      - ft -q [some query]
+//          - pass a query and return keys and values that match
+//      - ft -his
+//          - display history stack
+//          - include simple indicator of where user is currently in history stack
 
 func main() {
 
@@ -49,31 +54,46 @@ func main() {
 	exePath, err := os.Executable()
 	if err != nil {
 		fmt.Println("Error:", err)
-		os.Exit(1)
+		return
 	}
+
 	dataDirPath := filepath.Dir(exePath)
 	dataPath := fmt.Sprintf("%s/fastTravel.bin", dataDirPath)
-	file := ft.EnsureData(dataPath)
+
+	file, err := ft.EnsureData(dataPath)
+	if err != nil {
+		fmt.Println("Error: ", err)
+		return
+	}
 	defer file.Close()
-	allPaths := ft.ReadMap(file)
+
+	allPaths, err := ft.ReadMap(file)
+	if err != nil {
+		fmt.Println("Error: ", err)
+		return
+	}
 
 	// sanitize input
 	inputCommand, err := ft.PassCmd(os.Args)
 	if err != nil {
 		fmt.Println("Error: ", err)
-		os.Exit(1)
+		return
 	}
 	action := inputCommand[0]
 
 	// execute user provided action
 	exeCmd, ok := ft.AvailCmds[action]
 	if !ok {
-		fmt.Printf("Invalid command '%s', use 'help' for available commands.\n", action)
-		os.Exit(1)
+		fmt.Printf("Invalid command '%s', use 'ft -h' for available commands. \n", action)
+		return
 	}
 
 	data := ft.NewCmdArgs(inputCommand, allPaths, file, os.Stdin)
 
-	exeCmd(data)
+	err = exeCmd(data)
+	if err != nil {
+		fmt.Println("fastTravel returned an error: ", err)
+		return
+	}
 
 }

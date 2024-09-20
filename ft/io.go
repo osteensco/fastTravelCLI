@@ -2,18 +2,18 @@ package ft
 
 import (
 	"encoding/binary"
+	"errors"
 	"fmt"
 	"os"
 )
 
-func ReadMap(file *os.File) map[string]string {
+func ReadMap(file *os.File) (map[string]string, error) {
 
 	pathMap := make(map[string]string)
 
 	fileInfo, err := file.Stat()
 	if err != nil {
-		fmt.Println("Error getting file info: ", err)
-		os.Exit(1)
+		return pathMap, errors.New(fmt.Sprint("Error getting file info: ", err))
 	}
 
 	// take file size in bytes and make a buffer of that size
@@ -57,23 +57,22 @@ func ReadMap(file *os.File) map[string]string {
 
 	}
 
-	return pathMap
+	return pathMap, nil
 
 }
 
-func EnsureData(filepath string) *os.File {
+func EnsureData(filepath string) (*os.File, error) {
 
 	file, err := os.OpenFile(filepath, os.O_CREATE|os.O_RDWR, 0644)
 	if err != nil {
-		fmt.Println("Error opening file: ", err)
-		os.Exit(1)
+		return nil, errors.New(fmt.Sprint("Error opening file: ", err))
 	}
 
-	return file
+	return file, nil
 
 }
 
-func dataUpdate(hashmap map[string]string, file *os.File) {
+func dataUpdate(hashmap map[string]string, file *os.File) error {
 
 	var buffer []byte
 	for key, val := range hashmap {
@@ -110,19 +109,18 @@ func dataUpdate(hashmap map[string]string, file *os.File) {
 
 	err := file.Truncate(0)
 	if err != nil {
-		fmt.Println("Error truncating file: ", err)
-		os.Exit(1)
+		return errors.New(fmt.Sprint("Error truncating file: ", err))
 	}
 
 	_, err = file.Seek(0, 0)
 	if err != nil {
-		fmt.Println("Error seeking to beginning of file: ", err)
-		os.Exit(1)
+		return errors.New(fmt.Sprint("Error seeking to beginning of file: ", err))
 	}
 
 	_, err = file.Write(buffer)
 	if err != nil {
-		fmt.Println("Error writing contents of buffer to file: ", err)
-		os.Exit(1)
+		return errors.New(fmt.Sprint("Error writing contents of buffer to file: ", err))
 	}
+
+	return nil
 }

@@ -78,7 +78,6 @@ func TestChangeDirectory(t *testing.T) {
 		allPaths map[string]string
 		file     *os.File
 		rdr      io.Reader
-		wanterr  bool
 	}{
 		{
 			name:     "1. Valid key provided, standalone.",
@@ -87,9 +86,8 @@ func TestChangeDirectory(t *testing.T) {
 			allPaths: map[string]string{
 				"testKey": tmpdir,
 			},
-			file:    nil,
-			rdr:     nil,
-			wanterr: false,
+			file: nil,
+			rdr:  nil,
 		},
 		{
 			name:     "2. Valid key provided, evaluate path.",
@@ -98,31 +96,28 @@ func TestChangeDirectory(t *testing.T) {
 			allPaths: map[string]string{
 				"testKey": tmpdir,
 			},
-			file:    nil,
-			rdr:     nil,
-			wanterr: false,
+			file: nil,
+			rdr:  nil,
 		},
 		{
 			name:     "3. Invalid key provided.",
 			command:  []string{"_", "testKye"},
-			expected: "",
+			expected: "Did not recognize key 'testKye', use 'ft -ls' to see all saved destinations. ",
 			allPaths: map[string]string{
 				"testKey": tmpdir,
 			},
-			file:    nil,
-			rdr:     nil,
-			wanterr: true,
+			file: nil,
+			rdr:  nil,
 		},
 		{
 			name:     "4. Invalid key provided, evaluate path.",
 			command:  []string{"_", "testKye/subdir"},
-			expected: "",
+			expected: "Provided path testKye/subdir evaluates to testKye/subdir which is not a valid directory. Use 'ft -ls' to see all saved destinations. ",
 			allPaths: map[string]string{
 				"testKey": tmpdir,
 			},
-			file:    nil,
-			rdr:     nil,
-			wanterr: true,
+			file: nil,
+			rdr:  nil,
 		},
 	}
 
@@ -145,12 +140,7 @@ func TestChangeDirectory(t *testing.T) {
 		os.Stdout = w
 		os.Stderr = w
 		err = changeDirectory(data)
-		if tt.wanterr {
-			if err == nil {
-				fmt.Println(tt.name)
-				t.Error("Wanted error, go none.")
-			}
-		} else if err != nil {
+		if err != nil {
 			fmt.Println(tt.name)
 			t.Error(err)
 		}
@@ -168,7 +158,7 @@ func TestChangeDirectory(t *testing.T) {
 		os.Stderr = stderr
 		actual := <-outChan
 		actual = strings.Trim(actual, "\n")
-
+		fmt.Println(actual)
 		if actual != tt.expected {
 			fmt.Println(tt.name)
 			t.Errorf("Expected %s, got %s", tt.expected, actual)
@@ -231,7 +221,10 @@ func TestSetDirectoryVar(t *testing.T) {
 		}
 		defer file.Close()
 
-		result := ReadMap(file)
+		result, err := ReadMap(file)
+		if err != nil {
+			t.Error(err)
+		}
 		if result["testKey"] != tt.expected {
 			t.Errorf("Expected file to have key 'testKey' with value %s, got %s", tt.expected, result["testKey"])
 
@@ -337,7 +330,11 @@ func TestRemoveKey(t *testing.T) {
 		}
 		defer file.Close()
 
-		result := ReadMap(file)
+		result, err := ReadMap(file)
+		if err != nil {
+			t.Error(err)
+		}
+
 		if _, ok := result["key1"]; ok {
 			fmt.Println(tt.name)
 			t.Errorf("Expected file to not have key 'key1'")
@@ -410,7 +407,10 @@ func TestRenameKey(t *testing.T) {
 		}
 		defer file.Close()
 
-		result := ReadMap(file)
+		result, err := ReadMap(file)
+		if err != nil {
+			t.Error(err)
+		}
 		if _, ok := result["key1"]; ok {
 			fmt.Println(tt.name)
 			t.Errorf("Expected file to not have key 'key1'")
@@ -470,13 +470,13 @@ func TestNavStack(t *testing.T) {
 		{
 			name:     "1. Move down stack.",
 			command:  []string{"-["},
-			expected: "[",
+			expected: "[\n",
 			wanterr:  false,
 		},
 		{
 			name:     "2. Move up stack.",
 			command:  []string{"-]"},
-			expected: "]",
+			expected: "]\n",
 			wanterr:  false,
 		},
 		{
