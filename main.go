@@ -12,10 +12,10 @@ import (
 
 // - tests
 //      - add more tests for edge cases
-//      - add shell ft function tests
+//      - add shell function tests
 
-// - fixes
-//      - cd does not affect upperStack. should this be the same using ft?
+// - feature behavior
+//      - cd does not affect upperStack. Should this be the same using ft? ft resets upper stack if not navigating via history stack.
 
 // - new features:
 
@@ -25,7 +25,7 @@ import (
 //          - automagically pull and source if new version available
 //      - ft -set ?
 //          - open live fuzzy finder
-//          - interactively set a key
+//          - interactively set a key by searching for a directory
 //          - results matching current entry can be selected with arrow keys and pressing enter
 //      - ft ?
 //          - ask fastTravel if the curr dir is saved
