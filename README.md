@@ -71,10 +71,12 @@ ft [key]/some/subdir
 
 // ft can also replace your cd command entirely
 
-ft relative/path
+ft relative/dir
 ft ..
 ft -
-ft ./path
+ft ./dir
+//or
+ft dir/
 
 
 // You can also visit previously visited directories
