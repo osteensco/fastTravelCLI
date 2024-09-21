@@ -53,58 +53,58 @@ ft wknotes
 <h1>Usage</h1>
 <br></br>
 
-```rust
-// Go to a directory you would like to set a waypoint for and run 
+```bash
+# Go to a directory you would like to set a waypoint for and run 
 
 ft -set [key]
 
 
-// Travel to that location by running
+# Travel to that location by running
 
 ft [key]
 
 
-// You can also travel to a subdirectory of a key
+# You can also travel to a subdirectory of a key
 
 ft [key]/some/subdir
 
 
-// ft can also replace your cd command entirely
+# ft can replace your cd command entirely
 
 ft relative/dir
 ft ..
 ft -
 ft ./dir
-//or
+# or
 ft dir/
 
 
-// You can also visit previously visited directories
+# ft allows you to visit previously visited directories
 
 ft [
 
 
-// Traverse back up your dir history using 
+# Traverse back up your dir history using 
 
 ft ]
 
 
-// View your saved locations with 
+# View your saved locations with 
 
 ft -ls
 
 
-// To remove a location run
+# To remove a location run
 
 ft -rm [key]
 
 
-// To rename a location run
+# To rename a location run
 
 ft -rn [key] [new key]
 
 
-// And of course if you need help just run
+# And of course if you need help remembering these commands just run
 
 ft -help
 ft -h
