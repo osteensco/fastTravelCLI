@@ -8,47 +8,6 @@ import (
 	"github.com/osteensco/fastTravelCLI/ft"
 )
 
-// TODO
-
-// - tests
-//      - add more tests for edge cases
-//      - add shell function tests
-
-// - feature behavior
-//      - cd does not affect upperStack. Should this be the same using ft? ft resets upper stack if not navigating via history stack.
-
-// - new features:
-
-//      - ft -version, -v
-//          - have this also disply ascii art
-//      - ft -update, -u
-//          - automagically pull and source if new version available
-//      - ft -set?
-//          (fzf integration)
-//          - open live fuzzy finder
-//          - interactively set a key by searching for a directory
-//          - results matching current entry can be selected with arrow keys and pressing enter
-//      - ft ?
-//          - ask fastTravel if the curr dir is saved
-//      - ft -set!
-//          - add key value pairs via file or entered key
-//          - useful for preconfigured setups like as part of a dockerfile
-//          - provides ability to set a key to a destination not currently at
-//      - ft -massedit [substring] [new substring]
-//          - allows users to easily update directory names they changed
-//          - consider an example, a directory called "programming stuff"
-//              - I set a key to "programming stuff/coolProject"
-//              - I realize having spaces in a dir name is silly so I rename it to programmingStuff
-//              - this key is now broken in ft, because ft would have no way of knowing it changed
-//              - it's easy to reset one key, but if I have 10 keys saved to sub dirs of something I changed that sucks
-//              - this command would address this problem graciously
-//      - ft -q
-//          - interactively query for a key
-//          - filters and sorts keys using a fuzzy finder
-//      - ft -hist
-//          - display history stack
-//          - include simple indicator of where user is currently in history stack
-
 func main() {
 
 	// read in bin file
