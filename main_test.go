@@ -18,6 +18,10 @@ func TestMainFunc(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to create temp dir: %v", err)
 	}
+	tmpdir, err = filepath.EvalSymlinks(tmpdir)
+	if err != nil {
+		t.Fatalf("Failed to create temp dir: %v", err)
+	}
 	tmpdir = strings.Trim(tmpdir, " ")
 	defer os.RemoveAll(tmpdir)
 
