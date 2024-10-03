@@ -163,7 +163,7 @@ func TestMainFunc(t *testing.T) {
 			t.Errorf("-> ARGS: %v\nExpected Error\n____________\nGot -> %v", tt.args, actual)
 		} else if actual != tt.expected {
 			fmt.Println(tt.name)
-			t.Errorf("-> ARGS: %v\nExpected -> %v\n____________\nGot -> %v", tt.args, tt.expected, actual)
+			t.Errorf("-> ARGS: %v\nExpected -> %q\n____________\nGot -> %q", tt.args, tt.expected, actual)
 		}
 
 	}
