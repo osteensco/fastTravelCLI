@@ -81,7 +81,7 @@ func TestMainFunc(t *testing.T) {
 		{
 			name:     "4. Check cd command with bad key.",
 			args:     []string{"ft", "badkey"},
-			expected: "Did not recognize key 'badkey', use 'ft -ls' to see all saved destinations. \n",
+			expected: "Did not recognize key 'badkey', use 'ft -ls' to see all saved destinations. If this is a relative path use './badkey' or 'badkey/'. \n",
 			wantErr:  false,
 		},
 		{

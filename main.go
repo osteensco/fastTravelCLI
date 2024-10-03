@@ -8,6 +8,7 @@ import (
 	"github.com/osteensco/fastTravelCLI/ft"
 )
 
+// fastTravel main process
 func main() {
 
 	// read in bin file
