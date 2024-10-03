@@ -45,7 +45,7 @@ func PassCmd(args []string) ([]string, error) {
 	case "-ls", "-]", "-[", "-..", "--":
 		return []string{cmd}, nil
 	// providing help for a specific command may be needed in the future
-	case "-help", "-h":
+	case "-help", "-h", "-version", "-v":
 		break
 	case "-rn":
 		if len(args) <= 3 {
@@ -268,6 +268,11 @@ func renameKey(data *CmdArgs) error {
 func showHelp(data *CmdArgs) error {
 
 	printMap(CmdDesc)
+	return nil
+}
+
+func showVersion(data *CmdArgs) error {
+	fmt.Println("version:\t", Version)
 	return nil
 }
 
