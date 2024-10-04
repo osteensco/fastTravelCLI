@@ -424,6 +424,39 @@ func TestRenameKey(t *testing.T) {
 	}
 }
 
+func TestVersionCmd(t *testing.T) {
+	data := NewCmdArgs([]string{"-version"}, map[string]string{}, nil, nil)
+
+	old := os.Stdout
+	r, w, err := os.Pipe()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	os.Stdout = w
+
+	err = showVersion(data)
+
+	if err != nil {
+		t.Error(err)
+	}
+
+	outChan := make(chan string)
+	go func() {
+		var buf bytes.Buffer
+		io.Copy(&buf, r)
+		outChan <- buf.String()
+	}()
+
+	w.Close()
+	os.Stdout = old
+	actual := <-outChan
+
+	if !(len(actual) > 1) {
+		t.Errorf("Expected a string of len > 1 got %s", actual)
+	}
+}
+
 func TestShowHelp(t *testing.T) {
 	data := NewCmdArgs([]string{"-help"}, map[string]string{}, nil, nil)
 
