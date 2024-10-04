@@ -102,7 +102,7 @@ func TestChangeDirectory(t *testing.T) {
 		{
 			name:     "3. Invalid key provided.",
 			command:  []string{"_", "testKye"},
-			expected: "Did not recognize key 'testKye', use 'ft -ls' to see all saved destinations. ",
+			expected: "Did not recognize key 'testKye', use 'ft -ls' to see all saved destinations. If this is a relative path use './testKye' or 'testKye/'. ",
 			allPaths: map[string]string{
 				"testKey": tmpdir,
 			},
@@ -112,7 +112,7 @@ func TestChangeDirectory(t *testing.T) {
 		{
 			name:     "4. Invalid key provided, evaluate path.",
 			command:  []string{"_", "testKye/subdir"},
-			expected: "Provided path testKye/subdir evaluates to testKye/subdir which is not a valid directory. Use 'ft -ls' to see all saved destinations. ",
+			expected: "Provided path 'testKye/subdir' evaluates to 'testKye/subdir' which is not a valid directory. Use 'ft -ls' to see all saved destinations. ",
 			allPaths: map[string]string{
 				"testKey": tmpdir,
 			},

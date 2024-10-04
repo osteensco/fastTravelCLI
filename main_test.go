@@ -18,6 +18,10 @@ func TestMainFunc(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Failed to create temp dir: %v", err)
 	}
+	tmpdir, err = filepath.EvalSymlinks(tmpdir)
+	if err != nil {
+		t.Fatalf("Failed to create temp dir: %v", err)
+	}
 	tmpdir = strings.Trim(tmpdir, " ")
 	defer os.RemoveAll(tmpdir)
 
@@ -81,7 +85,7 @@ func TestMainFunc(t *testing.T) {
 		{
 			name:     "4. Check cd command with bad key.",
 			args:     []string{"ft", "badkey"},
-			expected: "Did not recognize key 'badkey', use 'ft -ls' to see all saved destinations. \n",
+			expected: "Did not recognize key 'badkey', use 'ft -ls' to see all saved destinations. If this is a relative path use './badkey' or 'badkey/'. \n",
 			wantErr:  false,
 		},
 		{
@@ -163,7 +167,7 @@ func TestMainFunc(t *testing.T) {
 			t.Errorf("-> ARGS: %v\nExpected Error\n____________\nGot -> %v", tt.args, actual)
 		} else if actual != tt.expected {
 			fmt.Println(tt.name)
-			t.Errorf("-> ARGS: %v\nExpected -> %v\n____________\nGot -> %v", tt.args, tt.expected, actual)
+			t.Errorf("-> ARGS: %v\nExpected -> %q\n____________\nGot -> %q", tt.args, tt.expected, actual)
 		}
 
 	}
