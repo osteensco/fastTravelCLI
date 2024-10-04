@@ -8,7 +8,6 @@ import (
 )
 
 func PassCmd(args []string) ([]string, error) {
-
 	cmd := args[1]
 
 	// all commands are expected to lead with "-"
@@ -59,11 +58,9 @@ func PassCmd(args []string) ([]string, error) {
 
 	// return args without 'ft'
 	return args[1:], nil
-
 }
 
 func changeDirectory(data *CmdArgs) error {
-
 	if len(data.allPaths) == 0 {
 		fmt.Printf("No fast travel locations set, set locations by navigating to desired destination directory and using 'ft -set <key>' \n")
 		return nil
@@ -116,11 +113,9 @@ func changeDirectory(data *CmdArgs) error {
 		return nil
 
 	}
-
 }
 
 func setDirectoryVar(data *CmdArgs) error {
-
 	key := data.cmd[1]
 	path, err := os.Getwd()
 	if err != nil {
@@ -185,14 +180,11 @@ func setDirectoryVar(data *CmdArgs) error {
 }
 
 func displayAllPaths(data *CmdArgs) error {
-
 	printMap(data.allPaths)
 	return nil
-
 }
 
 func removeKey(data *CmdArgs) error {
-
 	var res string
 	key := data.cmd[1]
 
@@ -224,7 +216,6 @@ func removeKey(data *CmdArgs) error {
 }
 
 func renameKey(data *CmdArgs) error {
-
 	originalKey := data.cmd[1]
 	newKey := data.cmd[2]
 
@@ -266,19 +257,25 @@ func renameKey(data *CmdArgs) error {
 }
 
 func showHelp(data *CmdArgs) error {
-
 	printMap(CmdDesc)
 	return nil
 }
 
 func showVersion(data *CmdArgs) error {
+	fmt.Println(`
+     __           _  _____                     _   ___   __   _____ - -  -  -   -   -
+    / _| ____ ___| |/__   \___  ______   _____| | / __\ / /   \_   \ - -  -  -   -   -
+   | |_ / _  / __| __|/ /\/  _\/ _  \ \ / / _ \ |/ /   / /     / /\/  - -  -   -   -
+   |  _| (_| \__ \ |_/ /  | | | (_| |\ V /  __/ / /___/ /___/\/ /_  - -  -  -   -   -
+   |_|  \__._|___/\__\/   |_|  \__._| \_/ \___|_\____/\____/\____/ - -  -  -   -   -
+
+		`)
 	fmt.Println("version:\t", Version)
 	return nil
 }
 
 // Used for commands that are simply handled by the shell function
 func passToShell(data *CmdArgs) error {
-
 	c := data.cmd[0]
 	command := string(c[1:])
 
