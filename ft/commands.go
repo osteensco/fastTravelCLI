@@ -108,7 +108,7 @@ func changeDirectory(data *CmdArgs) error {
 		key = provided_string
 		p, ok := data.allPaths[key]
 		if !ok {
-			fmt.Printf("Did not recognize key '%s', use 'ft -ls' to see all saved destinations. If this is a relative path use './%s' or '%s/'.\n", key, key, key)
+			fmt.Printf("Did not recognize key '%s', use 'ft -ls' to see all saved destinations. If this is a relative path use './%s' or '%s/'. \n", key, key, key)
 			return nil
 		}
 
