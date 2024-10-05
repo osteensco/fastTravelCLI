@@ -35,13 +35,13 @@ var AvailCmds = map[string]func(data *CmdArgs) error{
 }
 
 var CmdDesc = map[string]string{
-	"key":          "change directory to provided key's path - Usage: ft [key]",
-	"-set":         "set current directory path to provided key - Usage: ft -set [key]",
-	"-ls":          "display all current key value pairs - Usage: ft -ls",
-	"-rm":          "deletes provided key - Usage: ft -rm [key]",
-	"-rn":          "renames key to new key - Usage: ft -rn [key] [new key]",
-	"]":            "navigate history forwards - Usage: ft ]",
-	"[":            "navigate history backwards - Usage: ft [",
-	"-help":        "you are here :) - Usage: ft -help",
-	"-version, -v": "print current version of FastTravel",
+	"key":      "change directory to provided key's path - Usage: ft [key]",
+	"-set":     "set current directory path to provided key - Usage: ft -set [key]",
+	"-ls":      "display all current key value pairs - Usage: ft -ls",
+	"-rm":      "deletes provided key - Usage: ft -rm [key]",
+	"-rn":      "renames key to new key - Usage: ft -rn [key] [new key]",
+	"]":        "navigate history forwards - Usage: ft ]",
+	"[":        "navigate history backwards - Usage: ft [",
+	"-help":    "you are here :) - Usage: ft -help, -h",
+	"-version": "print current version of fastTravelCLI - Usage: ft -version, -v",
 }
