@@ -424,7 +424,7 @@ func TestRenameKey(t *testing.T) {
 	}
 }
 
-func TestVersionCmd(t *testing.T) {
+func TestShowVersion(t *testing.T) {
 	data := NewCmdArgs([]string{"-version"}, map[string]string{}, nil, nil)
 
 	old := os.Stdout
@@ -451,9 +451,10 @@ func TestVersionCmd(t *testing.T) {
 	w.Close()
 	os.Stdout = old
 	actual := <-outChan
+	expected := fmt.Sprintf("%sversion:\t %s\n", Logo, Version)
 
-	if !(len(actual) > 1) {
-		t.Errorf("Expected a string of len > 1 got %s", actual)
+	if !(actual == expected) {
+		t.Errorf("Expected %q got %q", expected, actual)
 	}
 }
 

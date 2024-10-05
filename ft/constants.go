@@ -45,3 +45,9 @@ var CmdDesc = map[string]string{
 	"-help":    "you are here :) - Usage: ft -help, -h",
 	"-version": "print current version of fastTravelCLI - Usage: ft -version, -v",
 }
+
+// default value for version
+var Version string = "development"
+
+// default value for logo
+var Logo string = "fastTravelCLI"
