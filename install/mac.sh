@@ -7,16 +7,18 @@ TARGET_DIR="$HOME/fastTravelCLI"
 
 
 exe_install() {
+
+    # get the version from the github
+    latest_tag=$(git describe --tags $(git rev-list --tags --max-count=1))
     
     sudo mkdir -p "$TARGET_DIR"
     echo "Created dir $TARGET_DIR"
 
     echo "Attempting to compile go binary..."
-    go build -o fastTravel.exe
+    go build -o fastTravel.exe -ldflags="-X 'github.com/osteensco/fastTravelCLI/ft.Version=$latest_tag'" 
 
     echo "Moving exe to $TARGET_DIR"
     sudo mv ./fastTravel.exe "$TARGET_DIR/fastTravel.exe" 
-
 }
 
 

@@ -7,6 +7,9 @@ import (
 	"strings"
 )
 
+// default value for version
+var Version string = "development"
+
 func verifyInput(s string) (bool, error) {
 	switch strings.ToLower(s) {
 	case "y":
