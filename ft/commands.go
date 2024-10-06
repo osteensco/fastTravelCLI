@@ -4,6 +4,8 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"os/exec"
+	"runtime"
 	"strings"
 )
 
@@ -44,7 +46,7 @@ func PassCmd(args []string) ([]string, error) {
 	case "-ls", "-]", "-[", "-..", "--":
 		return []string{cmd}, nil
 	// providing help for a specific command may be needed in the future
-	case "-help", "-h", "-version", "-v":
+	case "-help", "-h", "-version", "-v", "-is":
 		break
 	case "-rn":
 		if len(args) <= 3 {
@@ -271,6 +273,36 @@ func showVersion(data *CmdArgs) error {
 
 		`)
 	fmt.Println("version:\t", Version)
+	return nil
+}
+
+func showDirectoryVar(data *CmdArgs) error {
+	rt := runtime.GOOS
+	var dir string
+	switch rt {
+	case "linux":
+		cmd := exec.Command("pwd")
+		d, err := cmd.Output()
+		dir = strings.Trim(string(d), "\n")
+		if err != nil {
+			return err
+		}
+	default:
+		fmt.Println("This command is not supported on your os")
+	}
+
+	pathMaps := data.allPaths
+
+	for k := range pathMaps {
+		v, _ := pathMaps[k]
+
+		if strings.Compare(v, dir) == 0 {
+			fmt.Println(strings.Trim(k, "\n"))
+			return nil
+		}
+	}
+
+	fmt.Println("No key found for this path!")
 	return nil
 }
 

@@ -32,6 +32,7 @@ var AvailCmds = map[string]func(data *CmdArgs) error{
 	"--":       passToShell,
 	"-version": showVersion,
 	"-v":       showVersion,
+	"-is":      showDirectoryVar,
 }
 
 var CmdDesc = map[string]string{
@@ -42,6 +43,7 @@ var CmdDesc = map[string]string{
 	"-rn":      "renames key to new key - Usage: ft -rn [key] [new key]",
 	"]":        "navigate history forwards - Usage: ft ]",
 	"[":        "navigate history backwards - Usage: ft [",
+	"-is":      "know the directory variable if set for a directory",
 	"-help":    "you are here :) - Usage: ft -help, -h",
 	"-version": "print current version of fastTravelCLI - Usage: ft -version, -v",
 }
