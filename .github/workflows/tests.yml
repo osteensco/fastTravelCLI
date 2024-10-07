@@ -35,7 +35,7 @@ jobs:
           lua install/tests/linux_test.lua
 
       - name: Test install Script in zsh
-        shell: bash
+        shell: zsh
         run: | 
           echo "Testing install script in zsh..."
           lua install/tests/linux_test.lua
@@ -69,7 +69,7 @@ jobs:
           lua install/tests/mac_test.lua
 
       - name: Test install Script in zsh
-        shell: bash
+        shell: zsh
         run: | 
           echo "Testing install script in zsh..."
           lua install/tests/mac_test.lua

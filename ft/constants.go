@@ -51,3 +51,25 @@ var Version string = "development"
 
 // default value for logo
 var Logo string = "fastTravelCLI"
+
+// responses
+const (
+	noLocationsSetMsg         = "No fast travel locations set, set locations by navigating to desired destination directory and using 'ft -set <key>' \n"
+	invalidDirectoryMsg       = "Provided path '%s' evaluates to '%s' which is not a valid directory. Use 'ft -ls' to see all saved destinations. \n"
+	unrecognizedKeyMsg        = "Did not recognize key '%s', use 'ft -ls' to see all saved destinations. If this is a relative path use './%s' or '%s/'. \n"
+	pathAlreadyExistsMsg      = "Path '%s' already exists with key '%s', overwrite key '%s' \n"
+	abortedOverwriteKeyMsg    = "Aborted overwriting of key '%s' \n"
+	renamedKeyMsg             = "Renamed key '%s' to '%s' whose value is '%s' \n"
+	keyAlreadyExistsMsg       = "Key '%s' already exists with value '%s', overwrite key '%s'?(y/n) "
+	addKeyMsg                 = "Added destination '%s': '%s' \n"
+	keyDoesNotExistMsg        = "Key '%s' does not exist. Run 'ft -ls' to see all keys. \n"
+	verifyRemoveMsg           = "Are you sure you want to remove the key '%s'? (y/n) "
+	abortRemoveKeyMsg         = "Aborted removal of key '%s' \n"
+	removeKeyMsg              = "Removed '%s' destination \n"
+	renameKeyAlreadyExistsMsg = "Key '%s' already exists, please choose something else. \n"
+	renameKeyDoesNotExistMsg  = "Cannot rename '%s', key does not exist. Run 'ft -ls' to see all keys. \n"
+	verifyRenameMsg           = "Are you sure you want to rename the key '%s' to '%s'? (y/n) "
+	abortRenameKeyMsg         = "Aborted renaming of key '%s' to '%s'. \n"
+)
+
+//
