@@ -44,7 +44,7 @@ func PassCmd(args []string) ([]string, error) {
 	case "-ls", "-]", "-[", "-..", "--":
 		return []string{cmd}, nil
 	// providing help for a specific command may be needed in the future
-	case "-help", "-h", "-version", "-v":
+	case "-help", "-h", "-version", "-v", "-is":
 		break
 	case "-rn":
 		if len(args) <= 3 {
@@ -271,6 +271,27 @@ func showVersion(data *CmdArgs) error {
 
 		`)
 	fmt.Println("version:\t", Version)
+	return nil
+}
+
+func showDirectoryVar(data *CmdArgs) error {
+	dir, err := os.Getwd()
+	if err != nil {
+		return err
+	}
+
+	pathMaps := data.allPaths
+
+	for k := range pathMaps {
+		v, _ := pathMaps[k]
+
+		if strings.Compare(v, dir) == 0 {
+			fmt.Printf("Directory %s is saved to key : %s \n", dir, k)
+			return nil
+		}
+	}
+
+	fmt.Printf("No key was found for the specified path: %s \n", dir)
 	return nil
 }
 
