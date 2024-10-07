@@ -54,11 +54,9 @@ func TestPassCmd(t *testing.T) {
 		}
 
 	}
-
 }
 
 func TestChangeDirectory(t *testing.T) {
-
 	tmpdir, err := os.MkdirTemp("", "testing")
 	if err != nil {
 		t.Fatal(err)
@@ -150,7 +148,6 @@ func TestChangeDirectory(t *testing.T) {
 			var buf bytes.Buffer
 			io.Copy(&buf, r)
 			outChan <- buf.String()
-
 		}()
 
 		w.Close()
@@ -162,6 +159,85 @@ func TestChangeDirectory(t *testing.T) {
 		if actual != tt.expected {
 			fmt.Println(tt.name)
 			t.Errorf("Expected %s, got %s", tt.expected, actual)
+		}
+	}
+}
+
+func TestShowDirectoryVar(t *testing.T) {
+	tmpfile, err := os.CreateTemp("", "testdata.bin")
+	if err != nil {
+		t.Fatalf("Failed to create file: %v", err)
+	}
+	defer os.Remove(tmpfile.Name())
+	defer tmpfile.Close()
+
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	tests := []struct {
+		name     string
+		command  []string
+		expected string
+		wanterr  bool
+	}{
+		{
+			name:     "1. Check the directory var using -is",
+			command:  []string{"-is"},
+			expected: "testKey",
+			wanterr:  false,
+		},
+	}
+
+	for _, tt := range tests {
+		testData := NewCmdArgs(
+			[]string{"-set", "testKey"},
+			make(map[string]string),
+			tmpfile,
+			nil,
+		)
+
+		err := setDirectoryVar(testData)
+		if err != nil {
+			t.Errorf("Error setting directory var: %v", err)
+		}
+
+		data := NewCmdArgs(
+			tt.command,
+			testData.allPaths,
+			tmpfile,
+			nil,
+		)
+
+		old := os.Stdout
+		r, w, err := os.Pipe()
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		os.Stdout = w
+
+		err = showDirectoryVar(data)
+		if err != nil {
+			t.Error(err)
+		}
+
+		// Use go routine so printing doesn't block program
+		outChan := make(chan string)
+		go func() {
+			var buf bytes.Buffer
+			io.Copy(&buf, r)
+			outChan <- buf.String()
+		}()
+
+		w.Close()
+		os.Stdout = old
+		actual := <-outChan
+
+		actual = strings.Trim(actual, "\n")
+
+		if len(actual) == 0 {
+			t.Errorf("Did not get the expected key")
 		}
 	}
 }
@@ -212,7 +288,6 @@ func TestSetDirectoryVar(t *testing.T) {
 
 		if data.allPaths["testKey"] != tt.expected {
 			t.Errorf("Expected key 'testKey' to have value %s, got %s", tt.expected, data.allPaths["testKey"])
-
 		}
 
 		file, err := os.Open(tmpfile.Name())
@@ -227,10 +302,8 @@ func TestSetDirectoryVar(t *testing.T) {
 		}
 		if result["testKey"] != tt.expected {
 			t.Errorf("Expected file to have key 'testKey' with value %s, got %s", tt.expected, result["testKey"])
-
 		}
 	}
-
 }
 
 func TestDisplayAllPaths(t *testing.T) {
@@ -259,7 +332,6 @@ func TestDisplayAllPaths(t *testing.T) {
 		var buf bytes.Buffer
 		io.Copy(&buf, r)
 		outChan <- buf.String()
-
 	}()
 
 	w.Close()
@@ -398,7 +470,6 @@ func TestRenameKey(t *testing.T) {
 		}
 		if data.allPaths["newKey"] != "value1" {
 			t.Fatalf("Expected key 'newKey' to have value 'value1', got %s", data.allPaths["newKey"])
-
 		}
 
 		file, err := os.Open(tmpfile.Name())
@@ -436,7 +507,6 @@ func TestShowVersion(t *testing.T) {
 	os.Stdout = w
 
 	err = showVersion(data)
-
 	if err != nil {
 		t.Error(err)
 	}
@@ -480,7 +550,6 @@ func TestShowHelp(t *testing.T) {
 		var buf bytes.Buffer
 		io.Copy(&buf, r)
 		outChan <- buf.String()
-
 	}()
 
 	w.Close()
@@ -494,7 +563,6 @@ func TestShowHelp(t *testing.T) {
 }
 
 func TestNavStack(t *testing.T) {
-
 	tests := []struct {
 		name     string
 		command  []string
@@ -542,7 +610,6 @@ func TestNavStack(t *testing.T) {
 			var buf bytes.Buffer
 			io.Copy(&buf, r)
 			outChan <- buf.String()
-
 		}()
 
 		w.Close()
@@ -566,5 +633,4 @@ func TestNavStack(t *testing.T) {
 			t.Errorf("Expected %s, got %s", tt.expected, actual)
 		}
 	}
-
 }
