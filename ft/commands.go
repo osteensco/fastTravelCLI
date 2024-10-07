@@ -4,8 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"os/exec"
-	"runtime"
 	"strings"
 )
 
@@ -277,18 +275,9 @@ func showVersion(data *CmdArgs) error {
 }
 
 func showDirectoryVar(data *CmdArgs) error {
-	rt := runtime.GOOS
-	var dir string
-	switch rt {
-	case "linux":
-		cmd := exec.Command("pwd")
-		d, err := cmd.Output()
-		dir = strings.Trim(string(d), "\n")
-		if err != nil {
-			return err
-		}
-	default:
-		fmt.Println("This command is not supported on your os")
+	dir, err := os.Getwd()
+	if err != nil {
+		return err
 	}
 
 	pathMaps := data.allPaths
@@ -297,12 +286,12 @@ func showDirectoryVar(data *CmdArgs) error {
 		v, _ := pathMaps[k]
 
 		if strings.Compare(v, dir) == 0 {
-			fmt.Println(strings.Trim(k, "\n"))
+			fmt.Printf("Directory %s is saved to key : %s \n", dir, k)
 			return nil
 		}
 	}
 
-	fmt.Println("No key found for this path!")
+	fmt.Printf("No key was found for the specified path: %s \n", dir)
 	return nil
 }
 
