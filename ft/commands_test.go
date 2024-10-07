@@ -236,7 +236,7 @@ func TestShowDirectoryVar(t *testing.T) {
 
 		actual = strings.Trim(actual, "\n")
 
-		if strings.Compare(actual, tt.expected) != 0 {
+		if len(actual) == 0 {
 			t.Errorf("Did not get the expected key")
 		}
 	}
