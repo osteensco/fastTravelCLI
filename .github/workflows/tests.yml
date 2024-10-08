@@ -22,6 +22,9 @@ jobs:
       - name: Set up Lua
         run: sudo apt-get update && sudo apt-get install -y lua5.4
 
+      - name: Install zsh
+        run: sudo apt-get install -y zsh
+
       - name: Install dependencies
         run: go mod download
 
@@ -55,6 +58,9 @@ jobs:
 
       - name: Set up Lua
         run: brew install lua@5.4
+
+      - name: Install zsh
+        run: brew install zsh
 
       - name: Install dependencies
         run: go mod download
