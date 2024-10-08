@@ -32,13 +32,13 @@ jobs:
         run: go test ./... -v
 
       - name: Test install Script in bash
-        shell: zsh {0}
+        shell: bash
         run: | 
           echo "Testing install script in bash..."
           lua install/tests/linux_test.lua
 
       - name: Test install Script in zsh
-        shell: zsh
+        shell: zsh {0}
         run: | 
           echo "Testing install script in zsh..."
           lua install/tests/linux_test.lua
