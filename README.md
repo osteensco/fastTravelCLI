@@ -48,6 +48,15 @@ and condenses it to this:
 ft wknotes
 ```
 <br></br>
+
+
+<!-- Zoxide is a great solution but the implementation is complex leading to many issues that cause it to be less than ideal for many use cases. -->
+<!-- Here are a few examples of issues that fastTravelCLI solves gracefully or avoids entirely. -->
+<!-- https://github.com/ajeetdsouza/zoxide/issues/620 - CDPATH support -->
+<!-- https://github.com/ajeetdsouza/zoxide/issues/876 - Differentiating similarly named directories -->
+<!-- https://github.com/ajeetdsouza/zoxide/issues/839 - Session history stack navigation -->
+<!-- https://github.com/ajeetdsouza/zoxide/issues/863 - Navigation local to project -->
+
 <br></br>
 
 <h1>Usage</h1>

@@ -22,6 +22,9 @@ jobs:
       - name: Set up Lua
         run: sudo apt-get update && sudo apt-get install -y lua5.4
 
+      - name: Install zsh
+        run: sudo apt-get install -y zsh
+
       - name: Install dependencies
         run: go mod download
 
@@ -35,7 +38,7 @@ jobs:
           lua install/tests/linux_test.lua
 
       - name: Test install Script in zsh
-        shell: bash
+        shell: zsh {0}
         run: | 
           echo "Testing install script in zsh..."
           lua install/tests/linux_test.lua
@@ -56,6 +59,9 @@ jobs:
       - name: Set up Lua
         run: brew install lua@5.4
 
+      - name: Install zsh
+        run: brew install zsh
+
       - name: Install dependencies
         run: go mod download
 
@@ -69,7 +75,7 @@ jobs:
           lua install/tests/mac_test.lua
 
       - name: Test install Script in zsh
-        shell: bash
+        shell: zsh {0}
         run: | 
           echo "Testing install script in zsh..."
           lua install/tests/mac_test.lua

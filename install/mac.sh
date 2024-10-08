@@ -10,12 +10,14 @@ exe_install() {
 
     # get the version from the github
     latest_tag=$(git describe --tags $(git rev-list --tags --max-count=1))
+    # get the logo
+    logo=$(install/logo.sh)
     
     sudo mkdir -p "$TARGET_DIR"
     echo "Created dir $TARGET_DIR"
 
     echo "Attempting to compile go binary..."
-    go build -o fastTravel.exe -ldflags="-X 'github.com/osteensco/fastTravelCLI/ft.Version=$latest_tag'" 
+    go build -o fastTravel.exe -ldflags="-X 'github.com/osteensco/fastTravelCLI/ft.Version=$latest_tag' -X 'github.com/osteensco/fastTravelCLI/ft.Logo=$logo'" 
 
     echo "Moving exe to $TARGET_DIR"
     sudo mv ./fastTravel.exe "$TARGET_DIR/fastTravel.exe" 

@@ -62,7 +62,7 @@ func PassCmd(args []string) ([]string, error) {
 
 func changeDirectory(data *CmdArgs) error {
 	if len(data.allPaths) == 0 {
-		fmt.Printf("No fast travel locations set, set locations by navigating to desired destination directory and using 'ft -set <key>' \n")
+		fmt.Print(NoLocationsSetMsg)
 		return nil
 	}
 
@@ -97,7 +97,7 @@ func changeDirectory(data *CmdArgs) error {
 			}
 		}
 
-		fmt.Printf("Provided path '%s' evaluates to '%s' which is not a valid directory. Use 'ft -ls' to see all saved destinations. \n", provided_string, path)
+		fmt.Printf(InvalidDirectoryMsg, provided_string, path)
 		return nil
 
 	} else {
@@ -105,7 +105,7 @@ func changeDirectory(data *CmdArgs) error {
 		key = provided_string
 		p, ok := data.allPaths[key]
 		if !ok {
-			fmt.Printf("Did not recognize key '%s', use 'ft -ls' to see all saved destinations. If this is a relative path use './%s' or '%s/'. \n", key, key, key)
+			fmt.Printf(UnrecognizedKeyMsg, key, key, key)
 			return nil
 		}
 
@@ -124,7 +124,7 @@ func setDirectoryVar(data *CmdArgs) error {
 
 	for k, v := range data.allPaths {
 		if path == v {
-			fmt.Printf("Path '%s' already exists with key '%s', overwrite key '%s' \n", path, k, k)
+			fmt.Printf(PathAlreadyExistsMsg, path, k, k)
 			var res string
 			_, err := fmt.Fscan(data.rdr, &res)
 			if err != nil {
@@ -134,7 +134,7 @@ func setDirectoryVar(data *CmdArgs) error {
 				if err != nil {
 					return err
 				}
-				fmt.Printf("Aborted overwriting of key '%s' \n", key)
+				fmt.Printf(AbortedOverwriteKeyMsg, key)
 				return nil
 			} else {
 				if err != nil {
@@ -144,7 +144,7 @@ func setDirectoryVar(data *CmdArgs) error {
 			delete(data.allPaths, k)
 			data.allPaths[key] = path
 			dataUpdate(data.allPaths, data.file)
-			fmt.Printf("Renamed key '%s' to '%s' whose value is '%s' \n", k, key, path)
+			fmt.Printf(RenamedKeyMsg, k, key, path)
 			return nil
 		}
 	}
@@ -152,7 +152,7 @@ func setDirectoryVar(data *CmdArgs) error {
 	val, ok := data.allPaths[key]
 	if ok {
 		// capture user response and act accordingly
-		fmt.Printf("Key '%s' already exists with value '%s', overwrite key '%s'?(y/n) ", key, val, key)
+		fmt.Printf(KeyAlreadyExistsMsg, key, val, key)
 		var res string
 		_, err := fmt.Fscan(data.rdr, &res)
 		if err != nil {
@@ -162,7 +162,7 @@ func setDirectoryVar(data *CmdArgs) error {
 			if err != nil {
 				return err
 			}
-			fmt.Printf("Aborted overwriting of key '%s' \n", key)
+			fmt.Printf(AbortedOverwriteKeyMsg, key)
 			return nil
 		} else {
 			if err != nil {
@@ -175,7 +175,7 @@ func setDirectoryVar(data *CmdArgs) error {
 	// key doesn't exist yet or user wants to overwrite
 	data.allPaths[key] = path
 	dataUpdate(data.allPaths, data.file)
-	fmt.Printf("Added destination '%s': '%s' \n", key, path)
+	fmt.Printf(AddKeyMsg, key, path)
 	return nil
 }
 
@@ -190,10 +190,10 @@ func removeKey(data *CmdArgs) error {
 
 	_, ok := data.allPaths[key]
 	if !ok {
-		fmt.Printf("Key '%s' does not exist. Run 'ft -ls' to see all keys. \n", key)
+		fmt.Printf(KeyDoesNotExistMsg, key)
 		return nil
 	}
-	fmt.Printf("Are you sure you want to remove the key '%s'? (y/n) ", key)
+	fmt.Printf(VerifyRemoveMsg, key)
 	_, err := fmt.Fscan(data.rdr, &res)
 	if err != nil {
 		return err
@@ -202,7 +202,7 @@ func removeKey(data *CmdArgs) error {
 		if err != nil {
 			return err
 		}
-		fmt.Printf("Aborted removal of key '%s' \n", key)
+		fmt.Printf(AbortRemoveKeyMsg, key)
 		return nil
 	} else {
 		if err != nil {
@@ -211,7 +211,7 @@ func removeKey(data *CmdArgs) error {
 	}
 	delete(data.allPaths, key)
 	dataUpdate(data.allPaths, data.file)
-	fmt.Printf("Removed '%s' destination \n", key)
+	fmt.Printf(RemoveKeyMsg, key)
 	return nil
 }
 
@@ -221,18 +221,18 @@ func renameKey(data *CmdArgs) error {
 
 	_, ok := data.allPaths[newKey]
 	if ok {
-		fmt.Printf("Key '%s' already exists, please choose something else. \n", newKey)
+		fmt.Printf(RenameKeyAlreadyExistsMsg, newKey)
 		return nil
 	}
 	path, ok := data.allPaths[originalKey]
 	if !ok {
-		fmt.Printf("Cannot rename '%s', key does not exist. Run 'ft -ls' to see all keys. \n", originalKey)
+		fmt.Printf(RenameKeyDoesNotExistMsg, originalKey)
 		return nil
 	}
 
 	var res string
 
-	fmt.Printf("Are you sure you want to rename the key '%s' to '%s'? (y/n) ", originalKey, newKey)
+	fmt.Printf(VerifyRenameMsg, originalKey, newKey)
 	_, err := fmt.Fscan(data.rdr, &res)
 	if err != nil {
 		return err
@@ -241,7 +241,7 @@ func renameKey(data *CmdArgs) error {
 		if err != nil {
 			fmt.Println("Error: ", err)
 		}
-		fmt.Printf("Aborted renaming of key '%s' to '%s'. \n", originalKey, newKey)
+		fmt.Printf(AbortRenameKeyMsg, originalKey, newKey)
 		return nil
 	} else {
 		if err != nil {
@@ -252,7 +252,7 @@ func renameKey(data *CmdArgs) error {
 	data.allPaths[newKey] = path
 
 	dataUpdate(data.allPaths, data.file)
-	fmt.Printf("Key '%s' renamed to '%s'. \n", originalKey, newKey)
+	fmt.Printf(RenamedKeyMsg, originalKey, newKey, path)
 	return nil
 }
 
@@ -262,14 +262,7 @@ func showHelp(data *CmdArgs) error {
 }
 
 func showVersion(data *CmdArgs) error {
-	fmt.Println(`
-     __           _  _____                     _   ___   __   _____ - -  -  -   -   -
-    / _| ____ ___| |/__   \___  ______   _____| | / __\ / /   \_   \ - -  -  -   -   -
-   | |_ / _  / __| __|/ /\/  _\/ _  \ \ / / _ \ |/ /   / /     / /\/  - -  -   -   -
-   |  _| (_| \__ \ |_/ /  | | | (_| |\ V /  __/ / /___/ /___/\/ /_  - -  -  -   -   -
-   |_|  \__._|___/\__\/   |_|  \__._| \_/ \___|_\____/\____/\____/ - -  -  -   -   -
-
-		`)
+	fmt.Print(Logo)
 	fmt.Println("version:\t", Version)
 	return nil
 }
@@ -286,12 +279,12 @@ func showDirectoryVar(data *CmdArgs) error {
 		v, _ := pathMaps[k]
 
 		if strings.Compare(v, dir) == 0 {
-			fmt.Printf("Directory %s is saved to key : %s \n", dir, k)
+			fmt.Printf(IsKeyMsg, dir, k)
 			return nil
 		}
 	}
 
-	fmt.Printf("No key was found for the specified path: %s \n", dir)
+	fmt.Printf(IsNotKeyMsg, dir)
 	return nil
 }
 

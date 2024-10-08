@@ -23,8 +23,7 @@ func ReadMap(file *os.File) (map[string]string, error) {
 	// read entire file into memory
 	_, err = file.Read(buff)
 	if err != nil {
-		fmt.Println("Error reading file into buffer: ", err)
-		os.Exit(1)
+		return pathMap, errors.New(fmt.Sprint("Error reading file into buffer: ", err))
 	}
 
 	// key length integer should always fit in 1 byte
