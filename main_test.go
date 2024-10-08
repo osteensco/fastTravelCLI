@@ -75,7 +75,7 @@ func TestMainFunc(t *testing.T) {
 		{
 			name:     "2. Check set command.",
 			args:     []string{"ft", "-set", "key"},
-			expected: fmt.Sprintf("Added destination 'key': '%s' \n", tmpdir),
+			expected: fmt.Sprintf(ft.AddKeyMsg, "key", tmpdir),
 			wantErr:  false,
 		},
 		{
@@ -87,7 +87,7 @@ func TestMainFunc(t *testing.T) {
 		{
 			name:     "4. Check cd command with bad key.",
 			args:     []string{"ft", "badkey"},
-			expected: "Did not recognize key 'badkey', use 'ft -ls' to see all saved destinations. If this is a relative path use './badkey' or 'badkey/'. \n",
+			expected: fmt.Sprintf(ft.UnrecognizedKeyMsg, "badkey", "badkey", "badkey"),
 			wantErr:  false,
 		},
 		{

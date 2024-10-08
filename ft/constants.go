@@ -54,24 +54,24 @@ var Version string = "development"
 // default value for logo
 var Logo string = "fastTravelCLI"
 
-// responses
+// messages
 const (
-	noLocationsSetMsg         = "No fast travel locations set, set locations by navigating to desired destination directory and using 'ft -set <key>' \n"
-	invalidDirectoryMsg       = "Provided path '%s' evaluates to '%s' which is not a valid directory. Use 'ft -ls' to see all saved destinations. \n"
-	unrecognizedKeyMsg        = "Did not recognize key '%s', use 'ft -ls' to see all saved destinations. If this is a relative path use './%s' or '%s/'. \n"
-	pathAlreadyExistsMsg      = "Path '%s' already exists with key '%s', overwrite key '%s' \n"
-	abortedOverwriteKeyMsg    = "Aborted overwriting of key '%s' \n"
-	renamedKeyMsg             = "Renamed key '%s' to '%s' whose value is '%s' \n"
-	keyAlreadyExistsMsg       = "Key '%s' already exists with value '%s', overwrite key '%s'?(y/n) "
-	addKeyMsg                 = "Added destination '%s': '%s' \n"
-	keyDoesNotExistMsg        = "Key '%s' does not exist. Run 'ft -ls' to see all keys. \n"
-	verifyRemoveMsg           = "Are you sure you want to remove the key '%s'? (y/n) "
-	abortRemoveKeyMsg         = "Aborted removal of key '%s' \n"
-	removeKeyMsg              = "Removed '%s' destination \n"
-	renameKeyAlreadyExistsMsg = "Key '%s' already exists, please choose something else. \n"
-	renameKeyDoesNotExistMsg  = "Cannot rename '%s', key does not exist. Run 'ft -ls' to see all keys. \n"
-	verifyRenameMsg           = "Are you sure you want to rename the key '%s' to '%s'? (y/n) "
-	abortRenameKeyMsg         = "Aborted renaming of key '%s' to '%s'. \n"
+	NoLocationsSetMsg         = "No fast travel locations set, set locations by navigating to desired destination directory and using 'ft -set <key>' \n"
+	InvalidDirectoryMsg       = "Provided path '%s' evaluates to '%s' which is not a valid directory. Use 'ft -ls' to see all saved destinations. \n"
+	UnrecognizedKeyMsg        = "Did not recognize key '%s', use 'ft -ls' to see all saved destinations. If this is a relative path use './%s' or '%s/'. \n"
+	PathAlreadyExistsMsg      = "Path '%s' already exists with key '%s', overwrite key '%s' \n"
+	AbortedOverwriteKeyMsg    = "Aborted overwriting of key '%s' \n"
+	RenamedKeyMsg             = "Renamed key '%s' to '%s' whose value is '%s' \n"
+	KeyAlreadyExistsMsg       = "Key '%s' already exists with value '%s', overwrite key '%s'?(y/n) "
+	AddKeyMsg                 = "Added destination '%s': '%s' \n"
+	KeyDoesNotExistMsg        = "Key '%s' does not exist. Run 'ft -ls' to see all keys. \n"
+	VerifyRemoveMsg           = "Are you sure you want to remove the key '%s'? (y/n) "
+	AbortRemoveKeyMsg         = "Aborted removal of key '%s' \n"
+	RemoveKeyMsg              = "Removed '%s' destination \n"
+	RenameKeyAlreadyExistsMsg = "Key '%s' already exists, please choose something else. \n"
+	RenameKeyDoesNotExistMsg  = "Cannot rename '%s', key does not exist. Run 'ft -ls' to see all keys. \n"
+	VerifyRenameMsg           = "Are you sure you want to rename the key '%s' to '%s'? (y/n) "
+	AbortRenameKeyMsg         = "Aborted renaming of key '%s' to '%s'. \n"
+	IsKeyMsg                  = "Directory %s is saved to key : %s \n"
+	IsNotKeyMsg               = "No key was found for the specified path: %s \n"
 )
-
-//

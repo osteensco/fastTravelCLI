@@ -53,7 +53,7 @@ func main() {
 
 	err = exeCmd(data)
 	if err != nil {
-		fmt.Println("fastTravel returned an error: ", err)
+		fmt.Println("fastTravelCLI returned an error: ", err)
 		return
 	}
 
