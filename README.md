@@ -17,14 +17,20 @@ Instead of tracking frequently visited directories, using a fuzzy search, or eve
 fastTravelCLI is a true CD command replacement with additional features. Check out the issues for even more features on the way.
 <br></br>
 
-Zoxide is a great solution but the implementation is complex leading to many issues that cause it to be less than ideal for many use cases.
+<h4>Why not just use Zoxide?</h4>
+Personal preference really.
+Zoxide is a great tool but the implementation is complex leading to many issues that cause it to be less than ideal for many use cases.
 Here are a few examples of issues that fastTravelCLI solves gracefully or avoids entirely.
-https://github.com/ajeetdsouza/zoxide/issues/620 - CDPATH support
-https://github.com/ajeetdsouza/zoxide/issues/876 - Differentiating similarly named directories
-https://github.com/ajeetdsouza/zoxide/issues/839 - Session history stack navigation
-https://github.com/ajeetdsouza/zoxide/issues/863 - Navigation local to project
+
+- https://github.com/ajeetdsouza/zoxide/issues/620 - CDPATH support
+- https://github.com/ajeetdsouza/zoxide/issues/876 - Differentiating similarly named directories
+- https://github.com/ajeetdsouza/zoxide/issues/839 - Session history stack navigation
+- https://github.com/ajeetdsouza/zoxide/issues/863 - Navigation local to project
 
 <br></br>
+
+<h4>I already use fzf for most of my in project navigation, why would I use this?</h4>
+
 If you use fzf to find a deeply nested directory, fastTravelCLI takes an experience like this: 
 ```
 cd $(find * -type d | fzf)
@@ -122,7 +128,7 @@ ft -help
 ft -h
 ```
 <br></br>
-<br></br>
+
 
 <h1>Installation</h1>
 <br></br>
