@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"path/filepath"
 	"strings"
 )
 
@@ -60,6 +61,7 @@ func PassCmd(args []string) ([]string, error) {
 	return args[1:], nil
 }
 
+// changeDirectory can handle key lookup, relative paths, directories in CDPATH, and key evaluation.
 func changeDirectory(data *CmdArgs) error {
 	if len(data.allPaths) == 0 {
 		fmt.Print(NoLocationsSetMsg)
@@ -103,8 +105,33 @@ func changeDirectory(data *CmdArgs) error {
 	} else {
 
 		key = provided_string
+		// handles key lookup
 		p, ok := data.allPaths[key]
 		if !ok {
+
+			// handles releative directory in CWD
+			dir, err := os.Stat(key)
+			if err == nil {
+				if dir.IsDir() {
+					fmt.Println(key)
+					return nil
+				}
+			}
+
+			// handles CDPATH
+			cdpath := os.Getenv("CDPATH")
+			if cdpath != "" {
+				cdpaths := strings.Split(cdpath, ":")
+				for _, path := range cdpaths {
+					cdPathResult := filepath.Join(path, key)
+					dir, err := os.Stat(cdPathResult)
+					if err == nil && dir.IsDir() {
+						fmt.Println(cdPathResult)
+						return nil
+					}
+				}
+			}
+
 			fmt.Printf(UnrecognizedKeyMsg, key, key, key)
 			return nil
 		}
