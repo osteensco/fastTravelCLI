@@ -49,6 +49,29 @@ func TestMainFunc(t *testing.T) {
 		t.Fatalf("Failed to navigate to temp directory")
 	}
 
+	// CDPATH setup
+	homeDir, err := os.UserHomeDir()
+	if err != nil {
+		t.Fatalf("Failed to retrieve home directory: %v", err)
+	}
+	cdpathdir, err := os.MkdirTemp(homeDir, "cdpathdir")
+	if err != nil {
+		t.Fatalf("Failed to create temp dir: %v", err)
+	}
+
+	defer os.RemoveAll(cdpathdir)
+
+	cdpathtest, err := os.MkdirTemp(cdpathdir, "cdpathtest")
+	if err != nil {
+		t.Fatalf("Failed to create temp dir: %v", err)
+	}
+
+	cdpathtestkey := filepath.Base(cdpathtest)
+
+	cdpath := os.Getenv("CDPATH")
+	err = os.Setenv("CDPATH", fmt.Sprint(cdpathdir, ":", cdpath))
+
+	// tests
 	tests := []struct {
 		name     string
 		args     []string
@@ -100,6 +123,12 @@ func TestMainFunc(t *testing.T) {
 			name:     "6. Check navigate stack.",
 			args:     []string{"ft", "["},
 			expected: "[\n",
+			wantErr:  false,
+		},
+		{
+			name:     "7. Check cd command with CDPATH.",
+			args:     []string{"ft", cdpathtestkey},
+			expected: fmt.Sprintf("%v\n", cdpathtest),
 			wantErr:  false,
 		},
 		// {
