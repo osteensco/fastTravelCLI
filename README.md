@@ -14,12 +14,13 @@
 
 Typing out a long directory path can be a bit painful. Most tools that solve this problem give you less to type but still involve additional steps afterwards. 
 Instead of tracking frequently visited directories, using a fuzzy search, or even a ML model to improve the cd experience, fastTravelCLI allows you to directly save a destination as a key-value pair, then you can fast travel to that location by just using the key you set. 
-fastTravelCLI is a true CD command replacement with additional features. Check out the issues for even more features on the way.
+fastTravelCLI is a fast, lightweight, true CD command replacement with additional features built on top. Check out the issues for even more features on the way.
 <br></br>
 
 <h4>Why not just use Zoxide?</h4>
-Personal preference really.
-Zoxide is a great tool but the implementation is complex leading to many issues that cause it to be less than ideal for many use cases.
+
+Personal preference really. [Zoxide](https://github.com/ajeetdsouza/zoxide) 
+is a great tool but the implementation is complex leading to many issues that cause it to be less than ideal for many use cases.
 Here are a few examples of issues that fastTravelCLI solves gracefully or avoids entirely.
 
 - https://github.com/ajeetdsouza/zoxide/issues/620 - CDPATH support
@@ -31,7 +32,7 @@ Here are a few examples of issues that fastTravelCLI solves gracefully or avoids
 
 <h4>I already use fzf for most of my in project navigation, why would I use this?</h4>
 
-If you use fzf to find a deeply nested directory, fastTravelCLI takes an experience like this: 
+If you use [fzf](https://github.com/junegunn/fzf) to find a deeply nested directory that you access often, fastTravelCLI takes an experience like this: 
 ```
 cd $(find * -type d | fzf)
 ```
@@ -95,7 +96,7 @@ ft -
 
 # ft supports relative paths in the working directory and CDPATH
 
-ft dir
+ft mydir
 
 # ft allows you to visit previously visited directories
 
@@ -122,9 +123,10 @@ ft -rm [key]
 ft -rn [key] [new key]
 
 
-# And of course if you need help remembering these commands just run
+# To see a full list of available commands run
 
 ft -help
+# or
 ft -h
 ```
 <br></br>
