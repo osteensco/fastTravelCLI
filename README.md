@@ -21,12 +21,12 @@ fastTravelCLI is a fast, lightweight, true CD command replacement with additiona
 
 Personal preference really. [Zoxide](https://github.com/ajeetdsouza/zoxide) 
 is a great tool but the implementation is complex leading to many issues that cause it to be less than ideal for many use cases.
-Here are a few examples of issues that fastTravelCLI solves gracefully or avoids entirely.
+Here are a few examples of Zoxide issues that fastTravelCLI solves gracefully or avoids entirely.
 
-- https://github.com/ajeetdsouza/zoxide/issues/620 - CDPATH support
-- https://github.com/ajeetdsouza/zoxide/issues/876 - Differentiating similarly named directories
-- https://github.com/ajeetdsouza/zoxide/issues/839 - Session history stack navigation
-- https://github.com/ajeetdsouza/zoxide/issues/863 - Navigation local to project
+- [CDPATH support](https://github.com/ajeetdsouza/zoxide/issues/620) 
+- [Differentiating similarly named directories](https://github.com/ajeetdsouza/zoxide/issues/876)
+- [Session history stack navigation](https://github.com/ajeetdsouza/zoxide/issues/839)
+- [Navigation local to project](https://github.com/ajeetdsouza/zoxide/issues/863)
 
 <br></br>
 
