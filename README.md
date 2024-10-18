@@ -10,11 +10,11 @@
                                                                     
 ```
 
-<h3>CD to a directory super fast</h4>
+<h3>CD to a directory super fast</h3>
 
 Typing out a long directory path can be a bit painful. Most tools that solve this problem give you less to type but still involve additional steps afterwards. 
 Instead of tracking frequently visited directories, using a fuzzy search, or even a ML model to improve the cd experience, fastTravelCLI allows you to directly save a destination as a key-value pair, then you can fast travel to that location by just using the key you set. 
-fastTravelCLI is a fast, lightweight, true CD command replacement with additional features built on top. Check out the issues for even more features on the way.
+fastTravelCLI is a fast, lightweight, and feature rich CD command replacement. fastTravelCLI is being continuously improved, check out the issues for new features, support, and integrations in the works.
 <br></br>
 
 <h4>Why not just use Zoxide?</h4>
