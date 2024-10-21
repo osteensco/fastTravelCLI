@@ -122,6 +122,7 @@ func TestChangeDirectory(t *testing.T) {
 	for _, tt := range tests {
 		t.Log(tt.name)
 		data := NewCmdArgs(
+			tmpdir,
 			tt.command,
 			tt.allPaths,
 			tt.file,
@@ -187,6 +188,7 @@ func TestShowDirectoryVar(t *testing.T) {
 	for _, tt := range tests {
 		t.Log(tt.name)
 		data := NewCmdArgs(
+			CWD,
 			tt.command,
 			tt.paths,
 			nil,
@@ -252,6 +254,7 @@ func TestSetDirectoryVar(t *testing.T) {
 
 	for _, tt := range tests {
 		data := NewCmdArgs(
+			workdir,
 			tt.command,
 			make(map[string]string),
 			tmpfile,
@@ -290,6 +293,7 @@ func TestSetDirectoryVar(t *testing.T) {
 
 func TestDisplayAllPaths(t *testing.T) {
 	data := NewCmdArgs(
+		"",
 		[]string{"-ls"},
 		map[string]string{
 			"key1": "value1",
@@ -355,6 +359,7 @@ func TestRemoveKey(t *testing.T) {
 
 	for _, tt := range tests {
 		data := NewCmdArgs(
+			"",
 			tt.command,
 			tt.allPaths,
 			tmpfile,
@@ -425,6 +430,7 @@ func TestRenameKey(t *testing.T) {
 
 	for _, tt := range tests {
 		data := NewCmdArgs(
+			"",
 			tt.command,
 			tt.allPaths,
 			tmpfile,
@@ -478,7 +484,7 @@ func TestRenameKey(t *testing.T) {
 }
 
 func TestShowVersion(t *testing.T) {
-	data := NewCmdArgs([]string{"-version"}, map[string]string{}, nil, nil)
+	data := NewCmdArgs("", []string{"-version"}, map[string]string{}, nil, nil)
 
 	old := os.Stdout
 	r, w, err := os.Pipe()
@@ -511,7 +517,7 @@ func TestShowVersion(t *testing.T) {
 }
 
 func TestShowHelp(t *testing.T) {
-	data := NewCmdArgs([]string{"-help"}, map[string]string{}, nil, nil)
+	data := NewCmdArgs("", []string{"-help"}, map[string]string{}, nil, nil)
 
 	old := os.Stdout
 	r, w, err := os.Pipe()
@@ -573,7 +579,7 @@ func TestNavStack(t *testing.T) {
 
 	for _, tt := range tests {
 
-		data := NewCmdArgs(tt.command, map[string]string{}, nil, nil)
+		data := NewCmdArgs("", tt.command, map[string]string{}, nil, nil)
 
 		stdout := os.Stdout
 		stderr := os.Stderr

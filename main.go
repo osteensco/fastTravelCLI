@@ -8,16 +8,17 @@ import (
 	"github.com/osteensco/fastTravelCLI/ft"
 )
 
-// fastTravel main process
+// fastTravelCLI main process
 func main() {
 
-	// read in bin file
+	// identify exe path to establish a working directory and find dependency files
 	exePath, err := os.Executable()
 	if err != nil {
 		fmt.Println("Error:", err)
 		return
 	}
 
+	// find persisted keys or create file to persist keys
 	dataDirPath := filepath.Dir(exePath)
 	dataPath := fmt.Sprintf("%s/fastTravel.bin", dataDirPath)
 
@@ -28,13 +29,14 @@ func main() {
 	}
 	defer file.Close()
 
+	// read keys into memory
 	allPaths, err := ft.ReadMap(file)
 	if err != nil {
 		fmt.Println("Error: ", err)
 		return
 	}
 
-	// sanitize input
+	// sanitize user input
 	inputCommand, err := ft.PassCmd(os.Args)
 	if err != nil {
 		fmt.Println("Error: ", err)
@@ -42,15 +44,17 @@ func main() {
 	}
 	action := inputCommand[0]
 
-	// execute user provided action
+	// grab command from registry
 	exeCmd, ok := ft.AvailCmds[action]
 	if !ok {
 		fmt.Printf("Invalid command '%s', use 'ft -h' for available commands. \n", action)
 		return
 	}
 
-	data := ft.NewCmdArgs(inputCommand, allPaths, file, os.Stdin)
+	// manifest API
+	data := ft.NewCmdArgs(dataDirPath, inputCommand, allPaths, file, os.Stdin)
 
+	// execute user provided action
 	err = exeCmd(data)
 	if err != nil {
 		fmt.Println("fastTravelCLI returned an error: ", err)
