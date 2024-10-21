@@ -622,3 +622,8 @@ func TestNavStack(t *testing.T) {
 		}
 	}
 }
+
+func TestUpdateFT(t *testing.T) {
+	// how to test this function without actually updating?
+	// temp directory?
+}

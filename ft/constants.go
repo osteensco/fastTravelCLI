@@ -34,6 +34,8 @@ var AvailCmds = map[string]func(data *CmdArgs) error{
 	"-version": showVersion,
 	"-v":       showVersion,
 	"-is":      showDirectoryVar,
+	"-update":  updateFT,
+	"-u":       updateFT,
 }
 
 var CmdDesc = map[string]string{
@@ -47,6 +49,7 @@ var CmdDesc = map[string]string{
 	"-is":      "identify the key that the current working directory is saved to if it is saved to a key - Usage: ft -is",
 	"-help":    "you are here :) - Usage: ft -help, -h",
 	"-version": "print current version of fastTravelCLI - Usage: ft -version, -v",
+	"-update":  "update fastTravel - Usage: ft -update, -u [version](optional)",
 }
 
 // default value for version

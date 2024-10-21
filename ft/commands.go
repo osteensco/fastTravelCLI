@@ -315,6 +315,20 @@ func showDirectoryVar(data *CmdArgs) error {
 	return nil
 }
 
+func updateFT(data *CmdArgs) error {
+	// make temp directory
+	// determine if version was provided
+	// default to latest if none provided
+	// verify version current version is not already version attempting to be updated to
+	// clone the repo
+	// differentiate between stable and nightly? or at least future proof for this capability.
+	// run script
+	// display script output to user
+
+	dir := data.wkDir
+	return nil
+}
+
 // Used for commands that are simply handled by the shell function
 func passToShell(data *CmdArgs) error {
 	c := data.cmd[0]
