@@ -9,7 +9,7 @@ TARGET_DIR="$HOME/fastTravelCLI"
 exe_install() {
 
     # get the version from the github
-    latest_tag=$(git describe --tags $(git rev-list --tags --max-count=1))
+    latest_tag=$(git describe --tags --abbrev=0)
     # get the logo
     logo=$(install/logo.sh)
     
@@ -34,18 +34,22 @@ shell_install() {
         *bash*)
             SCRIPT_PATH="shells/bash/ftmain.sh"
             CONFIG=~/.bashrc
+            sed -i '/#FastTravel/,/#ftend/d' "$CONFIG"
             echo "#FastTravel" >> $CONFIG
             echo "export FT_EXE_PATH=\"$FT_EXE_PATH\"" >> $CONFIG
             echo ". $TARGET_DIR/ftmain.sh" >> $CONFIG
             echo "export FT_PATH=\"$TARGET_DIR/ftmain.sh\"" >> $CONFIG
+            echo "#ftend" >> $CONFIG
             ;;
         *zsh*)
             SCRIPT_PATH="shells/bash/ftmain.sh"
             CONFIG=~/.zshrc
+            sed -i '/#FastTravel/,/#ftend/d' "$CONFIG"
             echo "#FastTravel" >> $CONFIG
             echo "export FT_EXE_PATH=\"$FT_EXE_PATH\"" >> $CONFIG
             echo ". $TARGET_DIR/ftmain.sh" >> $CONFIG
             echo "export FT_PATH=\"$TARGET_DIR/ftmain.sh\"" >> $CONFIG
+            echo "#ftend" >> $CONFIG
             ;;
         *)
             echo "

@@ -7,14 +7,15 @@ import (
 
 // ft command api
 type CmdArgs struct {
+	wkDir    string
 	cmd      []string
 	allPaths map[string]string
 	file     *os.File
 	rdr      io.Reader
 }
 
-func NewCmdArgs(inputCmd []string, allPaths map[string]string, file *os.File, rdr io.Reader) *CmdArgs {
-	return &CmdArgs{inputCmd, allPaths, file, rdr}
+func NewCmdArgs(ftDir string, inputCmd []string, allPaths map[string]string, file *os.File, rdr io.Reader) *CmdArgs {
+	return &CmdArgs{ftDir, inputCmd, allPaths, file, rdr}
 }
 
 // map of available commands
@@ -33,6 +34,8 @@ var AvailCmds = map[string]func(data *CmdArgs) error{
 	"-version": showVersion,
 	"-v":       showVersion,
 	"-is":      showDirectoryVar,
+	"-update":  updateFT,
+	"-u":       updateFT,
 }
 
 var CmdDesc = map[string]string{
@@ -43,9 +46,10 @@ var CmdDesc = map[string]string{
 	"-rn":      "renames key to new key - Usage: ft -rn [key] [new key]",
 	"]":        "navigate history forwards - Usage: ft ]",
 	"[":        "navigate history backwards - Usage: ft [",
-	"-is":      "know the directory variable if set for a directory",
+	"-is":      "identify the key that the current working directory is saved to if it is saved to a key - Usage: ft -is",
 	"-help":    "you are here :) - Usage: ft -help, -h",
 	"-version": "print current version of fastTravelCLI - Usage: ft -version, -v",
+	"-update":  "update fastTravel - Usage: ft -update, -u [version](optional)",
 }
 
 // default value for version
@@ -54,7 +58,11 @@ var Version string = "development"
 // default value for logo
 var Logo string = "fastTravelCLI"
 
-// messages
+// GitHub endpoints for update command
+var EndpointGH string = "https://api.github.com/repos/osteensco/fastTravelCLI/releases/tags/%s"
+var EndpointLatestGH string = "https://api.github.com/repos/osteensco/fastTravelCLI/releases/latest"
+
+// user messages
 const (
 	NoLocationsSetMsg         = "No fast travel locations set, set locations by navigating to desired destination directory and using 'ft -set <key>' \n"
 	InvalidDirectoryMsg       = "Provided path '%s' evaluates to '%s' which is not a valid directory. Use 'ft -ls' to see all saved destinations. \n"
