@@ -58,6 +58,10 @@ var Version string = "development"
 // default value for logo
 var Logo string = "fastTravelCLI"
 
+// GitHub endpoints for update command
+var EndpointGH string = "https://api.github.com/repos/osteensco/fastTravelCLI/releases/tags/%s"
+var EndpointLatestGH string = "https://api.github.com/repos/osteensco/fastTravelCLI/releases/latest"
+
 // user messages
 const (
 	NoLocationsSetMsg         = "No fast travel locations set, set locations by navigating to desired destination directory and using 'ft -set <key>' \n"

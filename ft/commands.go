@@ -1,10 +1,14 @@
 package ft
 
 import (
+	"encoding/json"
 	"errors"
 	"fmt"
+	"net/http"
 	"os"
+	"os/exec"
 	"path/filepath"
+	"runtime"
 	"strings"
 )
 
@@ -45,7 +49,7 @@ func PassCmd(args []string) ([]string, error) {
 	case "-ls", "-]", "-[", "-..", "--":
 		return []string{cmd}, nil
 	// providing help for a specific command may be needed in the future
-	case "-help", "-h", "-version", "-v", "-is":
+	case "-help", "-h", "-version", "-v", "-is", "-update", "-u":
 		break
 	case "-rn":
 		if len(args) <= 3 {
@@ -316,17 +320,104 @@ func showDirectoryVar(data *CmdArgs) error {
 }
 
 func updateFT(data *CmdArgs) error {
-	// make temp directory
+
 	// determine if version was provided
 	// default to latest if none provided
-	// verify version current version is not already version attempting to be updated to
-	// clone the repo
-	// differentiate between stable and nightly? or at least future proof for this capability.
-	// run script
-	// display script output to user
+	version := "latest"
+	if len(data.cmd) > 1 {
+		version = data.cmd[1]
+	}
 
-	dir := data.wkDir
+	// verify/obtain version
+	var endpoint string
+	if version == "latest" {
+		endpoint = EndpointLatestGH
+	} else {
+		endpoint = fmt.Sprintf(EndpointGH, version)
+	}
+
+	resp, err := http.Get(endpoint)
+	if err != nil {
+		return errors.New(fmt.Sprintf("Error sending Get request to %q: %v", endpoint, err))
+	}
+
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return errors.New(
+			fmt.Sprintf(
+				"Error while attempting to retrieve version from github repo - status: %v %s. \n %s",
+				resp.StatusCode,
+				http.StatusText(resp.StatusCode),
+				endpoint,
+			),
+		)
+	}
+
+	type respBody struct {
+		TagName string `json:"tag_name"`
+	}
+	var body respBody
+	decoder := json.NewDecoder(resp.Body)
+	err = decoder.Decode(&body)
+	if err != nil {
+		return err
+	}
+	version = body.TagName
+
+	// verify current version is not the version attempting to be updated to
+	if Version == version {
+		fmt.Println("fastTravelCLI version is already ", version)
+		return nil
+	}
+
+	// make temp directory, clone the repo
+	tmpdir, err := os.MkdirTemp("", "ft_update_temp_folder")
+	if err != nil {
+		return errors.New(fmt.Sprintln("Error making temp directory: ", err))
+	}
+	defer os.RemoveAll(tmpdir)
+
+	err = os.Chdir(tmpdir)
+	if err != nil {
+		return err
+	}
+
+	// may need to handle git clone from https, ssh, or cli
+	// just using https for now
+	clonecmd := exec.Command("git", "clone", "--branch", version, "https://github.com/osteensco/fastTravelCLI.git")
+	err = clonecmd.Run()
+	if err != nil {
+		return errors.New(fmt.Sprintf("Error cloning repo: %v - Command used: %q", err, clonecmd.String()))
+	}
+	// TODO
+	// handle distinction between stable and nightly
+
+	// run install script
+	output := ""
+	script := ""
+	os.Chdir("fastTravelCLI")
+
+	switch opsys := runtime.GOOS; opsys {
+	case "linux":
+		script = "linux.sh"
+	case "darwin":
+		script = "mac.sh"
+	default:
+		return errors.New(fmt.Sprintf("OS %s is not handled in the update command!", opsys))
+	}
+
+	cmd := exec.Command("bash", fmt.Sprint("install/", script))
+	byteoutput, err := cmd.Output()
+	if err != nil {
+		return err
+	}
+	output = string(byteoutput)
+
+	// display script output to user
+	fmt.Print(output)
 	return nil
+
 }
 
 // Used for commands that are simply handled by the shell function
