@@ -1,4 +1,4 @@
-
+#!/usr/bin/env bash
 
 
 TARGET_DIR="$HOME/.local/share/fastTravelCLI"
@@ -8,7 +8,7 @@ TARGET_DIR="$HOME/.local/share/fastTravelCLI"
 exe_install() {
     
     # get the version
-    latest_tag=$(git describe --tags --abbrev=0)
+    version_tag=$(git describe --tags --abbrev=0)
     # get the logo
     logo=$(install/logo.sh)
     
@@ -16,7 +16,7 @@ exe_install() {
     echo "Created dir $TARGET_DIR"
 
     echo "Attempting to compile go binary..."
-    go build -o fastTravel.exe -ldflags="-X 'github.com/osteensco/fastTravelCLI/ft.Version=$latest_tag' -X 'github.com/osteensco/fastTravelCLI/ft.Logo=$logo'" 
+    go build -o fastTravel.exe -ldflags="-X 'github.com/osteensco/fastTravelCLI/ft.Version=$version_tag' -X 'github.com/osteensco/fastTravelCLI/ft.Logo=$logo'" 
 
     echo "Moving exe to $TARGET_DIR"
     sudo mv ./fastTravel.exe "$TARGET_DIR/fastTravel.exe" 
@@ -65,7 +65,8 @@ shell_install() {
     sudo cp $SCRIPT_PATH $TARGET_DIR
     
 
-    install/logo.sh
+    sudo install/logo.sh
+    echo $latest_tag
     echo "Config updated, please source $CONFIG or restart shell"
     
 }
