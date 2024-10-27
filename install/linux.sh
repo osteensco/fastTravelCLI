@@ -10,7 +10,7 @@ exe_install() {
     # get the version
     version_tag=$(git describe --tags --abbrev=0)
     # get the logo
-    logo=$(install/logo.sh)
+    logo=$(sudo install/logo.sh)
     
     sudo mkdir -p "$TARGET_DIR"
     echo "Created dir $TARGET_DIR"
