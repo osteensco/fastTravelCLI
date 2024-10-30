@@ -627,26 +627,22 @@ func TestNavStack(t *testing.T) {
 }
 
 func TestUpdateFT(t *testing.T) {
-	// how to test this function without actually updating?
-	// temp directory?
 	// Mock server to simulate GitHub API responses
-
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		tag := strings.TrimPrefix(r.URL.Path, "/repos/osteensco/fastTravelCLI/releases/")
-		if tag == "latest" {
+		tag := strings.TrimPrefix(r.URL.Path, "/repos/osteensco/fastTravelCLI/")
+		if tag == "releases/latest" {
 			w.WriteHeader(http.StatusOK)
 			json.NewEncoder(w).Encode(map[string]string{"tag_name": "v.0.2.0"})
-		} else if tag == "v.0.1.3" {
+		} else if tag == "tags/v.0.1.3" {
 			w.WriteHeader(http.StatusOK)
 			json.NewEncoder(w).Encode(map[string]string{"tag_name": "v.0.1.3"})
+
 		} else {
 			w.WriteHeader(http.StatusNotFound)
 		}
+
 	}))
 	defer server.Close()
-
-	// Override endpoint URL to use the test server
-	EndpointGH = server.URL + "/repos/osteensco/fastTravelCLI/releases/%s"
 
 	cwd, err := os.Getwd()
 	testdir, err := os.MkdirTemp(cwd, "tmp")
@@ -655,6 +651,15 @@ func TestUpdateFT(t *testing.T) {
 		return
 	}
 	defer os.RemoveAll(testdir)
+
+	var defaultVersion string
+
+	// Override endpoint URL to use the test server
+	EndpointGH = server.URL + "/repos/osteensco/fastTravelCLI/tags/%s"
+	EndpointLatestGH = server.URL + "/repos/osteensco/fastTravelCLI/releases/latest"
+	// Override Git related constants for testing
+	GitCloneCMD = []string{"echo", "'", "mocking", "version", "", "git", "clone", "dev", "'"}
+	GitCloneDir = strings.TrimSuffix(cwd, "/ft")
 
 	tests := []struct {
 		name       string
@@ -688,19 +693,46 @@ func TestUpdateFT(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Log(tt.name)
+
 			if tt.setVersion != nil {
+				defaultVersion = Version
 				tt.setVersion()
 			}
+
+			stdout := os.Stdout
+			r, w, err := os.Pipe()
+			if err != nil {
+				t.Error(err)
+			}
+			os.Stdout = w
 
 			data := &CmdArgs{wkDir: testdir, cmd: tt.cmd}
 
 			// Run the function
-			err := updateFT(data)
+			err = updateFT(data)
 
+			// Use go routine so printing doesn't block program
+			outChan := make(chan string)
+			go func() {
+				var buf bytes.Buffer
+				io.Copy(&buf, r)
+				outChan <- buf.String()
+			}()
+
+			w.Close()
+			os.Stdout = stdout
+			actual := <-outChan
+
+			t.Log(actual)
 			// Verify errors for cases where an error is expected
 			if (err != nil) != tt.wantError {
-				t.Errorf("updateFT() error = %v, wantError %v", err, tt.wantError)
+				errwkdir, _ := os.Getwd()
+				t.Errorf("updateFT() error inside of directory %v -> %v, wantError %v", errwkdir, err, tt.wantError)
 			}
+			if tt.setVersion != nil {
+				Version = defaultVersion
+			}
+
 		})
 	}
 }
