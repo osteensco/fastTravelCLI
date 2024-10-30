@@ -8,6 +8,7 @@ TARGET_DIR="$HOME/fastTravelCLI"
 # get the version from the github
 version_tag=$(git describe --tags --abbrev=0)
 # get the logo
+chmod +x "install/logo.sh"
 logo=$(bash -c "install/logo.sh")
 
 exe_install() {

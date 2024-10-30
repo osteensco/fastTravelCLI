@@ -9,6 +9,7 @@ TARGET_DIR="$HOME/.local/share/fastTravelCLI"
 version_tag=$(git describe --tags --abbrev=0)
 
 # get the logo
+chmod +x "install/logo.sh"
 logo=$(bash -c "install/logo.sh")
 
 
