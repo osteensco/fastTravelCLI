@@ -62,6 +62,10 @@ var Logo string = "fastTravelCLI"
 var EndpointGH string = "https://api.github.com/repos/osteensco/fastTravelCLI/releases/tags/%s"
 var EndpointLatestGH string = "https://api.github.com/repos/osteensco/fastTravelCLI/releases/latest"
 
+// CLI command and resulting directory
+var GitCloneCMD []string = []string{"git", "clone", "--branch", "", "https://github.com/osteensco/fastTravelCLI.git"}
+var GitCloneDir string = "fastTravelCLI"
+
 // user messages
 const (
 	NoLocationsSetMsg         = "No fast travel locations set, set locations by navigating to desired destination directory and using 'ft -set <key>' \n"

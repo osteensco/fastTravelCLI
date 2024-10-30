@@ -369,6 +369,8 @@ func updateFT(data *CmdArgs) error {
 	if Version == version {
 		fmt.Println("fastTravelCLI version is already ", version)
 		return nil
+	} else {
+		fmt.Printf("fastTravelCLI %v updating to %v \n", Version, version)
 	}
 
 	// make temp directory, clone the repo
@@ -383,9 +385,13 @@ func updateFT(data *CmdArgs) error {
 		return err
 	}
 
+	// TODO
 	// may need to handle git clone from https, ssh, or cli
+
 	// just using https for now
-	clonecmd := exec.Command("git", "clone", "--branch", version, "https://github.com/osteensco/fastTravelCLI.git")
+	GitCloneCMD[3] = version
+
+	clonecmd := exec.Command(GitCloneCMD[0], GitCloneCMD[1:]...)
 	err = clonecmd.Run()
 	if err != nil {
 		return errors.New(fmt.Sprintf("Error cloning repo: %v - Command used: %q", err, clonecmd.String()))
@@ -396,7 +402,10 @@ func updateFT(data *CmdArgs) error {
 	// run install script
 	output := ""
 	script := ""
-	os.Chdir("fastTravelCLI")
+	err = os.Chdir(GitCloneDir)
+	if err != nil {
+		return errors.New(fmt.Sprintf("Error! Could not change to dir %q", GitCloneDir))
+	}
 
 	switch opsys := runtime.GOOS; opsys {
 	case "linux":
@@ -407,6 +416,7 @@ func updateFT(data *CmdArgs) error {
 		return errors.New(fmt.Sprintf("OS %s is not handled in the update command!", opsys))
 	}
 
+	fmt.Printf("Running %s script from install folder... \n", script)
 	cmd := exec.Command("bash", fmt.Sprint("install/", script))
 	byteoutput, err := cmd.Output()
 	if err != nil {

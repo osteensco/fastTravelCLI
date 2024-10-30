@@ -1,18 +1,17 @@
-
+#!/usr/bin/env bash
 
 
 
 TARGET_DIR="$HOME/fastTravelCLI"
 
 
+# get the version from the github
+version_tag=$(git describe --tags --abbrev=0)
+# get the logo
+logo=$(bash -c "install/logo.sh")
 
 exe_install() {
-
-    # get the version from the github
-    version_tag=$(git describe --tags --abbrev=0)
-    # get the logo
-    logo=$(sudo install/logo.sh)
-    
+ 
     sudo mkdir -p "$TARGET_DIR"
     echo "Created dir $TARGET_DIR"
 
@@ -65,8 +64,8 @@ shell_install() {
     sudo cp $SCRIPT_PATH $TARGET_DIR
     
 
-    sudo install/logo.sh
-    echo $latest_tag
+    echo "$logo"
+    echo "$version_tag"
     echo "Config updated, please source $CONFIG or restart shell"
     
 }
