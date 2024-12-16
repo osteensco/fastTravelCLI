@@ -27,6 +27,7 @@ Here are a few examples of Zoxide issues that fastTravelCLI solves gracefully or
 - [Lack of CDPATH support](https://github.com/ajeetdsouza/zoxide/issues/620) 
 - [No session history navigation](https://github.com/ajeetdsouza/zoxide/issues/839)
 - [Unable to specify query for local project](https://github.com/ajeetdsouza/zoxide/issues/863)
+- [Unable to prioritize query to match child directories in cwd](https://github.com/ajeetdsouza/zoxide/issues/940)
 
 <h1></h1>
 
