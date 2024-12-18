@@ -42,6 +42,15 @@ func printMap(hashmap map[string]string) {
 }
 
 func PipeArgs(args *[]string) error {
+	fileinfo, err := os.Stdin.Stat()
+	if err != nil {
+		return err
+	}
+
+	// Exit early if no piped input is detected
+	if fileinfo.Mode()&os.ModeCharDevice != 0 {
+		return nil
+	}
 
 	// read from stdin
 	scanner := bufio.NewScanner(os.Stdin)
