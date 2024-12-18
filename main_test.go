@@ -73,10 +73,11 @@ func TestMainFunc(t *testing.T) {
 
 	// tests
 	tests := []struct {
-		name     string
-		args     []string
-		expected string
-		wantErr  bool
+		name       string
+		args       []string
+		pipedInput string
+		expected   string
+		wantErr    bool
 	}{
 		{
 			name: "1. Check help command.",
@@ -132,10 +133,13 @@ func TestMainFunc(t *testing.T) {
 			expected: fmt.Sprintf("%v\n", cdpathtest),
 			wantErr:  false,
 		},
-
-		// TODO
-		// - add test where args are piped to ft
-		//      - this requires mocking stdin
+		{
+			name:       "8. Check command args piped to ft.",
+			args:       []string{"ft"},
+			pipedInput: "key",
+			expected:   fmt.Sprintf("%v\n", tmpdir),
+			wantErr:    false,
+		},
 
 		// {
 		// 	        []string{"ft", "rn", "key", "key2"},
@@ -182,6 +186,27 @@ func TestMainFunc(t *testing.T) {
 			errOutChan <- buf.String()
 
 		}()
+
+		// Mock Stdin
+		stdinReader, stdinWriter, err := os.Pipe()
+		if err != nil {
+			fmt.Println(tt.name)
+			t.Error("Error establishing pipe.")
+		}
+		stdin := os.Stdin
+		os.Stdin = stdinReader
+
+		defer func() {
+			os.Stdin = stdin
+			stdinReader.Close()
+			stdinWriter.Close()
+		}()
+
+		_, err = io.WriteString(stdinWriter, tt.pipedInput)
+		if err != nil {
+			t.Errorf("WriteString failed: %v", err)
+		}
+		stdinWriter.Close()
 
 		main()
 
