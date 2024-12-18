@@ -1,8 +1,10 @@
 package ft
 
 import (
+	"bufio"
 	"errors"
 	"fmt"
+	"os"
 	"sort"
 	"strings"
 )
@@ -36,5 +38,22 @@ func printMap(hashmap map[string]string) {
 	}
 
 	fmt.Println("")
+
+}
+
+func PipeArgs(args *[]string) error {
+
+	// read from stdin
+	scanner := bufio.NewScanner(os.Stdin)
+	scanner.Split(bufio.ScanWords)
+	for scanner.Scan() {
+		// append to args
+		*args = append(*args, scanner.Text())
+	}
+	if err := scanner.Err(); err != nil {
+		return err
+	}
+
+	return nil
 
 }

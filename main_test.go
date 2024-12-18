@@ -132,6 +132,11 @@ func TestMainFunc(t *testing.T) {
 			expected: fmt.Sprintf("%v\n", cdpathtest),
 			wantErr:  false,
 		},
+
+		// TODO
+		// - add test where args are piped to ft
+		//      - this requires mocking stdin
+
 		// {
 		// 	        []string{"ft", "rn", "key", "key2"},
 		//             "key renamed to key2",

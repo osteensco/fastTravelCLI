@@ -97,3 +97,8 @@ func TestVerifyInput(t *testing.T) {
 	}
 
 }
+
+func TestPipeArgs(t *testing.T) {
+	// TODO
+
+}
