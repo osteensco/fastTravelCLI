@@ -97,3 +97,71 @@ func TestVerifyInput(t *testing.T) {
 	}
 
 }
+
+func TestPipeArgs(t *testing.T) {
+	tests := []struct {
+		name        string
+		initialArgs []string
+		input       string
+		expected    []string
+	}{
+		{
+			name:        "1. Pipe key name to args.",
+			initialArgs: []string{"ft"},
+			input:       "keyname",
+			expected:    []string{"ft", "keyname"},
+		},
+		{
+			name:        "2. Pipe in multiple args.",
+			initialArgs: []string{"ft"},
+			input:       "-set keyname",
+			expected:    []string{"ft", "-set", "keyname"},
+		},
+	}
+	for _, tt := range tests {
+		t.Log(tt.name)
+
+		r, w, err := os.Pipe()
+		if err != nil {
+			fmt.Println(tt.name)
+			t.Error("Error establishing pipe.")
+		}
+		stdin := os.Stdin
+		os.Stdin = r
+
+		defer func() {
+			os.Stdin = stdin
+			r.Close()
+			w.Close()
+		}()
+
+		_, err = io.WriteString(w, tt.input)
+		if err != nil {
+			t.Errorf("WriteString failed: %v", err)
+		}
+		w.Close()
+
+		args := tt.initialArgs
+		err = PipeArgs(&args)
+		if err != nil {
+			fmt.Println(tt.name)
+			t.Error("PipeArgs produced an error: ", err)
+		}
+
+		equal := true
+		if len(args) == len(tt.expected) {
+			for i, _ := range args {
+				if args[i] == tt.expected[i] {
+					continue
+				}
+				equal = false
+				break
+			}
+			if equal {
+				continue
+			}
+		}
+		t.Errorf("Expected: %q length %v, got: %q length %v", tt.expected, len(tt.expected), args, len(args))
+	}
+
+}

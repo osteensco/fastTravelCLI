@@ -36,6 +36,13 @@ func main() {
 		return
 	}
 
+	// handle piped args
+	err = ft.PipeArgs(&os.Args)
+	if err != nil {
+		fmt.Println("Error: ", err)
+		return
+	}
+
 	// sanitize user input
 	inputCommand, err := ft.PassCmd(os.Args)
 	if err != nil {
