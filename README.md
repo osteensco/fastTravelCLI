@@ -19,6 +19,23 @@ Instead of tracking frequently visited directories, using a fuzzy search, or eve
 
 fastTravelCLI is being continuously improved, check out the issues for new features, support, and integrations in the works.
 
+
+<h1>Installation</h1>
+
+Clone the repo, cd into it, and run the following based on your OS - 
+
+```
+bash install/linux.sh
+```
+```
+bash install/mac.sh
+```
+Currently available for mac/linux OS and bash/zsh shells. May work in more shell environments but not guarenteed.
+
+Requires go version >= 1.20.0
+
+
+
 <h1>Usage</h1>
 
 
@@ -85,8 +102,7 @@ ft -h
 
 <h3>Why not just use Zoxide?</h3>
 
-Personal preference really. [Zoxide](https://github.com/ajeetdsouza/zoxide) 
-is a great tool but the implementation is complex leading to many issues that cause it to be less than ideal for many use cases.
+[Zoxide](https://github.com/ajeetdsouza/zoxide)  is a great tool but the implementation is complex leading to many issues that cause it to be less than ideal for many use cases.
 Here are a few examples of Zoxide issues that fastTravelCLI solves gracefully or avoids entirely.
 
 - [Ambiguous Query Matching](https://github.com/ajeetdsouza/zoxide/issues/876)
@@ -134,25 +150,6 @@ ft wknotes
 ```
 
 
-<h1>Installation</h1>
-
-
-Currently available for mac/linux OS and bash/zsh shells. May work in more shell environments but not guarenteed.
-
-Requires go version >= 1.22.0
-
-Clone the repo, cd into it, and run the following based on your OS - 
-
-```
-install/linux.sh
-```
-```
-install/mac.sh
-```
-
-
-If you experience issues trying to run the install script as shown, you may need to prefix it with ```bash install/[myOS].sh```
-
 <h1>Contributing</h1>
 
-PRs and suggestions are welcome. I originally made this for myself and took it as a bit of a learning opportunity with some of the features I wanted to add, so there's not alot of structure or official-ness to this. This is why the install steps are just 'clone and run the shell script' instead of being available on Homebrew and other package managers. If for some reason this starts to gain a bit of interest then I'd be more than happy to implement these sort of things or accept PRs that do.
+PRs and feature suggestions are welcome. I originally made this for myself so there's not alot of structure or official-ness to this project.
