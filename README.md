@@ -30,7 +30,7 @@ bash install/linux.sh
 ```
 bash install/mac.sh
 ```
-Currently available for mac/linux OS and bash/zsh shells. May work in more shell environments but not guarenteed.
+Currently available for mac/linux OS and bash/zsh shells. May work in more shell environments but not guaranteed.
 
 Requires go version >= 1.20.0
 
