@@ -32,7 +32,7 @@ bash install/mac.sh
 ```
 Currently available for mac/linux OS and bash/zsh shells. May work in more shell environments but not guaranteed.
 
-Requires go version >= 1.20.0
+Compiles using go version >= 1.20.0, may work with older versions but not guaranteed.
 
 
 
