@@ -112,7 +112,7 @@ func TestMainFunc(t *testing.T) {
 		{
 			name:     "4. Check cd command with bad key.",
 			args:     []string{"ft", "badkey"},
-			expected: fmt.Sprintf(ft.UnrecognizedKeyMsg, "badkey", "badkey", "badkey"),
+			expected: fmt.Sprintf(ft.UnrecognizedKeyMsg, "badkey"),
 			wantErr:  false,
 		},
 		{

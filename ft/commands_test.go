@@ -103,7 +103,7 @@ func TestChangeDirectory(t *testing.T) {
 		{
 			name:     "3. Invalid key provided.",
 			command:  []string{"_", "testKye"},
-			expected: fmt.Sprintf(UnrecognizedKeyMsg, "testKye", "testKye", "testKye"),
+			expected: fmt.Sprintf(UnrecognizedKeyMsg, "testKye"),
 			allPaths: map[string]string{
 				"testKey": tmpdir,
 			},

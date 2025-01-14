@@ -136,7 +136,7 @@ func changeDirectory(data *CmdArgs) error {
 				}
 			}
 
-			fmt.Printf(UnrecognizedKeyMsg, key, key, key)
+			fmt.Printf(UnrecognizedKeyMsg, key)
 			return nil
 		}
 

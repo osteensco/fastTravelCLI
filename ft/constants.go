@@ -70,7 +70,7 @@ var GitCloneDir string = "fastTravelCLI"
 const (
 	NoLocationsSetMsg         = "No fast travel locations set, set locations by navigating to desired destination directory and using 'ft -set <key>' \n"
 	InvalidDirectoryMsg       = "Provided path '%s' evaluates to '%s' which is not a valid directory. Use 'ft -ls' to see all saved destinations. \n"
-	UnrecognizedKeyMsg        = "Did not recognize key '%s', use 'ft -ls' to see all saved destinations. If this is a relative path use './%s' or '%s/'. \n"
+	UnrecognizedKeyMsg        = "Did not recognize key or relative path '%s', use 'ft -ls' to see all saved destinations."
 	PathAlreadyExistsMsg      = "Path '%s' already exists with key '%s', overwrite key '%s' \n"
 	AbortedOverwriteKeyMsg    = "Aborted overwriting of key '%s' \n"
 	RenamedKeyMsg             = "Renamed key '%s' to '%s' whose value is '%s' \n"
