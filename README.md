@@ -96,7 +96,10 @@ ft -help
 # or
 ft -h
 ```
-
+If you run into an error opening the file `fastTravel.bin` you may need to adjust ownership of the fastTravelCLI folder.
+```bash
+sudo chown username:username $HOME/.local/share/fastTravelCLI
+```
 
 <h1>Common Questions</h1>
 
