@@ -23,6 +23,7 @@ exe_install() {
 
     echo "Moving exe to $TARGET_DIR"
     sudo mv ./fastTravel.exe "$TARGET_DIR/fastTravel.exe" 
+    chmod +x "$TARGET_DIR/fastTravel.exe" 
 
 }
 
