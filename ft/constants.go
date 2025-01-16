@@ -19,23 +19,26 @@ func NewCmdArgs(ftDir string, inputCmd []string, allPaths map[string]string, fil
 }
 
 // map of available commands
-var AvailCmds = map[string]func(data *CmdArgs) error{
-	"_":        changeDirectory,
-	"-set":     setDirectoryVar,
-	"-ls":      displayAllPaths,
-	"-rm":      removeKey,
-	"-rn":      renameKey,
-	"-help":    showHelp,
-	"-h":       showHelp,
-	"-]":       passToShell,
-	"-[":       passToShell,
-	"-..":      passToShell,
-	"--":       passToShell,
-	"-version": showVersion,
-	"-v":       showVersion,
-	"-is":      showDirectoryVar,
-	"-update":  updateFT,
-	"-u":       updateFT,
+var AvailCmds = map[string]struct {
+	Callback func(data *CmdArgs) error
+	LoadData bool
+}{
+	"_":        {changeDirectory, false},
+	"-set":     {setDirectoryVar, true},
+	"-ls":      {displayAllPaths, true},
+	"-rm":      {removeKey, true},
+	"-rn":      {renameKey, true},
+	"-help":    {showHelp, true},
+	"-h":       {showHelp, true},
+	"-]":       {passToShell, false},
+	"-[":       {passToShell, false},
+	"-..":      {passToShell, false},
+	"--":       {passToShell, false},
+	"-version": {showVersion, false},
+	"-v":       {showVersion, false},
+	"-is":      {showDirectoryVar, true},
+	"-update":  {updateFT, false},
+	"-u":       {updateFT, false},
 }
 
 var CmdDesc = map[string]string{

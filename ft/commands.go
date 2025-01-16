@@ -46,7 +46,7 @@ func PassCmd(args []string) ([]string, error) {
 	// verify user provided correct minimum number of arguments
 	// too many args will work, any args beyond expected number are simply ignored
 	switch cmd {
-	case "-ls", "-]", "-[", "-..", "--":
+	case "-ls", "-]", "-[", "-..", "--", "-hist":
 		return []string{cmd}, nil
 	// providing help for a specific command may be needed in the future
 	case "-help", "-h", "-version", "-v", "-is", "-update", "-u":
@@ -436,7 +436,7 @@ func passToShell(data *CmdArgs) error {
 	command := string(c[1:])
 
 	switch command {
-	case "]", "[", "..", "-":
+	case "]", "[", "..", "-", "-hist":
 		fmt.Println(command)
 	default:
 		return errors.New(fmt.Sprintf("Tried to pass command to shell, but '%s' is not a valid command for the shell function.", command))
