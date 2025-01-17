@@ -432,7 +432,7 @@ func passToShell(data *CmdArgs) error {
 	command := string(c[1:])
 
 	switch command {
-	case "]", "[", "..", "-", "-hist":
+	case "]", "[", "..", "-", "hist":
 		fmt.Println(command)
 	default:
 		return errors.New(fmt.Sprintf("Tried to pass command to shell, but '%s' is not a valid command for the shell function.", command))

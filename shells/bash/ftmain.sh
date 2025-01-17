@@ -33,8 +33,8 @@ ft__capture() {
 }
 
 ft__execute() {
-    local output="$1"
-    echo "$output"
+    local full_output="$1"
+    local output=$(echo "$full_output" | tail -n 1)
 
     if [[ -d "$output" || "$output" == ".." || "$output" == "-" ]]; then 
         
@@ -46,8 +46,7 @@ ft__execute() {
         if [ ${#ft__upperStack[@]} -eq 0 ]; then
             echo Already at head of history stack.
             rm "$temp_output"
-            return 1
-        
+            return 1 
         fi
 
         local p="${ft__upperStack[-1]}"
@@ -68,8 +67,7 @@ ft__execute() {
         ft__pushup "${p}"
         popd > /dev/null
     
-    elif [[ "$output" == "-hist" ]]; then
-        # TODO: test me!!
+    elif [[ "$output" == "hist" ]]; then
         ft__check_fzf
         
         local navigation="up;"
@@ -87,7 +85,8 @@ ft__execute() {
         if [[ -n "$selected" ]]; then
             pushd "$selected" > /dev/null || echo "Could not find directory $selected"
         fi
-
+    else 
+        echo "$full_output"
     fi
     
     if [[ -f "$temp_output" ]]; then
