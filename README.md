@@ -15,9 +15,10 @@
 fastTravelCLI is a fast, lightweight, and feature rich CD command replacement.
 
 Typing out a long directory path can be a bit painful. Most tools that solve this problem give you less to type but still involve additional steps afterwards. 
-Instead of tracking frequently visited directories, using a fuzzy search, or even a ML model to improve the cd experience, fastTravelCLI allows you to directly save a destination as a key-value pair, then you can fast travel to that location by just using the key you set.
+fastTravelCLI allows you to easily save destinations as key-value pairs, and provides simple commands to manage your keys.
 
-fastTravelCLI is being continuously improved, check out the issues for new features, support, and integrations in the works.
+fastTravelCLI is being continuously improved, check out the issues for new features, support, and integrations in the works. 
+Specifically, a fallback matching algorithm is in development for users that want a more automated experience.
 
 
 <h1>Installation</h1>
@@ -30,9 +31,11 @@ bash install/linux.sh
 ```
 bash install/mac.sh
 ```
-Currently available for mac/linux OS and bash/zsh shells. May work in more shell environments but not guaranteed.
+Currently available for Unix-like OS and bash/zsh shells. May work in more shell environments but not guaranteed.
 
 Compiles using go version >= 1.20.0, may work with older versions but not guaranteed.
+
+For some features, like the `-hist` command, [fzf](https://github.com/junegunn/fzf) is a dependency.
 
 
 
@@ -41,62 +44,63 @@ Compiles using go version >= 1.20.0, may work with older versions but not guaran
 
 ```bash
 # Go to a directory you would like to set a waypoint for and run 
-
 ft -set [key]
 
 
 # Travel to that location by running
-
 ft [key]
 
 
 # You can also travel to a subdirectory of a key
-
 ft [key]/some/subdir
 
 
 # ft can replace your cd command entirely
-
 ft relative/dir
 ft ..
 ft -
 
-# ft supports relative paths in the working directory and CDPATH
 
+# ft supports relative paths in the working directory and CDPATH
 ft mydir
 
-# ft allows you to visit previously visited directories
 
+# ft allows you to visit previously visited directories
 ft [
 
 
 # Traverse back up your dir history using 
-
 ft ]
 
 
-# View your saved locations with 
+# You can also view your entire session history in a fuzzy finder (powered by fzf)
+ft -hist
 
+
+# View your saved locations with 
 ft -ls
 
 
 # To remove a location run
-
 ft -rm [key]
 
 
 # To rename a location run
-
 ft -rn [key] [new key]
 
 
-# To see a full list of available commands run
+# ft is easy to update to the latest release
+ft -update
+# or
+ft -u
 
+
+# To see a full list of available commands run
 ft -help
 # or
 ft -h
 ```
-If you run into an error opening the file `fastTravel.bin` you may need to adjust ownership of the fastTravelCLI folder.
+*NOTE:* If you run into an error opening the file `fastTravel.bin` you may need to adjust ownership of the fastTravelCLI folder.
 ```bash
 sudo chown $USER:$USER $HOME/.local/share/fastTravelCLI
 ```
