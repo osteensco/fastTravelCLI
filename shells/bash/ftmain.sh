@@ -27,14 +27,14 @@ ft__capture() {
     local temp_output=$(mktemp)
     
     "$FT_EXE_PATH" "$@" | tee "$temp_output"
-
     local output="$(tail -n 1 "$temp_output")"
-    echo "$output" "$temp_output"
+
+    echo "$output"
 }
 
 ft__execute() {
     local output="$1"
-    local temp_output="$2"
+    echo "$output"
 
     if [[ -d "$output" || "$output" == ".." || "$output" == "-" ]]; then 
         
@@ -98,7 +98,7 @@ ft__execute() {
 
 
 ft() {
-    local cmd=$(ft__capture)
-    ft__execute "$cmd"
+    local output=$(ft__capture "$@")
+    ft__execute "$output"
 }
 
