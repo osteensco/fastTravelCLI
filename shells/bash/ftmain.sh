@@ -33,6 +33,7 @@ ft__capture() {
 }
 
 ft__execute() {
+
     local full_output="$1"
     local output=$(echo "$full_output" | tail -n 1)
 
