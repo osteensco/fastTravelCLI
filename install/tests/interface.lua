@@ -1,5 +1,3 @@
-
-
 T = {}
 
 function T.set_env_vars(FT_EXE_PATH, FT_PATH, install_path)
@@ -8,13 +6,13 @@ function T.set_env_vars(FT_EXE_PATH, FT_PATH, install_path)
     T["FT_PATH"] = FT_PATH
     T["FT_EXE_PATH_tmp"] = FT_EXE_PATH .. ".tmp"
     T["FT_PATH_tmp"] = FT_PATH .. ".tmp"
-    T["install_path"] = install_path 
+    T["install_path"] = install_path
 end
 
 function T.prep()
     print("creating temp files...")
-    os.rename(T["FT_EXE_PATH"],T["FT_EXE_PATH_tmp"])
-    os.rename(T["FT_PATH"],T["FT_PATH_tmp"])
+    os.rename(T["FT_EXE_PATH"], T["FT_EXE_PATH_tmp"])
+    os.rename(T["FT_PATH"], T["FT_PATH_tmp"])
 end
 
 -- install_path is specific to OS
@@ -31,9 +29,9 @@ end
 function T.cleanup()
     print("cleaning up...")
     os.remove(T["FT_EXE_PATH"])
-    os.remove(T["FT_PATH"]) 
+    os.remove(T["FT_PATH"])
     os.rename(T["FT_EXE_PATH_tmp"], T["FT_EXE_PATH"])
-    os.rename(T["FT_PATH_tmp"], T["FT_PATH"]) 
+    os.rename(T["FT_PATH_tmp"], T["FT_PATH"])
 
     local handle = io.popen("bash \"" .. "./install/tests/cleanup.sh" .. "\" 2>&1")
     local result = handle:read("*a")
@@ -44,7 +42,7 @@ end
 
 function T.main()
     local success, result
-   
+
     T.prep()
 
     success, result = T.test_install_script(T["install_path"])
@@ -53,15 +51,14 @@ function T.main()
     else
         print("install script - success")
     end
-    
+
     success, result = T.cleanup()
     if not success then
         print("cleanup script FAILED -> " .. result)
     else
         print("cleanup complete")
     end
-    -- print("to cleanup rc file run cleanup script, usage: ./install/tests/cleanup.sh [profile]")
-    
+
     print("install test completed")
 end
 

@@ -83,8 +83,9 @@ func TestMainFunc(t *testing.T) {
 			name: "1. Check help command.",
 			args: []string{"ft", "-help"},
 			expected: fmt.Sprintf(
-				"\n-help: %s\n-is: %s\n-ls: %s\n-rm: %s\n-rn: %s\n-set: %s\n-update: %s\n-version: %s\n[: %s\n]: %s\nkey: %s\n\n",
+				"\n-help: %s\n-hist: %s\n-is: %s\n-ls: %s\n-rm: %s\n-rn: %s\n-set: %s\n-update: %s\n-version: %s\n[: %s\n]: %s\nkey: %s\n\n",
 				ft.CmdDesc["-help"],
+				ft.CmdDesc["-hist"],
 				ft.CmdDesc["-is"],
 				ft.CmdDesc["-ls"],
 				ft.CmdDesc["-rm"],
@@ -225,11 +226,11 @@ func TestMainFunc(t *testing.T) {
 		errActual := <-errOutChan
 
 		if tt.wantErr && errActual == "" {
-			fmt.Println(tt.name)
-			t.Errorf("-> ARGS: %v\nExpected Error\n____________\nGot -> %v", tt.args, actual)
+			t.Log(tt.name)
+			t.Errorf("-> ARGS: %v\nExpected Error\nGot -> %v", tt.args, actual)
 		} else if actual != tt.expected {
-			fmt.Println(tt.name)
-			t.Errorf("-> ARGS: %v\nExpected -> %q\n____________\nGot -> %q", tt.args, tt.expected, actual)
+			t.Log(tt.name)
+			t.Errorf("-> ARGS: %v\nExpected -> %q\nGot -> %q", tt.args, tt.expected, actual)
 		}
 
 	}

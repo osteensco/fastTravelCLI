@@ -67,10 +67,6 @@ func PassCmd(args []string) ([]string, error) {
 
 // changeDirectory can handle key lookup, relative paths, directories in CDPATH, and key evaluation.
 func changeDirectory(data *CmdArgs) error {
-	if len(data.allPaths) == 0 {
-		fmt.Print(NoLocationsSetMsg)
-		return nil
-	}
 
 	var key string
 	provided_string := data.cmd[1]

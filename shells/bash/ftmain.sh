@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-check_fzf() {
+ft__check_fzf() {
     if ! command -v fzf &>/dev/null; then
         echo "Error: fzf is needed to use this feature. You can install it using your package manager:"
         echo "  - Ubuntu/Debian: sudo apt install fzf"
@@ -11,43 +11,48 @@ check_fzf() {
     fi
 }
 
-upperStack=()
+ft__upperStack=()
 
-pushup() {
+ft__pushup() {
     local _path="$1"
-    upperStack+=("$_path")
+    ft__upperStack+=("$_path")
 }
 
-popup() {
-    unset 'upperStack[-1]'
-    upperStack=(${upperStack[@]})
+ft__popup() {
+    unset 'ft__upperStack[-1]'
+    ft__upperStack=(${ft_upperStack[@]})
 }
 
-ft() {
-
-    temp_output=$(mktemp)
+ft__capture() {
+    local temp_output=$(mktemp)
     
     "$FT_EXE_PATH" "$@" | tee "$temp_output"
 
-    output="$(tail -n 1 "$temp_output")"
+    local output="$(tail -n 1 "$temp_output")"
+    echo "$output" "$temp_output"
+}
+
+ft__execute() {
+    local output="$1"
+    local temp_output="$2"
 
     if [[ -d "$output" || "$output" == ".." || "$output" == "-" ]]; then 
         
-        upperStack=()
-        cd "$output";
+        ft__upperStack=()
+        pushd "$output" > /dev/null
 
     elif [[ "$output" == "]" ]]; then    
         
-        if [ ${#upperStack[@]} -eq 0 ]; then
+        if [ ${#ft__upperStack[@]} -eq 0 ]; then
             echo Already at head of history stack.
             rm "$temp_output"
             return 1
         
         fi
 
-        local p="${upperStack[-1]}"
-        popup
-        cd "$p"
+        local p="${ft__upperStack[-1]}"
+        ft__popup
+        pushd "$p" > /dev/null
 
     elif [[ "$output" == "[" ]]; then
         
@@ -60,34 +65,40 @@ ft() {
         fi
 
         local p=$(pwd)
-        pushup "${p}"
+        ft__pushup "${p}"
         popd > /dev/null
     
     elif [[ "$output" == "-hist" ]]; then
         # TODO: test me!!
-        check_fzf
+        ft__check_fzf
         
         local navigation="up;"
-        for i in "${upperStack[@]}"; do
+        for i in "${ft__upperStack[@]}"; do
             navigation="$navigation;"
             navigation="$navigation down"
         done
 
         local lowerStack=($(dirs -v | awk '{print $2}'))
-        local historyStack=("${upperStack[@]}" "${lowerStack[@]}")
+        local historyStack=("${ft__upperStack[@]}" "${lowerStack[@]}")
 
         local selected=$(printf "%s\n" "${historyStack[@]}" | fzf \
             --bind "start:execute-silent($navigation)")
         
         if [[ -n "$selected" ]]; then
-            cd "$selected" || echo "Could not find directory $selected"
+            pushd "$selected" > /dev/null || echo "Could not find directory $selected"
         fi
 
     fi
-
-    rm "$temp_output"
+    
+    if [[ -f "$temp_output" ]]; then
+        rm "$temp_output"
+    fi
 
 }
 
 
+ft() {
+    local cmd=$(ft__capture)
+    ft__execute "$cmd"
+}
 
