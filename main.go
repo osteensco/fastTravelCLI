@@ -18,24 +18,6 @@ func main() {
 		return
 	}
 
-	// find persisted keys or create file to persist keys
-	dataDirPath := filepath.Dir(exePath)
-	dataPath := fmt.Sprintf("%s/fastTravel.bin", dataDirPath)
-
-	file, err := ft.EnsureData(dataPath)
-	if err != nil {
-		fmt.Println("Error: ", err)
-		return
-	}
-	defer file.Close()
-
-	// read keys into memory
-	allPaths, err := ft.ReadMap(file)
-	if err != nil {
-		fmt.Println("Error: ", err)
-		return
-	}
-
 	// handle piped args
 	err = ft.PipeArgs(&os.Args)
 	if err != nil {
@@ -52,17 +34,42 @@ func main() {
 	action := inputCommand[0]
 
 	// grab command from registry
-	exeCmd, ok := ft.AvailCmds[action]
+	cmd, ok := ft.AvailCmds[action]
 	if !ok {
 		fmt.Printf("Invalid command '%s', use 'ft -h' for available commands. \n", action)
 		return
+	}
+
+	var dataDirPath string
+	var dataPath string
+	var file *os.File
+	var allPaths map[string]string
+
+	if cmd.LoadData {
+		// find persisted keys or create file to persist keys
+		dataDirPath = filepath.Dir(exePath)
+		dataPath = fmt.Sprintf("%s/fastTravel.bin", dataDirPath)
+
+		file, err = ft.EnsureData(dataPath)
+		if err != nil {
+			fmt.Println("Error: ", err)
+			return
+		}
+		defer file.Close()
+
+		// read keys into memory
+		allPaths, err = ft.ReadMap(file)
+		if err != nil {
+			fmt.Println("Error: ", err)
+			return
+		}
 	}
 
 	// manifest API
 	data := ft.NewCmdArgs(dataDirPath, inputCommand, allPaths, file, os.Stdin)
 
 	// execute user provided action
-	err = exeCmd(data)
+	err = cmd.Callback(data)
 	if err != nil {
 		fmt.Println("fastTravelCLI returned an error: ", err)
 		return

@@ -19,23 +19,27 @@ func NewCmdArgs(ftDir string, inputCmd []string, allPaths map[string]string, fil
 }
 
 // map of available commands
-var AvailCmds = map[string]func(data *CmdArgs) error{
-	"_":        changeDirectory,
-	"-set":     setDirectoryVar,
-	"-ls":      displayAllPaths,
-	"-rm":      removeKey,
-	"-rn":      renameKey,
-	"-help":    showHelp,
-	"-h":       showHelp,
-	"-]":       passToShell,
-	"-[":       passToShell,
-	"-..":      passToShell,
-	"--":       passToShell,
-	"-version": showVersion,
-	"-v":       showVersion,
-	"-is":      showDirectoryVar,
-	"-update":  updateFT,
-	"-u":       updateFT,
+var AvailCmds = map[string]struct {
+	Callback func(data *CmdArgs) error
+	LoadData bool
+}{
+	"_":        {changeDirectory, true},
+	"-set":     {setDirectoryVar, true},
+	"-ls":      {displayAllPaths, true},
+	"-rm":      {removeKey, true},
+	"-rn":      {renameKey, true},
+	"-help":    {showHelp, false},
+	"-h":       {showHelp, false},
+	"-]":       {passToShell, false},
+	"-[":       {passToShell, false},
+	"-hist":    {passToShell, false},
+	"-..":      {passToShell, false},
+	"--":       {passToShell, false},
+	"-version": {showVersion, false},
+	"-v":       {showVersion, false},
+	"-is":      {showDirectoryVar, true},
+	"-update":  {updateFT, false},
+	"-u":       {updateFT, false},
 }
 
 var CmdDesc = map[string]string{
@@ -46,6 +50,7 @@ var CmdDesc = map[string]string{
 	"-rn":      "renames key to new key - Usage: ft -rn [key] [new key]",
 	"]":        "navigate history forwards - Usage: ft ]",
 	"[":        "navigate history backwards - Usage: ft [",
+	"-hist":    "show history, provides fzf selection for navigation - Usage: ft -hist",
 	"-is":      "identify the key that the current working directory is saved to if it is saved to a key - Usage: ft -is",
 	"-help":    "you are here :) - Usage: ft -help, -h",
 	"-version": "print current version of fastTravelCLI - Usage: ft -version, -v",
@@ -68,7 +73,6 @@ var GitCloneDir string = "fastTravelCLI"
 
 // user messages
 const (
-	NoLocationsSetMsg         = "No fast travel locations set, set locations by navigating to desired destination directory and using 'ft -set <key>' \n"
 	InvalidDirectoryMsg       = "Provided path '%s' evaluates to '%s' which is not a valid directory. Use 'ft -ls' to see all saved destinations. \n"
 	UnrecognizedKeyMsg        = "Did not recognize key or relative path '%s', use 'ft -ls' to see all saved destinations."
 	PathAlreadyExistsMsg      = "Path '%s' already exists with key '%s', overwrite key '%s' \n"
