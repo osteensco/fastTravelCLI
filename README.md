@@ -34,11 +34,12 @@ bash install/mac.sh
 
 <h2>Disclaimers</h2>
 Currently available for Unix-like OS and bash/zsh shells. May work in more shell environments but not guaranteed.
-<br>
+<br><br>
 Compiles using go version >= 1.20.0, may work with older versions but not guaranteed.
-<br>
-Some features have dependencies. 
- - `-hist` requires tree and [fzf](https://github.com/junegunn/fzf).
+<br><br>
+Some features have dependencies:
+
+- `-hist` command requires tree and [fzf](https://github.com/junegunn/fzf).
 
 
 
