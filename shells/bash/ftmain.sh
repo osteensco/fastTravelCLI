@@ -14,13 +14,13 @@ ft__check_fzf() {
 ft__upperStack=()
 
 ft__pushup() {
-    local _path="$1"
-    ft__upperStack+=("$_path")
+    local path="$1"
+    ft__upperStack+=("$path")
 }
 
 ft__popup() {
     unset 'ft__upperStack[-1]'
-    ft__upperStack=(${ft_upperStack[@]})
+    ft__upperStack=(${ft__upperStack[@]})
 }
 
 ft__capture() {
@@ -28,6 +28,7 @@ ft__capture() {
     
     "$FT_EXE_PATH" "$@" | tee "$temp_output"
     local output="$(tail -n 1 "$temp_output")"
+    rm "$temp_output"
 
     echo "$output"
 }
@@ -46,7 +47,6 @@ ft__execute() {
         
         if [ ${#ft__upperStack[@]} -eq 0 ]; then
             echo Already at head of history stack.
-            rm "$temp_output"
             return 1 
         fi
 
@@ -60,7 +60,6 @@ ft__execute() {
         
         if [ "$lowerStackLen" -eq 0 ]; then
             echo Already at tail of history stack.
-            rm "$temp_output"
             return 1
         fi
 
@@ -81,18 +80,14 @@ ft__execute() {
         local historyStack=("${ft__upperStack[@]}" "${lowerStack[@]}")
 
         local selected=$(printf "%s\n" "${historyStack[@]}" | fzf \
-            --bind "start:execute-silent($navigation)")
+            --tac --header "Currently at $(pwd)" --preview 'tree {}')
         
         if [[ -n "$selected" ]]; then
             pushd "$selected" > /dev/null || echo "Could not find directory $selected"
         fi
     else 
         echo "$full_output"
-    fi
-    
-    if [[ -f "$temp_output" ]]; then
-        rm "$temp_output"
-    fi
+    fi    
 
 }
 
