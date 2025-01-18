@@ -3,7 +3,7 @@ services:
   fasttravelcli_bash_interactive:
     build: 
       context: ../../..
-      dockerfile: testenv/shellenv/bashenv/Dockerfile
+      dockerfile: testenv/shellfuncs/bashenv/Dockerfile
     container_name: fasttravelcli_bash_interactive 
     stdin_open: true
     tty: true

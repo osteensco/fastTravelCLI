@@ -14,6 +14,7 @@ COPY ../../../shells/bash/ ./
 RUN apt-get update && apt-get install -y \
     git \
     curl \
+    tree \
     && rm -rf /var/lib/apt/lists/*
 
 # Install fzf
@@ -23,13 +24,10 @@ RUN git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf && \
 # Set up fzf in the shell
 RUN echo 'source ~/.fzf.bash' >> ~/.bashrc
 
-# Source scripts to run test
+# Source scripts used to run tests
 RUN echo 'source commands.sh' >> ~/.bashrc
 
 RUN echo 'source ftmain.sh' >> ~/.bashrc
-
-# Build a project tree
-RUN test_create_project_tree
 
 CMD ["/bin/bash"]
 

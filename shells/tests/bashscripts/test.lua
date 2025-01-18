@@ -1,8 +1,2 @@
 -- TODO:
---  - Docker container that:
---      - sources appropriate .sh file
---      - runs test script
---      - set up interactive container as well for manual testing
---  - Lua (or Python) script that:
---      - mocks input to ft function for all passToShell commands
---      - verify correct functionality
+--  - write tests for each ft__ function
