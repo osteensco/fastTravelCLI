@@ -2,11 +2,18 @@
 
 ft__check_fzf() {
     if ! command -v fzf &>/dev/null; then
-        echo "Error: fzf is needed to use this feature. You can install it using your package manager:"
-        echo "  - Ubuntu/Debian: sudo apt install fzf"
-        echo "  - Fedora: sudo dnf install fzf"
-        echo "  - Arch: sudo pacman -S fzf"
-        echo "  - macOS: brew install fzf"
+        echo "Error: fzf is needed to use this feature. https://github.com/junegunn/fzf"
+        return 1
+    fi
+}
+
+ft__check_tree() {
+    if ! command -v tree &>/dev/null; then
+        echo "Error: tree is needed to use this feature. You can install it using your package manager:"
+        echo "  - Ubuntu/Debian: sudo apt install tree"
+        echo "  - Fedora: sudo dnf install tree"
+        echo "  - Arch: sudo pacman -S tree"
+        echo "  - macOS: brew install tree"
         return 1
     fi
 }
@@ -69,6 +76,7 @@ ft__execute() {
     
     elif [[ "$output" == "hist" ]]; then
         ft__check_fzf
+        ft__check_tree
         
         local navigation="up;"
         for i in "${ft__upperStack[@]}"; do
