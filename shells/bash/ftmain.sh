@@ -30,20 +30,15 @@ ft__popup() {
     ft__upperStack=(${ft__upperStack[@]})
 }
 
-ft__capture() {
+
+
+ft() {
+
     local temp_output=$(mktemp)
-    
+
     "$FT_EXE_PATH" "$@" | tee "$temp_output"
     local output="$(tail -n 1 "$temp_output")"
     rm "$temp_output"
-
-    echo "$output"
-}
-
-ft__execute() {
-
-    local full_output="$1"
-    local output=$(echo "$full_output" | tail -n 1)
 
     if [[ -d "$output" || "$output" == ".." || "$output" == "-" ]]; then 
         
@@ -57,6 +52,7 @@ ft__execute() {
             return 1 
         fi
 
+        echo "4"
         local p="${ft__upperStack[-1]}"
         ft__popup
         pushd "$p" > /dev/null
@@ -93,15 +89,9 @@ ft__execute() {
         if [[ -n "$selected" ]]; then
             pushd "$selected" > /dev/null || echo "Could not find directory $selected"
         fi
-    else 
-        echo "$full_output"
     fi    
 
 }
 
 
-ft() {
-    local output=$(ft__capture "$@")
-    ft__execute "$output"
-}
 

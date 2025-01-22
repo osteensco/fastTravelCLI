@@ -10,11 +10,14 @@ COPY ../../../shells/tests/bashscripts/ ./
 
 COPY ../../../shells/bash/ ./
 
+RUN chmod +x ./exe.sh
+
 # Update/install dependencies
 RUN apt-get update && apt-get install -y \
     git \
     curl \
     tree \
+    lua5.4 \
     && rm -rf /var/lib/apt/lists/*
 
 # Install fzf
