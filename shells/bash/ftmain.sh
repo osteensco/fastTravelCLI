@@ -52,7 +52,6 @@ ft() {
             return 1 
         fi
 
-        echo "4"
         local p="${ft__upperStack[-1]}"
         ft__popup
         pushd "$p" > /dev/null
