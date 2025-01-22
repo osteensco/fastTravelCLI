@@ -73,21 +73,12 @@ ft() {
         ft__check_fzf
         ft__check_tree
         
-        local navigation="up;"
-        for i in "${ft__upperStack[@]}"; do
-            navigation="$navigation;"
-            navigation="$navigation down"
-        done
-
         local lowerStack=($(dirs -v | awk '{print $2}'))
         local historyStack=("${ft__upperStack[@]}" "${lowerStack[@]}")
 
-        local selected=$(printf "%s\n" "${historyStack[@]}" | fzf \
-            --tac --header "Currently at $(pwd)" --preview 'tree {}')
-        
-        if [[ -n "$selected" ]]; then
-            pushd "$selected" > /dev/null || echo "Could not find directory $selected"
-        fi
+        printf "%s\n" "${historyStack[@]}" | fzf \
+            --tac --header "Currently at $(pwd)" --preview 'tree {}' | while read -r dir; do eval ft "$dir"; done
+
     fi    
 
 }
