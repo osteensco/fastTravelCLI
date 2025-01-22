@@ -32,5 +32,8 @@ RUN echo 'source commands.sh' >> ~/.bashrc
 
 RUN echo 'source ftmain.sh' >> ~/.bashrc
 
+# Build a project tree
+RUN bash -c "source /testspace/commands.sh && maketree"
+
 CMD ["/bin/bash"]
 

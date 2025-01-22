@@ -9,7 +9,6 @@ maketree() {
     cd ../../..
 }
 
-maketree
 
 available_commands=("]" "[" "hist" ".." "-")
 
