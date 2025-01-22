@@ -30,20 +30,15 @@ ft__popup() {
     ft__upperStack=(${ft__upperStack[@]})
 }
 
-ft__capture() {
+
+
+ft() {
+
     local temp_output=$(mktemp)
-    
+
     "$FT_EXE_PATH" "$@" | tee "$temp_output"
     local output="$(tail -n 1 "$temp_output")"
     rm "$temp_output"
-
-    echo "$output"
-}
-
-ft__execute() {
-
-    local full_output="$1"
-    local output=$(echo "$full_output" | tail -n 1)
 
     if [[ -d "$output" || "$output" == ".." || "$output" == "-" ]]; then 
         
@@ -78,30 +73,15 @@ ft__execute() {
         ft__check_fzf
         ft__check_tree
         
-        local navigation="up;"
-        for i in "${ft__upperStack[@]}"; do
-            navigation="$navigation;"
-            navigation="$navigation down"
-        done
-
         local lowerStack=($(dirs -v | awk '{print $2}'))
         local historyStack=("${ft__upperStack[@]}" "${lowerStack[@]}")
 
-        local selected=$(printf "%s\n" "${historyStack[@]}" | fzf \
-            --tac --header "Currently at $(pwd)" --preview 'tree {}')
-        
-        if [[ -n "$selected" ]]; then
-            pushd "$selected" > /dev/null || echo "Could not find directory $selected"
-        fi
-    else 
-        echo "$full_output"
+        printf "%s\n" "${historyStack[@]}" | fzf \
+            --tac --header "Currently at $(pwd)" --preview 'tree {}' | while read -r dir; do eval ft "$dir"; done
+
     fi    
 
 }
 
 
-ft() {
-    local output=$(ft__capture "$@")
-    ft__execute "$output"
-}
 

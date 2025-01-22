@@ -10,11 +10,14 @@ COPY ../../../shells/tests/bashscripts/ ./
 
 COPY ../../../shells/bash/ ./
 
+RUN chmod +x ./exe.sh
+
 # Update/install dependencies
 RUN apt-get update && apt-get install -y \
     git \
     curl \
     tree \
+    lua5.4 \
     && rm -rf /var/lib/apt/lists/*
 
 # Install fzf
@@ -28,6 +31,9 @@ RUN echo 'source ~/.fzf.bash' >> ~/.bashrc
 RUN echo 'source commands.sh' >> ~/.bashrc
 
 RUN echo 'source ftmain.sh' >> ~/.bashrc
+
+# Build a project tree
+RUN bash -c "source /testspace/commands.sh && maketree"
 
 CMD ["/bin/bash"]
 

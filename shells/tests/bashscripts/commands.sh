@@ -1,22 +1,24 @@
 
 maketree() {
     mkdir something
-    cd something
+    pushd something
     mkdir else
-    cd else
+    pushd else
     mkdir another
-    cd another
-    cd ../../..
+    pushd another
+    pushd ../../..
 }
 
-maketree
 
-available_commands=("]" "[" "hist" ".." "-")
+available_commands=("[" "]" ".." "-" "hist")
+
+# Spoof fastTravelCLI's executable output
+export FT_EXE_PATH="/testspace/exe.sh"
 
 testcmd() {
     local selected=$(printf "%s\n" "${available_commands[@]}" | fzf)
     if [[ -n "$selected" ]]; then
-        ft__execute "$selected"
+        ft "$selected"
     fi
 }
 
