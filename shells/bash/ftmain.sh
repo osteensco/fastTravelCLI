@@ -30,6 +30,15 @@ ft__popup() {
     ft__upperStack=(${ft__upperStack[@]})
 }
 
+ft__phist() {
+
+        local lowerStack=($(dirs -v | awk '{print $2}'))
+        local historyStack=("${ft__upperStack[@]}" "${lowerStack[@]}")
+
+        printf "%s\n" "${historyStack[@]}" 
+
+    }
+
 
 
 ft() {
@@ -49,7 +58,7 @@ ft() {
         
         if [ ${#ft__upperStack[@]} -eq 0 ]; then
             echo Already at head of history stack.
-            return 1 
+            return 0 
         fi
 
         local p="${ft__upperStack[-1]}"
@@ -62,7 +71,7 @@ ft() {
         
         if [ "$lowerStackLen" -eq 0 ]; then
             echo Already at tail of history stack.
-            return 1
+            return 0
         fi
 
         local p=$(pwd)
@@ -70,14 +79,11 @@ ft() {
         popd > /dev/null
     
     elif [[ "$output" == "hist" ]]; then
+
         ft__check_fzf
         ft__check_tree
         
-        local lowerStack=($(dirs -v | awk '{print $2}'))
-        local historyStack=("${ft__upperStack[@]}" "${lowerStack[@]}")
-
-        printf "%s\n" "${historyStack[@]}" | fzf \
-            --tac --header "Currently at $(pwd)" --preview 'tree {}' | while read -r dir; do eval ft "$dir"; done
+        eval ft "$(ft__phist | fzf --tac --header "Currently at $(pwd)" --preview 'tree {}')"
 
     fi    
 
