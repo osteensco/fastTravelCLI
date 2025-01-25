@@ -28,12 +28,12 @@ RUN git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf && \
 RUN echo 'source ~/.fzf.bash' >> ~/.bashrc
 
 # Source scripts used to run tests
-RUN echo 'source commands.sh' >> ~/.bashrc
+RUN echo 'source setup.sh' >> ~/.bashrc
 
 RUN echo 'source ftmain.sh' >> ~/.bashrc
 
-# Build a project tree
-RUN bash -c "source /testspace/commands.sh && maketree"
+RUN echo 'source test.sh' >> ~/.bashrc
+
+
 
 CMD ["/bin/bash"]
-
