@@ -2,49 +2,118 @@
 
 
 # This test script is designed to test the ftmain.sh file independent of fastTravelCLI's binary.
-# Use by calling the simtest function.
-# This script will build simulations to run through automatically.
-# setup.sh and ftmain.sh need to be sourced prior to execution of these simulations. This step is included in the .bashrc Docker builds.
-# To manually test specific commands, utilize the testcmd function found in setup.sh.
+# This script will run through predefined set of commands to simulate a user journey.
+# This is designed to run automatically with no interactivity in a docker container.
 
 
 
-simtest() {
-    # User can set number of simulations or use default of 15
-    if [[ $# -ne 1 ]]; then
-        sims=15
+# Source required scripts
+source ~/.fzf.bash
+source setup.sh
+source ftmain.sh
+
+
+
+# TODO
+#  - change this hashmap into two arrays so that order is maintained.
+#  - add check for 'already top of stack' and 'already bottom of stack'
+
+# Test commands and their expected outputs
+test_cmds=(
+    "ft [" 
+    "ft [" 
+    "ft [" 
+    "ft [" 
+    "ft [" 
+    "ft [" 
+    "ft [" 
+    "ft [" 
+    "ft [" 
+    "ft [" 
+    "ft [" 
+    "ft [" 
+    "ft [" 
+    "ft [" 
+    "ft ]" 
+    "ft ]" 
+    "ft ]" 
+    "ft .." 
+    "ft -"
+    "ft ]"
+)
+
+test_expected=(
+    "[" 
+    "[" 
+    "[" 
+    "[" 
+    "[" 
+    "[" 
+    "[" 
+    "[" 
+    "[" 
+    "[" 
+    "[" 
+    "[" 
+    "[" 
+    "[\nAlready at tail of history stack." 
+    "]" 
+    "]" 
+    "]" 
+    ".." 
+    "-" 
+    "]\nAlready at head of history stack."
+)
+
+# Variable to hold overall test result
+all_tests_passed=true
+
+# Run commands, capture output, and compare to expected
+i=0
+for command in "${test_cmds[@]}"; do
+
+    # Create a temporary file to capture output
+    tempfile=$(mktemp)
+    # Run the command in the current shell, redirecting output to the tempfile
+    eval "$command" > "$tempfile" 2>&1
+    # Read the captured output into a variable
+    output=$(<"$tempfile")
+    # Clean up the temp file
+    rm "$tempfile"
+
+    # Compare output to expected
+    expected=$(echo -e "${test_expected[$i]}")
+    if [[ "$output" == "$expected" ]]; then
+    echo "PASS: '$command' output matched expected."
     else
-        if ! [[ "$1" =~ ^[0-9]+$ ]]; then
-            echo "Argument must be a number! Arg: $1" >&2
-            exit 1
-        fi
-        sims=$1
+    echo "FAIL: '$command' output did not match expected."
+    echo "  Expected: $expected"
+    echo "  Got: $output"
+    all_tests_passed=false
     fi
+    i=$((i+1))
+done
 
-    # Generate a random simulation
-    # Setup script will define the commands
-    generateSim() {
-        local totalcmds=$1
-        # Start the simulation more towards the middle of the history stack
-        local sim=("[" "[" "[" "[" "[" "[")
-        for ((i = 0; i < totalcmds; i++)); do
-            local idx=$(( RANDOM % ${#commands[@]} ))
-            sim+=("${commands[idx]}")
-        done
-        echo "${sim[@]}"
-    }
+# Simulate fzf for the `ft hist` command
+export FZF_DEFAULT_OPTS="--filter=testspace" # Automatically select the first match
+hist_output=$(ft hist 2>&1 | head -n 2)
+expected_hist_output=$(echo -e "hist\n/testspace")
 
-    # Create the simulation
-    simulation=($(generateSim "$sims"))
+# Compare fzf-based output
+if [[ "$hist_output" == "$expected_hist_output" ]]; then
+    echo "PASS: 'ft hist' output matched expected."
+else
+    echo "FAIL: 'ft hist' output did not match expected."
+    echo "  Expected: $expected_hist_output"
+    echo "  Got: $hist_output"
+    all_tests_passed=false
+fi
 
-    # Process the commands
-    for cmd in "${simulation[@]}"; do
-        echo -e "--- History stack: \n $(ft__phist)\n-----"
-        echo -e "--- Currently at directory: $(pwd)\n--->"
-        
-        ft "$cmd"
+# Overall test result
+if $all_tests_passed; then
+    echo "All tests passed!"
+else
+    echo "Some tests failed."
+    exit 1
+fi
 
-        echo "<---"
-
-    done
-}

@@ -24,8 +24,16 @@ RUN apt-get update && apt-get install -y \
 RUN git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf && \
     ~/.fzf/install --all
 
-# make test script executable
-RUN chmod +x ./test.sh
+# Set up fzf in the shell
+RUN echo 'source ~/.fzf.bash' >> ~/.bashrc
 
-# Run the test script
-CMD ["/bin/bash", "-c", "./test.sh"]
+# Source scripts used to run tests
+RUN echo 'source setup.sh' >> ~/.bashrc
+
+RUN echo 'source ftmain.sh' >> ~/.bashrc
+
+RUN echo 'source interactive_test.sh' >> ~/.bashrc
+
+
+
+CMD ["/bin/bash"]
