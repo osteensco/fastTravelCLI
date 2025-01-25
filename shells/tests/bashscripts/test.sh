@@ -7,16 +7,14 @@
 
 
 
-# Source required scripts
+# Source dependency scripts
 source ~/.fzf.bash
 source setup.sh
 source ftmain.sh
 
 
 
-# TODO
-#  - change this hashmap into two arrays so that order is maintained.
-#  - add check for 'already top of stack' and 'already bottom of stack'
+
 
 # Test commands and their expected outputs
 test_cmds=(
@@ -68,17 +66,14 @@ test_expected=(
 # Variable to hold overall test result
 all_tests_passed=true
 
-# Run commands, capture output, and compare to expected
+# Loop over scripted simulation
 i=0
 for command in "${test_cmds[@]}"; do
-
-    # Create a temporary file to capture output
+    
+    # Capture output
     tempfile=$(mktemp)
-    # Run the command in the current shell, redirecting output to the tempfile
     eval "$command" > "$tempfile" 2>&1
-    # Read the captured output into a variable
     output=$(<"$tempfile")
-    # Clean up the temp file
     rm "$tempfile"
 
     # Compare output to expected
@@ -96,7 +91,7 @@ done
 
 # Simulate fzf for the `ft hist` command
 export FZF_DEFAULT_OPTS="--filter=testspace" # Automatically select the first match
-hist_output=$(ft hist 2>&1 | head -n 2)
+hist_output=$(ft hist 2>&1 | head -n 2) # stdout will capture fzf directory check, so we only want first two lines since the rest is hidden to the user
 expected_hist_output=$(echo -e "hist\n/testspace")
 
 # Compare fzf-based output
@@ -109,7 +104,8 @@ else
     all_tests_passed=false
 fi
 
-# Overall test result
+
+
 if $all_tests_passed; then
     echo "All tests passed!"
 else
