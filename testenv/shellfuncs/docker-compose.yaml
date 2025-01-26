@@ -1,25 +1,25 @@
 # run from project root dir
 services:
 
-  fasttravelcli_bash_script_interactive:
+  fasttravelcli_ubuntu_bash_interactive:
     build: 
       context: ../..
-      dockerfile: testenv/shellfuncs/bashenv/interactive/Dockerfile
-    container_name: fasttravelcli_bash_script_interactive 
+      dockerfile: testenv/shellfuncs/bashenv/ubuntu.dockerfile
+    container_name: fasttravelcli_ubuntu_bash_interactive 
     stdin_open: true
     tty: true
 
-  fasttravelcli_bash_script:
+  fasttravelcli_shellfuncs:
     build: 
       context: ../..
-      dockerfile: testenv/shellfuncs/bashenv/Dockerfile
-    container_name: fasttravelcli_bash_script
+      dockerfile: testenv/shellfuncs/ubuntu.dockerfile
+    container_name: fasttravelcli_shellfuncs
     stdin_open: true
     tty: true
 
-  fasttravelcli_ft_command:
+  fasttravelcli_cli:
     build:
       context: ../..
-      dockerfile: testenv/ft/Dockerfile
-    container_name: ft_cli_tool 
+      dockerfile: testenv/cli/ubuntu.dockerfile
+    container_name: ft_cli_test 
 

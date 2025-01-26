@@ -1,10 +1,10 @@
 default: all
 
-all: bash_script
+all: shellfuncs
 
-bash_script_interactive:
-	docker-compose -f testenv/shellfuncs/docker-compose.yaml build fasttravelcli_bash_script_interactive
-	docker-compose -f testenv/shellfuncs/docker-compose.yaml run --rm fasttravelcli_bash_script_interactive
+ubuntu_bash_interactive:
+	docker-compose -f testenv/shellfuncs/docker-compose.yaml build fasttravelcli_ubuntu_bash_interactive
+	docker-compose -f testenv/shellfuncs/docker-compose.yaml run --rm fasttravelcli_ubuntu_bash_interactive 
 
-bash_script:
-	docker-compose -f testenv/shellfuncs/docker-compose.yaml up fasttravelcli_bash_script --build
+shellfuncs:
+	docker-compose -f testenv/shellfuncs/docker-compose.yaml up fasttravelcli_shellfuncs --build

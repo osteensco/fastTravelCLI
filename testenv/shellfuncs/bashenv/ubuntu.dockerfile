@@ -6,11 +6,15 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 WORKDIR /testspace
 
-COPY ../../../shells/tests/bashscripts/ ./
+COPY ../../../shells/tests/shellfuncs/bashscripts/setup.sh ./
 
-COPY ../../../shells/bash/ ./
+COPY ../../../shells/tests/shellfuncs/bashscripts/interactive_test.sh ./
 
-RUN chmod +x ./exe.sh
+COPY ../../../shells/tests/shellfuncs/bashscripts/exe.sh ./tests/bashscripts/
+
+COPY ../../../shells/bash/ftmain.sh ./
+
+RUN chmod +x ./tests/bashscripts/exe.sh
 
 # Update/install dependencies
 RUN apt-get update && apt-get install -y \

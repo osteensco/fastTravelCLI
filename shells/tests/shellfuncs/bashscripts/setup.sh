@@ -56,7 +56,7 @@ maketree
 commands=("[" "]" ".." "-" "hist")
 
 # Spoof fastTravelCLI's executable output
-export FT_EXE_PATH="/testspace/exe.sh"
+export FT_EXE_PATH="/testspace/tests/bashscripts/exe.sh"
 
 # Use this function for testing commands manually.
 testcmd() {

@@ -9,8 +9,8 @@
 
 # Source dependency scripts
 source ~/.fzf.bash
-source setup.sh
-source ftmain.sh
+source ./tests/bashscripts/setup.sh
+source ./shells/bash/ftmain.sh
 
 
 
@@ -107,9 +107,9 @@ fi
 
 
 if $all_tests_passed; then
-    echo "All tests passed!"
+    "Bash tests completed with no failures."
 else
-    echo "Some tests failed."
+    "Bash tests completed with failures."
     exit 1
 fi
 
