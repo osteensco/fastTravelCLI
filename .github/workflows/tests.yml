@@ -73,17 +73,14 @@ jobs:
       - name: Install zsh
         run: brew install zsh
 
-      - name: Start Docker Service
+      - name: Install Docker and Docker-Compose
         run: |
-          open /Applications/Docker.app
-          while ! docker system info > /dev/null 2>&1; do
-            echo "Waiting for Docker to start..."
-            sleep 10
-          done
-          echo "Docker is up and running!"
-
-      - name: Install Docker Compose
-        run: brew install docker-compose
+          brew install docker docker-compose 
+          # Link the Docker Compose v2 plugin so it's understood by the docker CLI
+          mkdir -p ~/.docker/cli-plugins
+          ln -sfn /usr/local/opt/docker-compose/bin/docker-compose ~/.docker/cli-plugins/docker-compose 
+          # colima will run docker daemon for us
+          colima start
 
       - name: Install dependencies
         run: go mod download
