@@ -27,7 +27,8 @@ jobs:
 
       - name: Install Docker Compose
         run: |
-          sudo curl -L "https://github.com/docker/compose/releases/download/$(curl -s https://api.github.com/repos/docker/compose/releases/latest | grep -Po '"tag_name": "\K.*\d')" /usr/local/bin/docker-compose
+          VERSION=$(curl -s https://api.github.com/repos/docker/compose/releases/latest | grep -Po '"tag_name": "\K.*?(?=")')
+          sudo curl -L "https://github.com/docker/compose/releases/download/${VERSION}/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
           sudo chmod +x /usr/local/bin/docker-compose
 
       - name: Install dependencies
@@ -71,6 +72,15 @@ jobs:
 
       - name: Install zsh
         run: brew install zsh
+
+      - name: Start Docker Service
+        run: |
+          open /Applications/Docker.app
+          while ! docker system info > /dev/null 2>&1; do
+            echo "Waiting for Docker to start..."
+            sleep 10
+          done
+          echo "Docker is up and running!"
 
       - name: Install Docker Compose
         run: brew install docker-compose
