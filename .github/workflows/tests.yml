@@ -25,6 +25,11 @@ jobs:
       - name: Install zsh
         run: sudo apt-get install -y zsh
 
+      - name: Install Docker Compose
+        run: |
+          sudo curl -L "https://github.com/docker/compose/releases/download/$(curl -s https://api.github.com/repos/docker/compose/releases/latest | grep -Po '"tag_name": "\K.*\d')" /usr/local/bin/docker-compose
+          sudo chmod +x /usr/local/bin/docker-compose
+
       - name: Install dependencies
         run: go mod download
 
@@ -66,6 +71,9 @@ jobs:
 
       - name: Install zsh
         run: brew install zsh
+
+      - name: Install Docker Compose
+        run: brew install docker-compose
 
       - name: Install dependencies
         run: go mod download
