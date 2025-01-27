@@ -28,13 +28,13 @@ jobs:
       - name: Install dependencies
         run: go mod download
 
-      # - name: Run go tests
-      #   run: go test ./... -v
+      - name: Run go tests
+        run: go test ./... -v
 
-      - name: Run all tests
+      - name: Run shell and cli tests
         run: make all
 
-
+        # TODO
         # update these to run in docker and not rely on lua
       - name: Test install Script in bash
         shell: bash
@@ -70,12 +70,13 @@ jobs:
       - name: Install dependencies
         run: go mod download
 
-      # - name: Run tests
-      #   run: go test ./... -v
+      - name: Run tests
+        run: go test ./... -v
 
-      - name: Run all tests
+      - name: Run shell and cli tests
         run: make all
-      
+
+        # TODO
         # update these to run in docker and not rely on lua
       - name: Test install Script in bash
         shell: bash

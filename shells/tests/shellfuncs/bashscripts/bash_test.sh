@@ -9,10 +9,13 @@
 
 # Source dependency scripts
 source ~/.fzf.bash
-source ./tests/bashscripts/setup.sh
+source ./maketree.sh
 source ./shells/bash/ftmain.sh
 
 
+
+# Spoof fastTravelCLI's executable output
+export FT_EXE_PATH="/testspace/tests/bashscripts/exe.sh"
 
 
 
@@ -107,9 +110,9 @@ fi
 
 
 if $all_tests_passed; then
-    "Bash tests completed with no failures."
+    echo "Bash tests completed with no failures."
 else
-    "Bash tests completed with failures."
+    echo "Bash tests completed with failures."
     exit 1
 fi
 

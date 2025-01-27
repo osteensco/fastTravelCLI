@@ -9,6 +9,23 @@
 
 
 
+# Spoof fastTravelCLI's executable output
+export FT_EXE_PATH="/testspace/exe.sh"
+
+commands=("[" "]" ".." "-" "hist")
+
+
+
+# Use this function for testing commands manually.
+testcmd() {
+    local selected=$(printf "%s\n" "${commands[@]}" | fzf)
+    if [[ -n "$selected" ]]; then
+        ft "$selected"
+    fi
+}
+
+
+
 simtest() {
     # User can set number of simulations or use default of 15
     if [[ $# -ne 1 ]]; then

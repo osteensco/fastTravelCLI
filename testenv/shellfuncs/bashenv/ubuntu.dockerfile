@@ -6,15 +6,15 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 WORKDIR /testspace
 
-COPY ../../../shells/tests/shellfuncs/bashscripts/setup.sh ./
+COPY shells/tests/shellfuncs/bashscripts/interactive_test.sh ./
 
-COPY ../../../shells/tests/shellfuncs/bashscripts/interactive_test.sh ./
+COPY shells/tests/shellfuncs/bashscripts/exe.sh ./
 
-COPY ../../../shells/tests/shellfuncs/bashscripts/exe.sh ./tests/bashscripts/
+COPY shells/bash/ftmain.sh ./
 
-COPY ../../../shells/bash/ftmain.sh ./
+COPY testenv/maketree.sh ./
 
-RUN chmod +x ./tests/bashscripts/exe.sh
+RUN chmod +x ./exe.sh
 
 # Update/install dependencies
 RUN apt-get update && apt-get install -y \
@@ -32,7 +32,7 @@ RUN git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf && \
 RUN echo 'source ~/.fzf.bash' >> ~/.bashrc
 
 # Source scripts used to run tests
-RUN echo 'source setup.sh' >> ~/.bashrc
+RUN echo 'source maketree.sh' >> ~/.bashrc
 
 RUN echo 'source ftmain.sh' >> ~/.bashrc
 
