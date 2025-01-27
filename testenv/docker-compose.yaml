@@ -1,0 +1,25 @@
+# run from project root dir
+services:
+
+  fasttravelcli_ubuntu_bash_interactive:
+    build: 
+      context: ..
+      dockerfile: testenv/shellfuncs/bashenv/ubuntu.dockerfile
+    container_name: fasttravelcli_ubuntu_bash_interactive 
+    stdin_open: true
+    tty: true
+
+  fasttravelcli_shellfuncs:
+    build: 
+      context: ..
+      dockerfile: testenv/shellfuncs/ubuntu.dockerfile
+    container_name: fasttravelcli_shellfuncs
+    stdin_open: true
+    tty: true
+
+  fasttravelcli_cli:
+    build:
+      context: ..
+      dockerfile: testenv/cli/ubuntu.dockerfile
+    container_name: ft_cli_test 
+

@@ -4,8 +4,25 @@
 # This test script is designed to test the ftmain.sh file independent of fastTravelCLI's binary.
 # Use by calling the simtest function.
 # This script will build simulations to run through automatically.
-# setup.sh and ftmain.sh need to be sourced prior to execution of these simulations. This step is included in the .bashrc Docker builds.
+# setup.sh and ftmain.sh need to be sourced prior to execution of these simulations. This step is added to the .bashrc in Docker.
 # To manually test specific commands, utilize the testcmd function found in setup.sh.
+
+
+
+# Spoof fastTravelCLI's executable output
+export FT_EXE_PATH="/testspace/exe.sh"
+
+commands=("[" "]" ".." "-" "hist")
+
+
+
+# Use this function for testing commands manually.
+testcmd() {
+    local selected=$(printf "%s\n" "${commands[@]}" | fzf)
+    if [[ -n "$selected" ]]; then
+        ft "$selected"
+    fi
+}
 
 
 

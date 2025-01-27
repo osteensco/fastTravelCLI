@@ -6,9 +6,13 @@ ENV DEBIAN_FRONTEND=noninteractive
 
 WORKDIR /testspace
 
-COPY ../../../shells/tests/bashscripts/ ./
+COPY shells/tests/shellfuncs/bashscripts/interactive_test.sh ./
 
-COPY ../../../shells/bash/ ./
+COPY shells/tests/shellfuncs/bashscripts/exe.sh ./
+
+COPY shells/bash/ftmain.sh ./
+
+COPY testenv/maketree.sh ./
 
 RUN chmod +x ./exe.sh
 
@@ -28,11 +32,11 @@ RUN git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf && \
 RUN echo 'source ~/.fzf.bash' >> ~/.bashrc
 
 # Source scripts used to run tests
-RUN echo 'source setup.sh' >> ~/.bashrc
+RUN echo 'source maketree.sh' >> ~/.bashrc
 
 RUN echo 'source ftmain.sh' >> ~/.bashrc
 
-RUN echo 'source test.sh' >> ~/.bashrc
+RUN echo 'source interactive_test.sh' >> ~/.bashrc
 
 
 

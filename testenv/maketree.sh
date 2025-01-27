@@ -52,18 +52,3 @@ maketree() {
 
 # maketree creates a directory history in which to test the available_commands off of.
 maketree
-
-commands=("[" "]" ".." "-" "hist")
-
-# Spoof fastTravelCLI's executable output
-export FT_EXE_PATH="/testspace/exe.sh"
-
-# Use this function for testing commands manually.
-testcmd() {
-    local selected=$(printf "%s\n" "${commands[@]}" | fzf)
-    if [[ -n "$selected" ]]; then
-        ft "$selected"
-    fi
-}
-
-

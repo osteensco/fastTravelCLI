@@ -25,11 +25,20 @@ jobs:
       - name: Install zsh
         run: sudo apt-get install -y zsh
 
+      - name: Install Docker Compose
+        run: |
+          VERSION=$(curl -s https://api.github.com/repos/docker/compose/releases/latest | grep -Po '"tag_name": "\K.*?(?=")')
+          sudo curl -L "https://github.com/docker/compose/releases/download/${VERSION}/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+          sudo chmod +x /usr/local/bin/docker-compose
+
       - name: Install dependencies
         run: go mod download
 
-      - name: Run tests
+      - name: Run go tests
         run: go test ./... -v
+
+      - name: Run shell and cli tests
+        run: make all
 
       - name: Test install Script in bash
         shell: bash
@@ -67,6 +76,11 @@ jobs:
 
       - name: Run tests
         run: go test ./... -v
+
+      # Removed for now since this runs tests in containers anyways.
+      # There shouldn't be anything OS specific about these tests anyways?
+      # - name: Run shell and cli tests
+      #   run: make all
 
       - name: Test install Script in bash
         shell: bash
