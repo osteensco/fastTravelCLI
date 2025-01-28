@@ -1,3 +1,5 @@
+# INTERACTIVE CONTAINER
+
 # run docker-compose from root dir
 FROM ubuntu:latest
 
@@ -12,6 +14,7 @@ COPY shells/tests/cli/ ./tests/
 
 # Dependencies
 RUN apt-get update && apt-get install -y \
+    golang \
     git \
     curl \
     tree \
@@ -21,12 +24,16 @@ RUN apt-get update && apt-get install -y \
 RUN git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf && \
     ~/.fzf/install --all
 
-# Install fastTravelCLI
-RUN git clone https://github.com/osteensco/fastTravelCLI.git && \
-    bash ./fastTravelCLI/install/linux.sh
+###
+# fastTravelCLI install occurins in setup script
+###
 
-# Build a project dir
-RUN source maketree.sh
+# Add golang binary to path
+RUN echo 'export PATH=$PATH:/usr/lib/go/bin' >> ~/.bashrc
 
-# Run tests
+# Source setup script
+RUN echo 'source ./tests/bash/interactive_setup.sh' >> ~/.bashrc
+
+
+
 CMD ["/bin/bash"]
