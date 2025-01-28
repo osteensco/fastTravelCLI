@@ -25,9 +25,6 @@ RUN git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf && \
 # Install fastTravelCLI step will need to occur in each shell's test script in order for it to install properly.
 #####
 
-# Build a project dir
-RUN source maketree.sh
-
 # Source test wrapper script
 RUN chmod +x ./tests/test.sh
 
