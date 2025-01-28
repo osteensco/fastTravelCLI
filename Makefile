@@ -17,4 +17,4 @@ cli_ubuntu_bash_interactive:
 	docker-compose -f testenv/docker-compose.yaml run --rm ft_cli_ubuntu_bash_interactive
 
 cli_ubuntu:
-	docker-compose -f test/docker-compose.yaml up ft_cli_ubuntu --build
+	docker-compose -f testenv/docker-compose.yaml up ft_cli_ubuntu --build
