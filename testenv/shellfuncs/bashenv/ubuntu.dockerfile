@@ -1,3 +1,5 @@
+# INTERACTIVE CONTAINER
+
 # run docker-compose from root dir
 FROM ubuntu:latest
 
