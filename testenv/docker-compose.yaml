@@ -33,8 +33,4 @@ services:
     stdin_open: true
     tty: true
 
-  # TODO
-  #  - add cli interactive service
-  #  - implement cli bash test script(s)
-  #  - implement cli wrapper test script
-  #  - update cli/dockerfile if needed
+

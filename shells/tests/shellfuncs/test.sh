@@ -15,7 +15,7 @@ all_tests_passed=true
 
 for TEST in "${!TESTS[@]}"; do
     SHELL="${TESTS[$TEST]}"
-    echo "Running $TEST with $SHELL..."
+    echo "Running shellfunc test $TEST with $SHELL..."
 
     if ! command -v "$SHELL" >/dev/null 2>&1; then
         echo "ERROR: Shell $SHELL not found!"
@@ -32,8 +32,8 @@ done
 
 
 if $all_tests_passed; then
-    echo "All tests passed!"
+    echo "All shell function tests passed!"
 else
-    echo "Some tests failed."
+    echo "Some shell function tests failed."
     exit 1
 fi
