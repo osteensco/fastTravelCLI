@@ -141,8 +141,6 @@ func TestMainFunc(t *testing.T) {
 			expected:   fmt.Sprintf("%v\n", tmpdir),
 			wantErr:    false,
 		},
-
-		// TODO
 		{
 			name:       "9. Check set command with multiple args piped in.",
 			args:       []string{"ft", "-set"},

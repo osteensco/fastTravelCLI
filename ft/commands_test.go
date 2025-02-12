@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 )
@@ -230,10 +231,24 @@ func TestShowDirectoryVar(t *testing.T) {
 }
 
 func TestSetDirectoryVar(t *testing.T) {
+	// tmpfile for temporary data persistence
 	tmpfile, err := os.CreateTemp("", "testdata.bin")
 	if err != nil {
 		t.Fatalf("Failed to create temp file: %v", err)
 	}
+
+	// tmpdir for directories to test with
+	tmpdir, err := os.MkdirTemp("", "testdata")
+	if err != nil {
+		t.Fatalf("Failed to create temp dir: %v", err)
+	}
+	tmpdir, err = filepath.EvalSymlinks(tmpdir)
+	if err != nil {
+		t.Fatalf("Failed to create temp dir: %v", err)
+	}
+	tmpdir = strings.Trim(tmpdir, " ")
+
+	defer os.RemoveAll(tmpdir)
 	defer os.Remove(tmpfile.Name())
 	defer tmpfile.Close()
 
@@ -241,6 +256,7 @@ func TestSetDirectoryVar(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+
 	tests := []struct {
 		name     string
 		command  []string
@@ -250,6 +266,18 @@ func TestSetDirectoryVar(t *testing.T) {
 		{
 			name:     "1. Set key that doesn't exist.",
 			command:  []string{"-set", "testKey"},
+			expected: workdir,
+			wanterr:  false,
+		},
+		{
+			name:     "2. Set key that already exist.",
+			command:  []string{"-set", fmt.Sprintf("testKey=%v", tmpdir)},
+			expected: tmpdir,
+			wanterr:  false,
+		},
+		{
+			name:     "3. Set key for a path that is already saved to a key.",
+			command:  []string{"-set", "newTestKey"},
 			expected: workdir,
 			wanterr:  false,
 		},
