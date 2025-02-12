@@ -660,6 +660,7 @@ func TestUpdateFT(t *testing.T) {
 	// Override Git related constants for testing
 	GitCloneCMD = []string{"echo", "'", "mocking", "version", "", "git", "clone", "dev", "'"}
 	GitCloneDir = strings.TrimSuffix(cwd, "/ft")
+	UPDATEMOCK = true
 
 	tests := []struct {
 		name       string

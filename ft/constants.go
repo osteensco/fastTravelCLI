@@ -71,6 +71,9 @@ var EndpointLatestGH string = "https://api.github.com/repos/osteensco/fastTravel
 var GitCloneCMD []string = []string{"git", "clone", "--branch", "", "https://github.com/osteensco/fastTravelCLI.git"}
 var GitCloneDir string = "fastTravelCLI"
 
+// Switch for testing
+var UPDATEMOCK bool = false
+
 // user messages
 const (
 	InvalidDirectoryMsg       = "Provided path '%s' evaluates to '%s' which is not a valid directory. Use 'ft -ls' to see all saved destinations. \n"

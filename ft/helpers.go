@@ -41,6 +41,45 @@ func printMap(hashmap map[string]string) {
 
 }
 
+// Split a string by spaces similar to strings.Split(), but treating everything within quotes as one word.
+func splitWords(line string) []string {
+	var result []string
+	var current strings.Builder
+	inquote := false
+	var quoteChar rune
+
+	for i, r := range line {
+		switch r {
+		case '"', '\'':
+			if inquote {
+				if r == quoteChar {
+					inquote = false
+				} else {
+					current.WriteRune(r)
+				}
+			} else {
+				inquote = true
+				quoteChar = r
+			}
+		case ' ':
+			if inquote {
+				current.WriteRune(r)
+			} else if current.Len() > 0 {
+				result = append(result, current.String())
+				current.Reset()
+			}
+		default:
+			current.WriteRune(r)
+		}
+
+		if i == len(line)-1 && current.Len() > 0 {
+			result = append(result, current.String())
+		}
+	}
+
+	return result
+}
+
 func PipeArgs(args *[]string) error {
 	fileinfo, err := os.Stdin.Stat()
 	if err != nil {
@@ -54,10 +93,14 @@ func PipeArgs(args *[]string) error {
 
 	// read from stdin
 	scanner := bufio.NewScanner(os.Stdin)
-	scanner.Split(bufio.ScanWords)
+	scanner.Split(bufio.ScanLines)
 	for scanner.Scan() {
+
+		line := scanner.Text()
+		pipedArgs := splitWords(line)
+
 		// append to args
-		*args = append(*args, scanner.Text())
+		*args = append(*args, pipedArgs...)
 	}
 	if err := scanner.Err(); err != nil {
 		return err

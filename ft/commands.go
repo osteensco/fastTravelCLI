@@ -151,7 +151,7 @@ func setDirectoryVar(data *CmdArgs) error {
 
 	for k, v := range data.allPaths {
 		if path == v {
-			fmt.Printf(PathAlreadyExistsMsg, path, k, k)
+			fmt.Printf(PathAlreadyExistsMsg, path, k, key)
 			var res string
 			_, err := fmt.Fscan(data.rdr, &res)
 			if err != nil {
@@ -401,6 +401,11 @@ func updateFT(data *CmdArgs) error {
 	err = os.Chdir(GitCloneDir)
 	if err != nil {
 		return errors.New(fmt.Sprintf("Error! Could not change to dir %q", GitCloneDir))
+	}
+
+	// skip install script if function call during testing
+	if UPDATEMOCK {
+		return nil
 	}
 
 	switch opsys := runtime.GOOS; opsys {

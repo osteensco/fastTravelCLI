@@ -142,14 +142,14 @@ func TestMainFunc(t *testing.T) {
 			wantErr:    false,
 		},
 
-		// {
-		// 	        []string{"ft", "rn", "key", "key2"},
-		//             "key renamed to key2",
-		//         },
-		// {
-		// 	        []string{"ft", "rm", "key2"},
-		//             "Removed 'key2' destination",
-		//         },
+		// TODO
+		{
+			name:       "9. Check set command with multiple args piped in.",
+			args:       []string{"ft", "-set"},
+			pipedInput: fmt.Sprintf("pipekey1=%v/pipedtest/one\npipekey2=%vpipedtest/two pipekey3='%vpipe test/three'", tmpdir, tmpdir, tmpdir),
+			expected:   fmt.Sprintf("%v\n", tmpdir),
+			wantErr:    false,
+		},
 	}
 
 	for _, tt := range tests {
