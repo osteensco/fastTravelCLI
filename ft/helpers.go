@@ -9,7 +9,10 @@ import (
 	"strings"
 )
 
-func verifyInput(s string) (bool, error) {
+func verifyInput(s string, f bool) (bool, error) {
+	if f {
+		return true, nil
+	}
 	switch strings.ToLower(s) {
 	case "y":
 		return true, nil

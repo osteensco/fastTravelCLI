@@ -260,50 +260,84 @@ func TestSetDirectoryVar(t *testing.T) {
 	tests := []struct {
 		name     string
 		command  []string
+		key      string
+		_map     map[string]string
+		input    string
 		expected string
-		wanterr  bool
 	}{
 		{
 			name:     "1. Set key that doesn't exist.",
 			command:  []string{"-set", "testKey"},
+			key:      "testKey",
+			_map:     map[string]string{},
 			expected: workdir,
-			wanterr:  false,
 		},
 		{
 			name:     "2. Set key that already exist.",
 			command:  []string{"-set", fmt.Sprintf("testKey=%v", tmpdir)},
+			key:      "testKey",
+			_map:     map[string]string{"testKey": workdir},
+			input:    "y",
 			expected: tmpdir,
-			wanterr:  false,
 		},
 		{
-			name:     "3. Set key for a path that is already saved to a key.",
+			name:     "3. Attempt to set key for a path that is already saved to a key.",
 			command:  []string{"-set", "newTestKey"},
-			expected: workdir,
-			wanterr:  false,
+			key:      "newTestKey",
+			_map:     map[string]string{"testKey": workdir},
+			input:    "n",
+			expected: "",
 		},
+
+		// TODO
+		// - additional tests with various input, multiples, etc
 	}
 
 	for _, tt := range tests {
+		t.Log(tt.name)
+		pathMap := make(map[string]string)
+		if tt._map != nil {
+			pathMap = tt._map
+		}
 		data := NewCmdArgs(
 			workdir,
 			tt.command,
-			make(map[string]string),
+			pathMap,
 			tmpfile,
 			nil,
 		)
 
+		stdin := os.Stdin
+		if tt.input != "" {
+			r, w, _ := os.Pipe()
+			w.WriteString(tt.input)
+			data.rdr = r
+			w.Close()
+		}
+
 		stdout := os.Stdout
-		_, w, _ := os.Pipe()
+		r, w, _ := os.Pipe()
 		os.Stdout = w
+
 		err := setDirectoryVar(data)
 		if err != nil {
 			t.Error(err)
 		}
+		w.Close()
 
+		os.Stdin = stdin
 		os.Stdout = stdout
 
-		if data.allPaths["testKey"] != tt.expected {
-			t.Errorf("Expected key 'testKey' to have value %s, got %s", tt.expected, data.allPaths["testKey"])
+		var output bytes.Buffer
+		_, err = io.Copy(&output, r)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		t.Log(output.String())
+
+		if data.allPaths[tt.key] != tt.expected {
+			t.Errorf("Expected key 'testKey' to have value %s, got %s", tt.expected, data.allPaths[tt.key])
 		}
 
 		file, err := os.Open(tmpfile.Name())
@@ -316,8 +350,8 @@ func TestSetDirectoryVar(t *testing.T) {
 		if err != nil {
 			t.Error(err)
 		}
-		if result["testKey"] != tt.expected {
-			t.Errorf("Expected file to have key 'testKey' with value %s, got %s", tt.expected, result["testKey"])
+		if result[tt.key] != tt.expected {
+			t.Errorf("Expected file to have key 'testKey' with value %s, got %s", tt.expected, result[tt.key])
 		}
 	}
 }

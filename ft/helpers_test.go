@@ -85,7 +85,9 @@ func TestVerifyInput(t *testing.T) {
 	for _, tt := range tests {
 		var res string
 		fmt.Fscan(tt.data.rdr, &res)
-		actual, err := verifyInput(res)
+		// TODO
+		// - add force true to tests
+		actual, err := verifyInput(res, false)
 		if !tt.wantErr && err != nil {
 			fmt.Println("Error:", err)
 			t.Fatal(err)
