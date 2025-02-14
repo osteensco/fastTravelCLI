@@ -142,11 +142,16 @@ func TestMainFunc(t *testing.T) {
 			wantErr:    false,
 		},
 		{
-			name:       "9. Check set command with multiple args piped in.",
+			name:       "9. Check set command with multiple args piped in using various seperators.",
 			args:       []string{"ft", "-set"},
-			pipedInput: fmt.Sprintf("pipekey1=%v/pipedtest/one\npipekey2=%vpipedtest/two pipekey3='%vpipe test/three'", tmpdir, tmpdir, tmpdir),
-			expected:   fmt.Sprintf("%v\n", tmpdir),
-			wantErr:    false,
+			pipedInput: fmt.Sprintf("pipekey1=%v/pipedtest/one\npipekey2=%v/pipedtest/two pipekey3='%v/pipe test/three'", tmpdir, tmpdir, tmpdir),
+			expected: fmt.Sprintf(
+				"Added destination 'pipekey1': '%v/pipedtest/one'. \nAdded destination 'pipekey2': '%v/pipedtest/two'. \nAdded destination 'pipekey3': '%v/pipe test/three'. \n",
+				tmpdir,
+				tmpdir,
+				tmpdir,
+			),
+			wantErr: false,
 		},
 	}
 

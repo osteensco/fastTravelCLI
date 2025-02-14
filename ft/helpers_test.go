@@ -46,48 +46,67 @@ func TestPrintMap(t *testing.T) {
 
 func TestVerifyInput(t *testing.T) {
 	tests := []struct {
+		name     string
 		expected bool
+		force    bool
 		data     CmdArgs
 		wantErr  bool
 	}{
 		{
-			true,
-			CmdArgs{
+			name:     "1. User inputs 'y'.",
+			expected: true,
+			force:    false,
+			data: CmdArgs{
 				cmd:      []string{},
 				allPaths: map[string]string{},
 				file:     nil,
 				rdr:      strings.NewReader("y"),
 			},
-			false,
+			wantErr: false,
 		},
 		{
-			false,
-			CmdArgs{
+			name:     "2. User inputs 'n'.",
+			expected: false,
+			force:    false,
+			data: CmdArgs{
 				cmd:      []string{},
 				allPaths: map[string]string{},
 				file:     nil,
 				rdr:      strings.NewReader("n"),
 			},
-			false,
+			wantErr: false,
 		},
 		{
-			false,
-			CmdArgs{
+			name:     "3. User inputs invalid option.",
+			expected: false,
+			force:    false,
+			data: CmdArgs{
 				cmd:      []string{},
 				allPaths: map[string]string{},
 				file:     nil,
 				rdr:      strings.NewReader("x\n"),
 			},
-			true,
+			wantErr: true,
+		},
+		{
+			name:     "4. User uses force option.",
+			expected: true,
+			force:    true,
+			data: CmdArgs{
+				cmd:      []string{},
+				allPaths: map[string]string{},
+				file:     nil,
+				rdr:      strings.NewReader("n"),
+			},
+			wantErr: false,
 		},
 	}
 
 	for _, tt := range tests {
 		var res string
 		fmt.Fscan(tt.data.rdr, &res)
-		// TODO
-		// - add force true to tests
-		actual, err := verifyInput(res, false)
+
+		actual, err := verifyInput(res, tt.force)
 		if !tt.wantErr && err != nil {
 			fmt.Println("Error:", err)
 			t.Fatal(err)
@@ -152,7 +171,7 @@ func TestPipeArgs(t *testing.T) {
 
 		equal := true
 		if len(args) == len(tt.expected) {
-			for i, _ := range args {
+			for i := range args {
 				if args[i] == tt.expected[i] {
 					continue
 				}

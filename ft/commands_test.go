@@ -267,30 +267,50 @@ func TestSetDirectoryVar(t *testing.T) {
 	}{
 		{
 			name:     "1. Set key that doesn't exist.",
-			command:  []string{"-set", "testKey"},
-			key:      "testKey",
+			command:  []string{"-set", "testKey1"},
+			key:      "testKey1",
 			_map:     map[string]string{},
 			expected: workdir,
 		},
 		{
-			name:     "2. Set key that already exist.",
-			command:  []string{"-set", fmt.Sprintf("testKey=%v", tmpdir)},
-			key:      "testKey",
-			_map:     map[string]string{"testKey": workdir},
+			name:     "2. Set key that already exist, don't overwrite.",
+			command:  []string{"-set", fmt.Sprintf("testKey2=%v", tmpdir)},
+			key:      "testKey2",
+			_map:     map[string]string{"testKey2": workdir},
+			input:    "n",
+			expected: workdir,
+		},
+		{
+			name:     "3. Set key that already exist, overwrite.",
+			command:  []string{"-set", fmt.Sprintf("testKey3=%v", tmpdir)},
+			key:      "testKey3",
+			_map:     map[string]string{"testKey3": workdir},
 			input:    "y",
 			expected: tmpdir,
 		},
 		{
-			name:     "3. Attempt to set key for a path that is already saved to a key.",
-			command:  []string{"-set", "newTestKey"},
-			key:      "newTestKey",
-			_map:     map[string]string{"testKey": workdir},
+			name:     "4. Attempt to set key for a path that is already saved to a key, don't overwrite.",
+			command:  []string{"-set", "newTestKey1"},
+			key:      "newTestKey1",
+			_map:     map[string]string{"testKey4": workdir},
 			input:    "n",
 			expected: "",
 		},
-
-		// TODO
-		// - additional tests with various input, multiples, etc
+		{
+			name:     "5. Attempt to set key for a path that is already saved to a key, overwrite.",
+			command:  []string{"-set", "newTestKey2"},
+			key:      "newTestKey2",
+			_map:     map[string]string{"testKey5": workdir},
+			input:    "y",
+			expected: workdir,
+		},
+		{
+			name:     "6. Set key for a path with a space in it.",
+			command:  []string{"-set", fmt.Sprintf("testKey6=%v/some dir", tmpdir)},
+			key:      "testKey6",
+			_map:     map[string]string{},
+			expected: fmt.Sprintf("%v/some dir", tmpdir),
+		},
 	}
 
 	for _, tt := range tests {
@@ -306,6 +326,10 @@ func TestSetDirectoryVar(t *testing.T) {
 			tmpfile,
 			nil,
 		)
+
+		if len(tt._map) > 0 {
+			dataUpdate(data.allPaths, tmpfile)
+		}
 
 		stdin := os.Stdin
 		if tt.input != "" {

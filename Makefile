@@ -1,6 +1,6 @@
 default: all
 
-all: shellfuncs_ubuntu cli_ubuntu
+all: shellfuncs_ubuntu cli_ubuntu go-test
 
 # Interactive slot for debugging
 i: cli_ubuntu_bash_interactive
@@ -18,3 +18,6 @@ cli_ubuntu_bash_interactive:
 
 cli_ubuntu:
 	docker-compose -f testenv/docker-compose.yaml up ft_cli_ubuntu --build
+
+go-test:
+	go test ./...
