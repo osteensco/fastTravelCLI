@@ -52,7 +52,11 @@ Some features have dependencies:
 ft -set [key]
 
 
-# Travel to that location by running
+# You can also explicitly set a key to a directory, or set multiple at once
+ft -set key1=some/sub/dir key2=some/other/dir
+
+
+# Travel to a location by running
 ft [key]
 
 
@@ -68,6 +72,14 @@ ft -
 
 # ft supports relative paths in the working directory and CDPATH
 ft mydir
+
+
+# To remove a location run
+ft -rm [key]
+
+
+# To rename a location run
+ft -rn [key] [new key]
 
 
 # ft allows you to visit previously visited directories
@@ -86,12 +98,9 @@ ft -hist
 ft -ls
 
 
-# To remove a location run
-ft -rm [key]
-
-
-# To rename a location run
-ft -rn [key] [new key]
+# fastTravelCLI accepts args piped to it
+echo "mykey=some/project/path" > myfile.txt
+cat myfile.txt | ft -set
 
 
 # ft is easy to update to the latest release
