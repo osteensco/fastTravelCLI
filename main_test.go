@@ -49,6 +49,12 @@ func TestMainFunc(t *testing.T) {
 		t.Fatalf("Failed to navigate to temp directory")
 	}
 
+	// Force set test dir
+	forcedir, err := os.MkdirTemp(tmpdir, "force")
+	if err != nil {
+		t.Fatalf("Failed to create temp dir: %v", err)
+	}
+
 	// CDPATH setup
 	homeDir, err := os.UserHomeDir()
 	if err != nil {
@@ -83,7 +89,7 @@ func TestMainFunc(t *testing.T) {
 			name: "1. Check help command.",
 			args: []string{"ft", "-help"},
 			expected: fmt.Sprintf(
-				"\n-help: %s\n-hist: %s\n-is: %s\n-ls: %s\n-rm: %s\n-rn: %s\n-set: %s\n-update: %s\n-version: %s\n[: %s\n]: %s\nkey: %s\n\n",
+				"\n-help: %s\n-hist: %s\n-is: %s\n-ls: %s\n-rm: %s\n-rn: %s\n-set: %s\n-setf: %s\n-update: %s\n-version: %s\n[: %s\n]: %s\nkey: %s\n\n",
 				ft.CmdDesc["-help"],
 				ft.CmdDesc["-hist"],
 				ft.CmdDesc["-is"],
@@ -91,6 +97,7 @@ func TestMainFunc(t *testing.T) {
 				ft.CmdDesc["-rm"],
 				ft.CmdDesc["-rn"],
 				ft.CmdDesc["-set"],
+				ft.CmdDesc["-setf"],
 				ft.CmdDesc["-update"],
 				ft.CmdDesc["-version"],
 				ft.CmdDesc["["],
@@ -152,6 +159,12 @@ func TestMainFunc(t *testing.T) {
 				tmpdir,
 			),
 			wantErr: false,
+		},
+		{
+			name:     "10. Check force set command.",
+			args:     []string{"ft", "-setf", fmt.Sprintf("key=%v", forcedir)},
+			expected: fmt.Sprintf(ft.AddKeyMsg, "key", forcedir),
+			wantErr:  false,
 		},
 	}
 

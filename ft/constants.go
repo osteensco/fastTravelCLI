@@ -25,6 +25,7 @@ var AvailCmds = map[string]struct {
 }{
 	"_":        {changeDirectory, true},
 	"-set":     {setDirectoryVar, true},
+	"-setf":    {setDirectoryVar, true},
 	"-ls":      {displayAllPaths, true},
 	"-rm":      {removeKey, true},
 	"-rn":      {renameKey, true},
@@ -44,7 +45,8 @@ var AvailCmds = map[string]struct {
 
 var CmdDesc = map[string]string{
 	"key":      "change directory to provided key's path - Usage: ft [key]",
-	"-set":     "set current directory path to provided key - Usage: ft -set [key]",
+	"-set":     "set key to a directory path, if no directory path is given attempts to set key to CWD - Usage: ft -set [key], ft -set [key]=[path]",
+	"-setf":    "force set key to a directory path, if no directory path is given force set key to CWD - Usage: ft -setf [key], ft -setf [key]=[path]",
 	"-ls":      "display all current key value pairs - Usage: ft -ls",
 	"-rm":      "deletes provided key - Usage: ft -rm [key]",
 	"-rn":      "renames key to new key - Usage: ft -rn [key] [new key]",
@@ -80,6 +82,7 @@ const (
 	UnrecognizedKeyMsg        = "Did not recognize key or relative path '%s', use 'ft -ls' to see all saved destinations. \n"
 	PathAlreadyExistsMsg      = "Path '%s' already exists with key '%s', overwrite key '%s'? (y/n) \n"
 	AbortedOverwriteKeyMsg    = "Aborted overwriting of key '%s'. \n"
+	PathOverwriteMsg          = "The value of key '%s' has been overwritten and is now '%s'. \n"
 	RenamedKeyMsg             = "Renamed key '%s' to '%s' whose value is '%s'. \n"
 	KeyAlreadyExistsMsg       = "Key '%s' already exists with value '%s', overwrite key '%s'? (y/n) \n"
 	AddKeyMsg                 = "Added destination '%s': '%s'. \n"

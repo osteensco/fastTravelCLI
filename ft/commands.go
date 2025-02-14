@@ -155,6 +155,7 @@ func setDirectoryVar(data *CmdArgs) error {
 	// handle setting multiple keys at once
 	for i, arg := range data.cmd {
 		if i == 0 {
+
 			if arg[len(arg)-1] == 'f' {
 				force = true
 			}
@@ -163,6 +164,7 @@ func setDirectoryVar(data *CmdArgs) error {
 
 		var key string
 		var path string
+		var err error
 
 		// if not key not explicitly set to a directory, assume user is trying to set key to CWD
 		if strings.Contains(arg, "=") {
@@ -170,7 +172,6 @@ func setDirectoryVar(data *CmdArgs) error {
 			pair = strings.Split(arg, "=")
 			key, path = pair[0], pair[1]
 		} else {
-			var err error
 			key = arg
 			path, err = os.Getwd()
 			if err != nil {
@@ -181,15 +182,16 @@ func setDirectoryVar(data *CmdArgs) error {
 		// verify if path is already saved to another key
 		k, ok := dirs[path]
 		if ok {
-			fmt.Printf(PathAlreadyExistsMsg, path, k, key)
 			var res string
 			// if force setting we don't need to read in a response from the user
 			if !force {
+				fmt.Printf(PathAlreadyExistsMsg, path, k, key)
 				_, err := fmt.Fscan(data.rdr, &res)
 				if err != nil {
 					return err
 				}
 			}
+
 			if overwrite, err := verifyInput(res, force); !overwrite {
 				if err != nil {
 					return err
@@ -204,17 +206,17 @@ func setDirectoryVar(data *CmdArgs) error {
 			delete(data.allPaths, k)
 			data.allPaths[key] = path
 			dataUpdate(data.allPaths, data.file)
-			fmt.Printf(RenamedKeyMsg, k, key, path)
+			fmt.Printf(PathOverwriteMsg, key, path)
 			return nil
 		}
 
 		// verify if key is already in use
 		val, ok := data.allPaths[key]
 		if ok {
-			// capture user response and act accordingly
-			fmt.Printf(KeyAlreadyExistsMsg, key, val, key)
 			var res string
 			if !force {
+				// capture user response and act accordingly
+				fmt.Printf(KeyAlreadyExistsMsg, key, val, key)
 				_, err := fmt.Fscan(data.rdr, &res)
 				if err != nil {
 					return err
