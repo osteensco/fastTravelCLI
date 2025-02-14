@@ -143,21 +143,54 @@ func changeDirectory(data *CmdArgs) error {
 }
 
 func setDirectoryVar(data *CmdArgs) error {
-	key := data.cmd[1]
-	path, err := os.Getwd()
-	if err != nil {
-		return err
+
+	// reverse allPaths for easier lookup by directory instead of key
+	dirs := make(map[string]string, len(data.allPaths))
+	for k, v := range data.allPaths {
+		dirs[v] = k
 	}
 
-	for k, v := range data.allPaths {
-		if path == v {
-			fmt.Printf(PathAlreadyExistsMsg, path, k, k)
-			var res string
-			_, err := fmt.Fscan(data.rdr, &res)
+	force := false
+
+	// handle setting multiple keys at once
+	for i, arg := range data.cmd {
+		if i == 0 {
+			if arg[len(arg)-1] == 'f' {
+				force = true
+			}
+			continue
+		}
+
+		var key string
+		var path string
+
+		// if not key not explicitly set to a directory, assume user is trying to set key to CWD
+		if strings.Contains(arg, "=") {
+			pair := make([]string, 2)
+			pair = strings.Split(arg, "=")
+			key, path = pair[0], pair[1]
+		} else {
+			var err error
+			key = arg
+			path, err = os.Getwd()
 			if err != nil {
 				return err
 			}
-			if overwrite, err := verifyInput(res); !overwrite {
+		}
+
+		// verify if path is already saved to another key
+		k, ok := dirs[path]
+		if ok {
+			fmt.Printf(PathAlreadyExistsMsg, path, k, key)
+			var res string
+			// if force setting we don't need to read in a response from the user
+			if !force {
+				_, err := fmt.Fscan(data.rdr, &res)
+				if err != nil {
+					return err
+				}
+			}
+			if overwrite, err := verifyInput(res, force); !overwrite {
 				if err != nil {
 					return err
 				}
@@ -174,35 +207,40 @@ func setDirectoryVar(data *CmdArgs) error {
 			fmt.Printf(RenamedKeyMsg, k, key, path)
 			return nil
 		}
+
+		// verify if key is already in use
+		val, ok := data.allPaths[key]
+		if ok {
+			// capture user response and act accordingly
+			fmt.Printf(KeyAlreadyExistsMsg, key, val, key)
+			var res string
+			if !force {
+				_, err := fmt.Fscan(data.rdr, &res)
+				if err != nil {
+					return err
+				}
+			}
+			if overwrite, err := verifyInput(res, force); !overwrite {
+				if err != nil {
+					return err
+				}
+				fmt.Printf(AbortedOverwriteKeyMsg, key)
+				return nil
+			} else {
+				if err != nil {
+					return err
+				}
+			}
+
+		}
+
+		// key doesn't exist yet or user wants to overwrite
+		data.allPaths[key] = path
+		dataUpdate(data.allPaths, data.file)
+		fmt.Printf(AddKeyMsg, key, path)
+
 	}
 
-	val, ok := data.allPaths[key]
-	if ok {
-		// capture user response and act accordingly
-		fmt.Printf(KeyAlreadyExistsMsg, key, val, key)
-		var res string
-		_, err := fmt.Fscan(data.rdr, &res)
-		if err != nil {
-			return err
-		}
-		if overwrite, err := verifyInput(res); !overwrite {
-			if err != nil {
-				return err
-			}
-			fmt.Printf(AbortedOverwriteKeyMsg, key)
-			return nil
-		} else {
-			if err != nil {
-				return err
-			}
-		}
-
-	}
-
-	// key doesn't exist yet or user wants to overwrite
-	data.allPaths[key] = path
-	dataUpdate(data.allPaths, data.file)
-	fmt.Printf(AddKeyMsg, key, path)
 	return nil
 }
 
@@ -225,7 +263,7 @@ func removeKey(data *CmdArgs) error {
 	if err != nil {
 		return err
 	}
-	if rm, err := verifyInput(res); !rm {
+	if rm, err := verifyInput(res, false); !rm {
 		if err != nil {
 			return err
 		}
@@ -264,7 +302,7 @@ func renameKey(data *CmdArgs) error {
 	if err != nil {
 		return err
 	}
-	if rm, err := verifyInput(res); !rm {
+	if rm, err := verifyInput(res, false); !rm {
 		if err != nil {
 			fmt.Println("Error: ", err)
 		}
@@ -401,6 +439,11 @@ func updateFT(data *CmdArgs) error {
 	err = os.Chdir(GitCloneDir)
 	if err != nil {
 		return errors.New(fmt.Sprintf("Error! Could not change to dir %q", GitCloneDir))
+	}
+
+	// skip install script if function call during testing
+	if UPDATEMOCK {
+		return nil
 	}
 
 	switch opsys := runtime.GOOS; opsys {

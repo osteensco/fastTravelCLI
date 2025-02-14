@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 )
@@ -230,10 +231,24 @@ func TestShowDirectoryVar(t *testing.T) {
 }
 
 func TestSetDirectoryVar(t *testing.T) {
+	// tmpfile for temporary data persistence
 	tmpfile, err := os.CreateTemp("", "testdata.bin")
 	if err != nil {
 		t.Fatalf("Failed to create temp file: %v", err)
 	}
+
+	// tmpdir for directories to test with
+	tmpdir, err := os.MkdirTemp("", "testdata")
+	if err != nil {
+		t.Fatalf("Failed to create temp dir: %v", err)
+	}
+	tmpdir, err = filepath.EvalSymlinks(tmpdir)
+	if err != nil {
+		t.Fatalf("Failed to create temp dir: %v", err)
+	}
+	tmpdir = strings.Trim(tmpdir, " ")
+
+	defer os.RemoveAll(tmpdir)
 	defer os.Remove(tmpfile.Name())
 	defer tmpfile.Close()
 
@@ -241,41 +256,126 @@ func TestSetDirectoryVar(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+
 	tests := []struct {
 		name     string
 		command  []string
+		key      string
+		_map     map[string]string
+		input    string
 		expected string
-		wanterr  bool
 	}{
 		{
 			name:     "1. Set key that doesn't exist.",
-			command:  []string{"-set", "testKey"},
+			command:  []string{"-set", "testKey1"},
+			key:      "testKey1",
+			_map:     map[string]string{},
 			expected: workdir,
-			wanterr:  false,
+		},
+		{
+			name:     "2. Set key that already exist, don't overwrite.",
+			command:  []string{"-set", fmt.Sprintf("testKey2=%v", tmpdir)},
+			key:      "testKey2",
+			_map:     map[string]string{"testKey2": workdir},
+			input:    "n",
+			expected: workdir,
+		},
+		{
+			name:     "3. Set key that already exist, overwrite.",
+			command:  []string{"-set", fmt.Sprintf("testKey3=%v", tmpdir)},
+			key:      "testKey3",
+			_map:     map[string]string{"testKey3": workdir},
+			input:    "y",
+			expected: tmpdir,
+		},
+		{
+			name:     "4. Attempt to set key for a path that is already saved to a key, don't overwrite.",
+			command:  []string{"-set", "newTestKey1"},
+			key:      "newTestKey1",
+			_map:     map[string]string{"testKey4": workdir},
+			input:    "n",
+			expected: "",
+		},
+		{
+			name:     "5. Attempt to set key for a path that is already saved to a key, overwrite.",
+			command:  []string{"-set", "newTestKey2"},
+			key:      "newTestKey2",
+			_map:     map[string]string{"testKey5": workdir},
+			input:    "y",
+			expected: workdir,
+		},
+		{
+			name:     "6. Set key for a path with a space in it.",
+			command:  []string{"-set", fmt.Sprintf("testKey6=%v/some dir", tmpdir)},
+			key:      "testKey6",
+			_map:     map[string]string{},
+			expected: fmt.Sprintf("%v/some dir", tmpdir),
+		},
+		{
+			name:     "7. Force set key for a path that is already saved to a key.",
+			command:  []string{"-setf", "newTestKey7"},
+			key:      "newTestKey7",
+			_map:     map[string]string{"testKey7": workdir},
+			expected: workdir,
+		},
+		{
+			name:     "8. Force set key that already exists.",
+			command:  []string{"-setf", fmt.Sprintf("testKey8=%v", tmpdir)},
+			key:      "testKey8",
+			_map:     map[string]string{"testKey8": workdir},
+			expected: tmpdir,
 		},
 	}
 
 	for _, tt := range tests {
+		t.Log(tt.name)
+		pathMap := make(map[string]string)
+		if tt._map != nil {
+			pathMap = tt._map
+		}
 		data := NewCmdArgs(
 			workdir,
 			tt.command,
-			make(map[string]string),
+			pathMap,
 			tmpfile,
 			nil,
 		)
 
+		if len(tt._map) > 0 {
+			dataUpdate(data.allPaths, tmpfile)
+		}
+
+		stdin := os.Stdin
+		if tt.input != "" {
+			r, w, _ := os.Pipe()
+			w.WriteString(tt.input)
+			data.rdr = r
+			w.Close()
+		}
+
 		stdout := os.Stdout
-		_, w, _ := os.Pipe()
+		r, w, _ := os.Pipe()
 		os.Stdout = w
+
 		err := setDirectoryVar(data)
 		if err != nil {
 			t.Error(err)
 		}
+		w.Close()
 
+		os.Stdin = stdin
 		os.Stdout = stdout
 
-		if data.allPaths["testKey"] != tt.expected {
-			t.Errorf("Expected key 'testKey' to have value %s, got %s", tt.expected, data.allPaths["testKey"])
+		var output bytes.Buffer
+		_, err = io.Copy(&output, r)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		t.Log(output.String())
+
+		if data.allPaths[tt.key] != tt.expected {
+			t.Errorf("Expected key 'testKey' to have value %s, got %s", tt.expected, data.allPaths[tt.key])
 		}
 
 		file, err := os.Open(tmpfile.Name())
@@ -288,8 +388,8 @@ func TestSetDirectoryVar(t *testing.T) {
 		if err != nil {
 			t.Error(err)
 		}
-		if result["testKey"] != tt.expected {
-			t.Errorf("Expected file to have key 'testKey' with value %s, got %s", tt.expected, result["testKey"])
+		if result[tt.key] != tt.expected {
+			t.Errorf("Expected file to have key 'testKey' with value %s, got %s", tt.expected, result[tt.key])
 		}
 	}
 }
@@ -660,6 +760,7 @@ func TestUpdateFT(t *testing.T) {
 	// Override Git related constants for testing
 	GitCloneCMD = []string{"echo", "'", "mocking", "version", "", "git", "clone", "dev", "'"}
 	GitCloneDir = strings.TrimSuffix(cwd, "/ft")
+	UPDATEMOCK = true
 
 	tests := []struct {
 		name       string
