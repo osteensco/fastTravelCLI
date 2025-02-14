@@ -311,6 +311,20 @@ func TestSetDirectoryVar(t *testing.T) {
 			_map:     map[string]string{},
 			expected: fmt.Sprintf("%v/some dir", tmpdir),
 		},
+		{
+			name:     "7. Force set key for a path that is already saved to a key.",
+			command:  []string{"-setf", "newTestKey7"},
+			key:      "newTestKey7",
+			_map:     map[string]string{"testKey7": workdir},
+			expected: workdir,
+		},
+		{
+			name:     "8. Force set key that already exists.",
+			command:  []string{"-setf", fmt.Sprintf("testKey8=%v", tmpdir)},
+			key:      "testKey8",
+			_map:     map[string]string{"testKey8": workdir},
+			expected: tmpdir,
+		},
 	}
 
 	for _, tt := range tests {
