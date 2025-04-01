@@ -51,9 +51,9 @@ func PassCmd(args []string) ([]string, error) {
 	// providing help for a specific command may be needed in the future
 	case "-help", "-h", "-version", "-v", "-is", "-update", "-u":
 		break
-	case "-rn":
+	case "-rn", "-edit":
 		if len(args) <= 3 {
-			return nil, errors.New(fmt.Sprintf("Insufficient args provided %v, usage: ft rn <key> <newKey>", args[1:]))
+			return nil, errors.New(fmt.Sprintf("Insufficient args provided %v, see ft -help for more info", args[1:]))
 		}
 	default:
 		if len(args) <= 2 {
@@ -65,8 +65,12 @@ func PassCmd(args []string) ([]string, error) {
 	return args[1:], nil
 }
 
-// changeDirectory can handle key lookup, relative paths, directories in CDPATH, and key evaluation.
-func changeDirectory(data *CmdArgs) error {
+// Takes a key or relative path and returns it's full explict path or an error.
+func evalPath(data *CmdArgs) (string, error) {
+
+	// TODO
+	//  - check for SPECIFIC errors in directory checks (ex: *PathError)
+	//  - ensure other types of errors are caught and returned early
 
 	var key string
 	provided_string := data.cmd[1]
@@ -94,13 +98,11 @@ func changeDirectory(data *CmdArgs) error {
 		dir, err := os.Stat(path)
 		if err == nil {
 			if dir.IsDir() {
-				fmt.Println(path)
-				return nil
+				return path, nil
 			}
 		}
 
-		fmt.Printf(InvalidDirectoryMsg, provided_string, path)
-		return nil
+		return fmt.Sprintf(InvalidDirectoryMsg, provided_string, path), nil
 
 	} else {
 
@@ -108,13 +110,16 @@ func changeDirectory(data *CmdArgs) error {
 		// handles key lookup
 		p, ok := data.allPaths[key]
 		if !ok {
-
 			// handles releative directory in CWD
 			dir, err := os.Stat(key)
 			if err == nil {
 				if dir.IsDir() {
-					fmt.Println(key)
-					return nil
+					// in this case key is assumed to be a relative path
+					p, err = filepath.Abs(key)
+					if err != nil {
+						return "", err
+					}
+					return p, nil
 				}
 			}
 
@@ -126,20 +131,27 @@ func changeDirectory(data *CmdArgs) error {
 					cdPathResult := filepath.Join(path, key)
 					dir, err := os.Stat(cdPathResult)
 					if err == nil && dir.IsDir() {
-						fmt.Println(cdPathResult)
-						return nil
+						return cdPathResult, nil
 					}
 				}
 			}
 
-			fmt.Printf(UnrecognizedKeyMsg, key)
-			return nil
+			return fmt.Sprintf(UnrecognizedKeyMsg, key), nil
+
 		}
 
-		fmt.Println(p)
-		return nil
+		return p, nil
 
 	}
+}
+
+// changeDirectory can handle key lookup, relative paths, directories in CDPATH, and key evaluation.
+func changeDirectory(data *CmdArgs) error {
+
+	path, err := evalPath(data)
+	fmt.Println(path)
+	return err
+
 }
 
 func setDirectoryVar(data *CmdArgs) error {
@@ -320,6 +332,49 @@ func renameKey(data *CmdArgs) error {
 
 	dataUpdate(data.allPaths, data.file)
 	fmt.Printf(RenamedKeyMsg, originalKey, newKey, path)
+	return nil
+}
+
+// Edits a saved path matching a specific prefix to the given new directory name.
+// Path provided can be explicit, another key, a sub directory of a key, or relative path.
+//
+// Path is evaluated to explicit path to ensure replacement accuracy.
+// Simple substring replacement would lead to erroneous results
+// i.e. ft -edit something different
+// This would update mydir/something/project1 and mydir/something/project2
+// but erroneously updates myotherdir/important_project/something
+// ft -edit mydir/something different
+// Using explicit path (or evaluated path) avoids this problem.
+func editPath(data *CmdArgs) error {
+
+	// evaluate path to handle relative path, CDPATH, other keys, etc
+	path, err := evalPath(data)
+	if err != nil {
+		return err
+	}
+
+	// replace directory name with new name
+	newDirName := data.cmd[2]
+	pathArray := strings.Split(path, "/")
+	pathArray[len(pathArray)-1] = newDirName
+	newPath := strings.Join(pathArray, "/")
+
+	// update all keys that contain this prefix
+	for k, v := range data.allPaths {
+		if strings.Contains(v, path) {
+			pathReplacement := strings.Replace(v, path, newPath, 1)
+			dir, err := os.Stat(pathReplacement)
+			if err != nil {
+				return err
+			}
+			if dir.IsDir() {
+				data.allPaths[k] = newPath
+			} else {
+				return errors.New(fmt.Sprintf("%v is not a Directory", dir))
+			}
+		}
+	}
+
 	return nil
 }
 

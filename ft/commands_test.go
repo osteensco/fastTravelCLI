@@ -837,3 +837,13 @@ func TestUpdateFT(t *testing.T) {
 		})
 	}
 }
+
+func TestEditPath(t *testing.T) {
+	// TODO
+	//   - implement test
+}
+
+func TestEvalPath(t *testing.T) {
+	// TODO
+	//   - implement test
+}
