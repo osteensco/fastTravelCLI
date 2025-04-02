@@ -839,11 +839,224 @@ func TestUpdateFT(t *testing.T) {
 }
 
 func TestEditPath(t *testing.T) {
-	// TODO
-	//   - implement test
+	// tmpfile for temporary data persistence
+	tmpfile, err := os.CreateTemp("", "testdata.bin")
+	if err != nil {
+		t.Fatalf("Failed to create temp file: %v", err)
+	}
+
+	// tmpdir for directories to test with
+	tmpdir, err := os.MkdirTemp("", "testdata")
+	if err != nil {
+		t.Fatalf("Failed to create temp dir: %v", err)
+	}
+	tmpdir, err = filepath.EvalSymlinks(tmpdir)
+	if err != nil {
+		t.Fatalf("Failed to create temp dir: %v", err)
+	}
+	tmpdir = strings.Trim(tmpdir, " ")
+
+	defer os.RemoveAll(tmpdir)
+	defer os.Remove(tmpfile.Name())
+	defer tmpfile.Close()
+
+	workdir, err := os.Getwd()
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	tests := []struct {
+		name     string
+		command  []string
+		dir      string
+		newdir   string
+		_map     map[string]string
+		expected map[string]string
+	}{
+		{
+			name:     "1. Update a single key using full path.",
+			command:  []string{"-edit", "testKey1", "something"},
+			dir:      "testKey1",
+			_map:     map[string]string{},
+			expected: workdir,
+		},
+		{
+			name:     "2. Update a single key using key.",
+			command:  []string{"-set", fmt.Sprintf("testKey2=%v", tmpdir)},
+			key:      "testKey2",
+			_map:     map[string]string{"testKey2": workdir},
+			input:    "n",
+			expected: workdir,
+		},
+		{
+			name:     "3. Update a single key using relative path.",
+			command:  []string{"-set", fmt.Sprintf("testKey3=%v", tmpdir)},
+			key:      "testKey3",
+			_map:     map[string]string{"testKey3": workdir},
+			input:    "y",
+			expected: tmpdir,
+		},
+		{
+			name:     "4. Update a single key, directory name already updated.",
+			command:  []string{"-set", "newTestKey1"},
+			key:      "newTestKey1",
+			_map:     map[string]string{"testKey4": workdir},
+			input:    "n",
+			expected: "",
+		},
+		{
+			name:     "5. Update multiple keys using full path.",
+			command:  []string{"-set", "newTestKey2"},
+			key:      "newTestKey2",
+			_map:     map[string]string{"testKey5": workdir},
+			input:    "y",
+			expected: workdir,
+		},
+		{
+			name:     "6. Update multiple keys using a key.",
+			command:  []string{"-set", fmt.Sprintf("testKey6=%v/some dir", tmpdir)},
+			key:      "testKey6",
+			_map:     map[string]string{},
+			expected: fmt.Sprintf("%v/some dir", tmpdir),
+		},
+		{
+			name:     "7. Update multiple keys using a relative path.",
+			command:  []string{"-setf", "newTestKey7"},
+			key:      "newTestKey7",
+			_map:     map[string]string{"testKey7": workdir},
+			expected: workdir,
+		},
+		{
+			name:     "8. Update multiple keys, directory name already updated.",
+			command:  []string{"-setf", fmt.Sprintf("testKey8=%v", tmpdir)},
+			key:      "testKey8",
+			_map:     map[string]string{"testKey8": workdir},
+			expected: tmpdir,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Log(tt.name)
+		pathMap := make(map[string]string)
+		if tt._map != nil {
+			pathMap = tt._map
+		}
+		data := NewCmdArgs(
+			workdir,
+			tt.command,
+			pathMap,
+			tmpfile,
+			nil,
+		)
+
+		if len(tt._map) > 0 {
+			dataUpdate(data.allPaths, tmpfile)
+		}
+
+		stdout := os.Stdout
+		r, w, _ := os.Pipe()
+		os.Stdout = w
+
+		err := editPath(data)
+		if err != nil {
+			t.Error(err)
+		}
+		w.Close()
+
+		os.Stdout = stdout
+
+		var output bytes.Buffer
+		_, err = io.Copy(&output, r)
+		if err != nil {
+			t.Fatal(err)
+		}
+
+		t.Log(output.String())
+
+		for k, v := range data.allPaths {
+			ev, ok := tt.expected[k]
+			if !ok {
+				t.Errorf("Key '%s' not provided in expected field.", k)
+			} else if v != ev {
+				t.Errorf("Expected key %s to have value %s, got %s", k, tt.expected[k], v)
+			}
+		}
+
+	}
 }
 
 func TestEvalPath(t *testing.T) {
-	// TODO
-	//   - implement test
+
+	tmpdir, err := os.MkdirTemp("", "testing")
+	if err != nil {
+		t.Fatal(err)
+	}
+	tmpdir2 := tmpdir + "/subdir"
+	err = os.Mkdir(tmpdir2, fs.ModeDir)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	defer os.RemoveAll(tmpdir)
+
+	tests := []struct {
+		name     string
+		command  []string
+		expected string
+		allPaths map[string]string
+	}{
+		{
+			name:     "1. Valid key provided, standalone.",
+			command:  []string{"_", "testKey"},
+			expected: fmt.Sprintln(tmpdir),
+			allPaths: map[string]string{
+				"testKey": tmpdir,
+			},
+		},
+		{
+			name:     "2. Valid key provided, evaluate path.",
+			command:  []string{"_", "testKey/subdir"},
+			expected: fmt.Sprintln(tmpdir2),
+			allPaths: map[string]string{
+				"testKey": tmpdir,
+			},
+		},
+		{
+			name:     "3. Invalid key provided.",
+			command:  []string{"_", "testKye"},
+			expected: fmt.Sprintf(UnrecognizedKeyMsg, "testKye"),
+			allPaths: map[string]string{
+				"testKey": tmpdir,
+			},
+		},
+		{
+			name:     "4. Invalid key provided, evaluate path.",
+			command:  []string{"_", "testKye/subdir"},
+			expected: fmt.Sprintf(InvalidDirectoryMsg, "testKye/subdir", "testKye/subdir"),
+			allPaths: map[string]string{
+				"testKey": tmpdir,
+			},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Log(tt.name)
+		data := NewCmdArgs(
+			tmpdir,
+			tt.command,
+			tt.allPaths,
+			nil,
+			nil,
+		)
+
+		actual, err := evalPath(data)
+		if err != nil {
+			fmt.Println(tt.name)
+			t.Error(err)
+		}
+
+		if actual != tt.expected {
+			t.Errorf("Expected: %q, got: %q", tt.expected, actual)
+		}
+	}
 }

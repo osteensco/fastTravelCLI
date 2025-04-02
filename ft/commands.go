@@ -98,10 +98,12 @@ func evalPath(data *CmdArgs) (string, error) {
 		dir, err := os.Stat(path)
 		if err == nil {
 			if dir.IsDir() {
-				return path, nil
+				return fmt.Sprintf("%s\n", path), nil
 			}
 		}
 
+		// TODO
+		// - this should return an error instead
 		return fmt.Sprintf(InvalidDirectoryMsg, provided_string, path), nil
 
 	} else {
@@ -119,7 +121,7 @@ func evalPath(data *CmdArgs) (string, error) {
 					if err != nil {
 						return "", err
 					}
-					return p, nil
+					return fmt.Sprintf("%s\n", p), nil
 				}
 			}
 
@@ -131,7 +133,7 @@ func evalPath(data *CmdArgs) (string, error) {
 					cdPathResult := filepath.Join(path, key)
 					dir, err := os.Stat(cdPathResult)
 					if err == nil && dir.IsDir() {
-						return cdPathResult, nil
+						return fmt.Sprintf("%s\n", cdPathResult), nil
 					}
 				}
 			}
@@ -140,7 +142,7 @@ func evalPath(data *CmdArgs) (string, error) {
 
 		}
 
-		return p, nil
+		return fmt.Sprintf("%s\n", p), nil
 
 	}
 }
@@ -149,7 +151,7 @@ func evalPath(data *CmdArgs) (string, error) {
 func changeDirectory(data *CmdArgs) error {
 
 	path, err := evalPath(data)
-	fmt.Println(path)
+	fmt.Print(path)
 	return err
 
 }
@@ -349,6 +351,10 @@ func editPath(data *CmdArgs) error {
 
 	// evaluate path to handle relative path, CDPATH, other keys, etc
 	path, err := evalPath(data)
+	// handle directory name changed on machine prior to updating fastTravelCLI
+	if path == fmt.Sprintf(InvalidDirectoryMsg, data.cmd[1], data.cmd[1]) {
+		path = data.cmd[1]
+	}
 	if err != nil {
 		return err
 	}
@@ -358,6 +364,10 @@ func editPath(data *CmdArgs) error {
 	pathArray := strings.Split(path, "/")
 	pathArray[len(pathArray)-1] = newDirName
 	newPath := strings.Join(pathArray, "/")
+
+	// TODO
+	//  - add keys updated tracker
+	//  - prompt user to confirm changes
 
 	// update all keys that contain this prefix
 	for k, v := range data.allPaths {
@@ -370,6 +380,8 @@ func editPath(data *CmdArgs) error {
 			if dir.IsDir() {
 				data.allPaths[k] = newPath
 			} else {
+				// TODO
+				//  - make this error message a constant, evalPath() needs this
 				return errors.New(fmt.Sprintf("%v is not a Directory", dir))
 			}
 		}
