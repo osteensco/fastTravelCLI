@@ -354,6 +354,8 @@ func editPath(data *CmdArgs) error {
 	// handle directory name changed on machine prior to updating fastTravelCLI
 	if path == fmt.Sprintf(InvalidDirectoryMsg, data.cmd[1], data.cmd[1]) {
 		path = data.cmd[1]
+	} else {
+		path = strings.TrimSuffix(path, "\n")
 	}
 	if err != nil {
 		return err
@@ -373,17 +375,22 @@ func editPath(data *CmdArgs) error {
 	for k, v := range data.allPaths {
 		if strings.Contains(v, path) {
 			pathReplacement := strings.Replace(v, path, newPath, 1)
-			dir, err := os.Stat(pathReplacement)
-			if err != nil {
-				return err
-			}
-			if dir.IsDir() {
-				data.allPaths[k] = newPath
-			} else {
-				// TODO
-				//  - make this error message a constant, evalPath() needs this
-				return errors.New(fmt.Sprintf("%v is not a Directory", dir))
-			}
+			data.allPaths[k] = pathReplacement
+
+			// TODO
+			//  - use this block to inform user directory doesn't exist in confirmation prompt
+			// dir, err := os.Stat(pathReplacement)
+			// if err != nil {
+			// 	return err
+			// }
+			// fmt.Println(dir.IsDir())
+			// if dir.IsDir() {
+			// 	data.allPaths[k] = pathReplacement
+			// } else {
+			// 	// TODO
+			// 	//  - make this error message a constant, evalPath() needs this
+			// 	return errors.New(fmt.Sprintf("%v is not a Directory", dir))
+			// }
 		}
 	}
 

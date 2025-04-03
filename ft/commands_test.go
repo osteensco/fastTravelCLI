@@ -846,15 +846,19 @@ func TestEditPath(t *testing.T) {
 	}
 
 	// tmpdir for directories to test with
-	tmpdir, err := os.MkdirTemp("", "testdata")
+	tmpdir_relative, err := os.MkdirTemp(".", "testdata")
 	if err != nil {
 		t.Fatalf("Failed to create temp dir: %v", err)
 	}
-	tmpdir, err = filepath.EvalSymlinks(tmpdir)
+	tmpdir_relative, err = filepath.EvalSymlinks(tmpdir_relative)
 	if err != nil {
 		t.Fatalf("Failed to create temp dir: %v", err)
 	}
-	tmpdir = strings.Trim(tmpdir, " ")
+	tmpdir_relative = strings.Trim(tmpdir_relative, " ")
+	tmpdir, err := filepath.Abs(tmpdir_relative)
+	if err != nil {
+		t.Fatalf("Failed to get tmpdir relative path: %v", err)
+	}
 
 	defer os.RemoveAll(tmpdir)
 	defer os.Remove(tmpfile.Name())
@@ -864,75 +868,82 @@ func TestEditPath(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	workdirParent := filepath.Dir(workdir)
 
 	tests := []struct {
 		name     string
 		command  []string
-		dir      string
-		newdir   string
 		_map     map[string]string
 		expected map[string]string
 	}{
 		{
 			name:     "1. Update a single key using full path.",
-			command:  []string{"-edit", "testKey1", "something"},
-			dir:      "testKey1",
-			_map:     map[string]string{},
-			expected: workdir,
+			command:  []string{"-edit", workdir, "somethingelse"},
+			_map:     map[string]string{"testKey1": workdir},
+			expected: map[string]string{"testKey1": fmt.Sprintf("%s/somethingelse", workdirParent)},
 		},
 		{
 			name:     "2. Update a single key using key.",
-			command:  []string{"-set", fmt.Sprintf("testKey2=%v", tmpdir)},
-			key:      "testKey2",
+			command:  []string{"-edit", "testKey2", "somethingelse"},
 			_map:     map[string]string{"testKey2": workdir},
-			input:    "n",
-			expected: workdir,
+			expected: map[string]string{"testKey2": fmt.Sprintf("%s/somethingelse", workdirParent)},
 		},
 		{
 			name:     "3. Update a single key using relative path.",
-			command:  []string{"-set", fmt.Sprintf("testKey3=%v", tmpdir)},
-			key:      "testKey3",
-			_map:     map[string]string{"testKey3": workdir},
-			input:    "y",
-			expected: tmpdir,
+			command:  []string{"-edit", tmpdir_relative, "somethingelse"},
+			_map:     map[string]string{"testKey3": tmpdir},
+			expected: map[string]string{"testKey3": fmt.Sprintf("%s/somethingelse", workdir)},
 		},
 		{
 			name:     "4. Update a single key, directory name already updated.",
-			command:  []string{"-set", "newTestKey1"},
-			key:      "newTestKey1",
-			_map:     map[string]string{"testKey4": workdir},
-			input:    "n",
-			expected: "",
+			command:  []string{"-edit", "testKey4", workdir},
+			_map:     map[string]string{"testKey4": fmt.Sprintf("%s/somethingelse", workdirParent)},
+			expected: map[string]string{"testKey4": workdir},
 		},
 		{
-			name:     "5. Update multiple keys using full path.",
-			command:  []string{"-set", "newTestKey2"},
-			key:      "newTestKey2",
-			_map:     map[string]string{"testKey5": workdir},
-			input:    "y",
-			expected: workdir,
+			name:    "5. Update multiple keys using full path.",
+			command: []string{"-edit", workdir, "somethingelse"},
+			_map: map[string]string{
+				"testKey5":   workdir,
+				"testKey5_0": tmpdir,
+				"testKey5_1": workdirParent,
+				"testKey5_2": "home/some/other/dir",
+			},
+			expected: map[string]string{
+				"testKey5":   fmt.Sprintf("%s/somethingelse", workdirParent),
+				"testKey5_0": fmt.Sprintf("%s/somethingelse/%s", workdirParent, tmpdir_relative),
+				"testKey5_1": workdirParent,
+				"testKey5_2": "home/some/other/dir",
+			},
 		},
 		{
-			name:     "6. Update multiple keys using a key.",
-			command:  []string{"-set", fmt.Sprintf("testKey6=%v/some dir", tmpdir)},
-			key:      "testKey6",
-			_map:     map[string]string{},
-			expected: fmt.Sprintf("%v/some dir", tmpdir),
+			name:    "6. Update multiple keys using a key.",
+			command: []string{"-edit", "testKey6", "somethingelse"},
+			_map: map[string]string{
+				"testKey6":   workdir,
+				"testKey6_0": tmpdir,
+				"testKey6_1": workdirParent,
+				"testKey6_2": "home/some/other/dir",
+			},
+			expected: map[string]string{
+				"testKey6":   fmt.Sprintf("%s/somethingelse", workdirParent),
+				"testKey6_0": fmt.Sprintf("%s/somethingelse/%s", workdirParent, tmpdir_relative),
+				"testKey6_1": workdirParent,
+				"testKey6_2": "home/some/other/dir",
+			},
 		},
-		{
-			name:     "7. Update multiple keys using a relative path.",
-			command:  []string{"-setf", "newTestKey7"},
-			key:      "newTestKey7",
-			_map:     map[string]string{"testKey7": workdir},
-			expected: workdir,
-		},
-		{
-			name:     "8. Update multiple keys, directory name already updated.",
-			command:  []string{"-setf", fmt.Sprintf("testKey8=%v", tmpdir)},
-			key:      "testKey8",
-			_map:     map[string]string{"testKey8": workdir},
-			expected: tmpdir,
-		},
+		// {
+		// 	name:     "7. Update multiple keys using a relative path.",
+		// 	command:  []string{"-edit", "testKey1", "somethingelse"},
+		// 	_map:     map[string]string{"testKey1": workdir},
+		// 	expected: map[string]string{"testKey1": fmt.Sprintf("%s/somethingelse", workdirParent)},
+		// },
+		// {
+		// 	name:     "8. Update multiple keys, directory name already updated.",
+		// 	command:  []string{"-edit", "testKey1", "somethingelse"},
+		// 	_map:     map[string]string{"testKey1": workdir},
+		// 	expected: map[string]string{"testKey1": fmt.Sprintf("%s/somethingelse", workdirParent)},
+		// },
 	}
 
 	for _, tt := range tests {
@@ -954,24 +965,27 @@ func TestEditPath(t *testing.T) {
 		}
 
 		stdout := os.Stdout
-		r, w, _ := os.Pipe()
-		os.Stdout = w
-
-		err := editPath(data)
+		r, w, err := os.Pipe()
 		if err != nil {
 			t.Error(err)
 		}
-		w.Close()
+		os.Stdout = w
 
-		os.Stdout = stdout
-
-		var output bytes.Buffer
-		_, err = io.Copy(&output, r)
+		err = editPath(data)
 		if err != nil {
-			t.Fatal(err)
+			t.Error(err)
 		}
 
-		t.Log(output.String())
+		outChan := make(chan string)
+		go func() {
+			var buf bytes.Buffer
+			io.Copy(&buf, r)
+			outChan <- buf.String()
+		}()
+		w.Close()
+		os.Stdout = stdout
+		output := <-outChan
+		t.Log(output)
 
 		for k, v := range data.allPaths {
 			ev, ok := tt.expected[k]
