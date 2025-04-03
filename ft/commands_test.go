@@ -896,9 +896,9 @@ func TestEditPath(t *testing.T) {
 		},
 		{
 			name:     "4. Update a single key, directory name already updated.",
-			command:  []string{"-edit", "testKey4", workdir},
-			_map:     map[string]string{"testKey4": fmt.Sprintf("%s/somethingelse", workdirParent)},
-			expected: map[string]string{"testKey4": workdir},
+			command:  []string{"-edit", "testKey4", tmpdir_relative},
+			_map:     map[string]string{"testKey4": fmt.Sprintf("%s/somethingelse", workdir)},
+			expected: map[string]string{"testKey4": tmpdir},
 		},
 		{
 			name:    "5. Update multiple keys using full path.",
@@ -932,22 +932,9 @@ func TestEditPath(t *testing.T) {
 				"testKey6_2": "home/some/other/dir",
 			},
 		},
-		// {
-		// 	name:     "7. Update multiple keys using a relative path.",
-		// 	command:  []string{"-edit", "testKey1", "somethingelse"},
-		// 	_map:     map[string]string{"testKey1": workdir},
-		// 	expected: map[string]string{"testKey1": fmt.Sprintf("%s/somethingelse", workdirParent)},
-		// },
-		// {
-		// 	name:     "8. Update multiple keys, directory name already updated.",
-		// 	command:  []string{"-edit", "testKey1", "somethingelse"},
-		// 	_map:     map[string]string{"testKey1": workdir},
-		// 	expected: map[string]string{"testKey1": fmt.Sprintf("%s/somethingelse", workdirParent)},
-		// },
 	}
 
 	for _, tt := range tests {
-		t.Log(tt.name)
 		pathMap := make(map[string]string)
 		if tt._map != nil {
 			pathMap = tt._map
@@ -985,13 +972,16 @@ func TestEditPath(t *testing.T) {
 		w.Close()
 		os.Stdout = stdout
 		output := <-outChan
-		t.Log(output)
 
 		for k, v := range data.allPaths {
 			ev, ok := tt.expected[k]
 			if !ok {
+				t.Log(tt.name)
+				t.Log(output)
 				t.Errorf("Key '%s' not provided in expected field.", k)
 			} else if v != ev {
+				t.Log(tt.name)
+				t.Log(output)
 				t.Errorf("Expected key %s to have value %s, got %s", k, tt.expected[k], v)
 			}
 		}
