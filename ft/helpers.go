@@ -112,3 +112,33 @@ func PipeArgs(args *[]string) error {
 	return nil
 
 }
+
+// Parses os.Args and organizes command into a struct
+func ParseArgs(args *[]string) *Cmd {
+	cmd := NewCmd(args)
+	for _, v := range *args {
+		// command and flags will have the '-' prefix
+		// acts as a 'permissive' checker
+		if v[0] == '-' {
+			v = strings.ToLower(v)
+			switch v {
+			case "-y":
+				cmd.Flags.y = true
+			default:
+				// if not a valid flag, we assume it's a command
+				// validity of command is checked elsewhere
+				// first command found is the one identified for use
+				if cmd.Cmd != "" {
+					continue
+				}
+				cmd.Cmd = v
+			}
+			continue
+		} else {
+
+			cmd.Args = append(cmd.Args, v)
+		}
+	}
+
+	return cmd
+}

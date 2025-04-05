@@ -12,42 +12,36 @@ import (
 	"strings"
 )
 
-func PassCmd(args []string) ([]string, error) {
-	cmd := args[1]
+func PassCmd(args []string) (*Cmd, error) {
+	// Dissect provided args
+	cmd := ParseArgs(&args)
 
 	// all commands are expected to lead with "-"
 	// the only command that doesn't is a change directory
 	// commands that are symbols have this leader added to avoid logic
 	// meant for a directory path
-	switch cmd {
+	switch cmd.Cmd {
 	case "]", "[", "..", "-":
-		cmd = fmt.Sprintf("-%s", cmd)
-	default:
-		break
+		cmd.Cmd = fmt.Sprintf("-%s", cmd.Cmd)
 	}
 
 	// keys and key evals are given a leader of "_"
 	// to help identify the appropriate function
 	// in the map
-	if string(cmd[0]) != "-" {
-		cmd = "_"
-		parsedCmd := make([]string, 3)
-		parsedCmd[0] = args[0]
-		parsedCmd[1] = cmd
-		parsedCmd[2] = args[1]
-		args = parsedCmd
+	if cmd.Cmd == "" {
+		cmd.Cmd = "_"
 	}
 
-	_, ok := AvailCmds[cmd]
+	_, ok := AvailCmds[cmd.Cmd]
 	if !ok {
-		return nil, errors.New(fmt.Sprintf("%v is not a valid command, use 'ft -h' or 'ft -help' for a list of valid commands", cmd))
+		return nil, errors.New(fmt.Sprintf("%v is not a valid command, use 'ft -h' or 'ft -help' for a list of valid commands", cmd.Cmd))
 	}
 
 	// verify user provided correct minimum number of arguments
 	// too many args will work, any args beyond expected number are simply ignored
-	switch cmd {
+	switch cmd.Cmd {
 	case "-ls", "-]", "-[", "-..", "--", "-hist":
-		return []string{cmd}, nil
+		return cmd, nil
 	// providing help for a specific command may be needed in the future
 	case "-help", "-h", "-version", "-v", "-is", "-update", "-u":
 		break
@@ -61,19 +55,18 @@ func PassCmd(args []string) ([]string, error) {
 		}
 	}
 
-	// return args without 'ft'
-	return args[1:], nil
+	return cmd, nil
 }
 
 // Takes a key or relative path and returns it's full explict path or an error.
-func evalPath(data *CmdArgs) (string, error) {
+func evalPath(data *CmdAPI) (string, error) {
 
 	// TODO
 	//  - check for SPECIFIC errors in directory checks (ex: *PathError)
 	//  - ensure other types of errors are caught and returned early
 
 	var key string
-	provided_string := data.cmd[1]
+	provided_string := data.cmd.Args[0]
 
 	if strings.Contains(provided_string, "/") {
 
@@ -148,7 +141,7 @@ func evalPath(data *CmdArgs) (string, error) {
 }
 
 // changeDirectory can handle key lookup, relative paths, directories in CDPATH, and key evaluation.
-func changeDirectory(data *CmdArgs) error {
+func changeDirectory(data *CmdAPI) error {
 
 	path, err := evalPath(data)
 	fmt.Print(path)
@@ -156,7 +149,7 @@ func changeDirectory(data *CmdArgs) error {
 
 }
 
-func setDirectoryVar(data *CmdArgs) error {
+func setDirectoryVar(data *CmdAPI) error {
 
 	// reverse allPaths for easier lookup by directory instead of key
 	dirs := make(map[string]string, len(data.allPaths))
@@ -164,17 +157,8 @@ func setDirectoryVar(data *CmdArgs) error {
 		dirs[v] = k
 	}
 
-	force := false
-
 	// handle setting multiple keys at once
-	for i, arg := range data.cmd {
-		if i == 0 {
-
-			if arg[len(arg)-1] == 'f' {
-				force = true
-			}
-			continue
-		}
+	for _, arg := range data.cmd.Args {
 
 		var key string
 		var path string
@@ -198,7 +182,7 @@ func setDirectoryVar(data *CmdArgs) error {
 		if ok {
 			var res string
 			// if force setting we don't need to read in a response from the user
-			if !force {
+			if !data.cmd.Flags.y {
 				fmt.Printf(PathAlreadyExistsMsg, path, k, key)
 				_, err := fmt.Fscan(data.rdr, &res)
 				if err != nil {
@@ -206,7 +190,7 @@ func setDirectoryVar(data *CmdArgs) error {
 				}
 			}
 
-			if overwrite, err := verifyInput(res, force); !overwrite {
+			if overwrite, err := verifyInput(res, data.cmd.Flags.y); !overwrite {
 				if err != nil {
 					return err
 				}
@@ -228,7 +212,7 @@ func setDirectoryVar(data *CmdArgs) error {
 		val, ok := data.allPaths[key]
 		if ok {
 			var res string
-			if !force {
+			if !data.cmd.Flags.y {
 				// capture user response and act accordingly
 				fmt.Printf(KeyAlreadyExistsMsg, key, val, key)
 				_, err := fmt.Fscan(data.rdr, &res)
@@ -236,7 +220,7 @@ func setDirectoryVar(data *CmdArgs) error {
 					return err
 				}
 			}
-			if overwrite, err := verifyInput(res, force); !overwrite {
+			if overwrite, err := verifyInput(res, data.cmd.Flags.y); !overwrite {
 				if err != nil {
 					return err
 				}
@@ -260,14 +244,16 @@ func setDirectoryVar(data *CmdArgs) error {
 	return nil
 }
 
-func displayAllPaths(data *CmdArgs) error {
+func displayAllPaths(data *CmdAPI) error {
 	printMap(data.allPaths)
 	return nil
 }
 
-func removeKey(data *CmdArgs) error {
+// TODO
+// - add data.cmd.Flags.y option like in setDirectoryVar
+func removeKey(data *CmdAPI) error {
 	var res string
-	key := data.cmd[1]
+	key := data.cmd.Args[0]
 
 	_, ok := data.allPaths[key]
 	if !ok {
@@ -296,9 +282,11 @@ func removeKey(data *CmdArgs) error {
 	return nil
 }
 
-func renameKey(data *CmdArgs) error {
-	originalKey := data.cmd[1]
-	newKey := data.cmd[2]
+// TODO
+// - add force option like in setDirectoryVar
+func renameKey(data *CmdAPI) error {
+	originalKey := data.cmd.Args[0]
+	newKey := data.cmd.Args[1]
 
 	_, ok := data.allPaths[newKey]
 	if ok {
@@ -347,13 +335,13 @@ func renameKey(data *CmdArgs) error {
 // but erroneously updates myotherdir/important_project/something
 // ft -edit mydir/something different
 // Using explicit path (or evaluated path) avoids this problem.
-func editPath(data *CmdArgs) error {
+func editPath(data *CmdAPI) error {
 
 	// evaluate path to handle relative path, CDPATH, other keys, etc
 	path, err := evalPath(data)
 	// handle directory name changed on machine prior to updating fastTravelCLI
-	if path == fmt.Sprintf(InvalidDirectoryMsg, data.cmd[1], data.cmd[1]) {
-		path = data.cmd[1]
+	if path == fmt.Sprintf(InvalidDirectoryMsg, data.cmd.Args[0], data.cmd.Args[0]) {
+		path = data.cmd.Args[0]
 	} else {
 		path = strings.TrimSuffix(path, "\n")
 	}
@@ -362,7 +350,7 @@ func editPath(data *CmdArgs) error {
 	}
 
 	// replace directory name with new name
-	newDirName := data.cmd[2]
+	newDirName := data.cmd.Args[1]
 	pathArray := strings.Split(path, "/")
 	pathArray[len(pathArray)-1] = newDirName
 	newPath := strings.Join(pathArray, "/")
@@ -370,6 +358,7 @@ func editPath(data *CmdArgs) error {
 	// TODO
 	//  - add keys updated tracker
 	//  - prompt user to confirm changes
+	//      - add force option like in setDirectoryVar
 
 	// update all keys that contain this prefix
 	for k, v := range data.allPaths {
@@ -397,18 +386,18 @@ func editPath(data *CmdArgs) error {
 	return nil
 }
 
-func showHelp(data *CmdArgs) error {
+func showHelp(data *CmdAPI) error {
 	printMap(CmdDesc)
 	return nil
 }
 
-func showVersion(data *CmdArgs) error {
+func showVersion(data *CmdAPI) error {
 	fmt.Print(Logo)
 	fmt.Println("version:\t", Version)
 	return nil
 }
 
-func showDirectoryVar(data *CmdArgs) error {
+func showDirectoryVar(data *CmdAPI) error {
 	dir, err := os.Getwd()
 	if err != nil {
 		return err
@@ -429,13 +418,13 @@ func showDirectoryVar(data *CmdArgs) error {
 	return nil
 }
 
-func updateFT(data *CmdArgs) error {
+func updateFT(data *CmdAPI) error {
 
 	// determine if version was provided
 	// default to latest if none provided
 	version := "latest"
-	if len(data.cmd) > 1 {
-		version = data.cmd[1]
+	if len(data.cmd.Args) >= 1 {
+		version = data.cmd.Args[0]
 	}
 
 	// verify/obtain version
@@ -546,8 +535,8 @@ func updateFT(data *CmdArgs) error {
 }
 
 // Used for commands that are simply handled by the shell function
-func passToShell(data *CmdArgs) error {
-	c := data.cmd[0]
+func passToShell(data *CmdAPI) error {
+	c := data.cmd.Cmd
 	command := string(c[1:])
 
 	switch command {

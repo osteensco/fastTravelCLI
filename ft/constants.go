@@ -6,26 +6,46 @@ import (
 )
 
 // ft command api
-type CmdArgs struct {
+type CmdAPI struct {
 	wkDir    string
-	cmd      []string
+	cmd      *Cmd
 	allPaths map[string]string
 	file     *os.File
 	rdr      io.Reader
 }
 
-func NewCmdArgs(ftDir string, inputCmd []string, allPaths map[string]string, file *os.File, rdr io.Reader) *CmdArgs {
-	return &CmdArgs{ftDir, inputCmd, allPaths, file, rdr}
+func NewCmdAPI(ftDir string, inputCmd *Cmd, allPaths map[string]string, file *os.File, rdr io.Reader) *CmdAPI {
+	return &CmdAPI{ftDir, inputCmd, allPaths, file, rdr}
+}
+
+// struct used to identify flags that were provided with a given command
+type CmdFlags struct {
+	y bool
+}
+
+// struct used to dissect and organize a command into it's individual components
+type Cmd struct {
+	Flags CmdFlags
+	Cmd   string
+	Args  []string
+}
+
+func NewCmd(args *[]string) *Cmd {
+	return &Cmd{
+		// flags and cmd will be empty defaults
+		// args is explicit so that enough space is allocated to unerlying array for slight optimization
+		Args: make([]string, 0, len(*args)),
+	}
 }
 
 // map of available commands
 var AvailCmds = map[string]struct {
-	Callback func(data *CmdArgs) error
+	Callback func(data *CmdAPI) error
 	LoadData bool
 }{
 	"_":        {changeDirectory, true},
 	"-set":     {setDirectoryVar, true},
-	"-setf":    {setDirectoryVar, true},
+	"-setf":    {setDirectoryVar, true}, // TODO delete me
 	"-ls":      {displayAllPaths, true},
 	"-rm":      {removeKey, true},
 	"-rn":      {renameKey, true},
