@@ -12,8 +12,6 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
-
-	"github.com/google/go-cmp/cmp"
 )
 
 // test helpers
@@ -29,6 +27,25 @@ func equalSlices(a, b []string) bool {
 	return true
 }
 
+func equalCmd(got, expected *Cmd) bool {
+	if len(got.Args) != len(expected.Args) {
+		return false
+	}
+	for i, v := range expected.Args {
+		if v != got.Args[i] {
+			return false
+		}
+	}
+	if got.Cmd != expected.Cmd {
+		return false
+	}
+	if got.Flags.Y != expected.Flags.Y {
+		return false
+	}
+
+	return true
+}
+
 // tests
 func TestPassCmd(t *testing.T) {
 	tests := []struct {
@@ -40,7 +57,7 @@ func TestPassCmd(t *testing.T) {
 		{"1. Pass in a path.", []string{"ft", "mypath/dir"}, &Cmd{Cmd: "_", Args: []string{"mypath/dir"}}, false},
 		{"2. Pass in -ls.", []string{"ft", "-ls"}, &Cmd{Cmd: "-ls"}, false},
 		{"3. Pass in -help.", []string{"ft", "-help"}, &Cmd{Cmd: "-help"}, false},
-		{"4. Pass in -rn.", []string{"ft", "-rn", "key", "newKey"}, &Cmd{Cmd: "-rn", Args: []string{"key", "newkey"}}, false},
+		{"4. Pass in -rn.", []string{"ft", "-rn", "key", "newKey"}, &Cmd{Cmd: "-rn", Args: []string{"key", "newKey"}}, false},
 		{"5. pass in -set.", []string{"ft", "-set", "key"}, &Cmd{Cmd: "-set", Args: []string{"key"}}, false},
 		{"6. pass in invalid command.", []string{"ft", "-invalid"}, nil, true},
 		{"7. pass in not enough arguments for -rn.", []string{"ft", "-rn"}, nil, true},
@@ -51,12 +68,12 @@ func TestPassCmd(t *testing.T) {
 	for _, tt := range tests {
 		got, err := PassCmd(tt.args)
 		if (err != nil) != tt.wantErr {
-			fmt.Println(tt.name)
+			t.Log(tt.name)
 			t.Errorf("passCmd err %v, want err: %v", err, tt.wantErr)
 		}
-		if !tt.wantErr && !cmp.Equal(got, tt.want) {
-			fmt.Println(tt.name)
-			t.Errorf("passCmd Args: %v\nexpected: %v\ngot:%v\n_________\n", tt.args, tt.want, got)
+		if !tt.wantErr && !equalCmd(tt.want, got) {
+			t.Log(tt.name)
+			t.Errorf("passCmd Args: %v\nexpected: %v\ngot: %v\n_________\n", tt.args, tt.want, got)
 		}
 
 	}

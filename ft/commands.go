@@ -46,11 +46,11 @@ func PassCmd(args []string) (*Cmd, error) {
 	case "-help", "-h", "-version", "-v", "-is", "-update", "-u":
 		break
 	case "-rn", "-edit":
-		if len(args) <= 3 {
+		if len(cmd.Args) < 2 {
 			return nil, errors.New(fmt.Sprintf("Insufficient args provided %v, see ft -help for more info", args[1:]))
 		}
 	default:
-		if len(args) <= 2 {
+		if len(cmd.Args) == 0 {
 			return nil, errors.New(fmt.Sprintf("Insufficient args provided %v, usage: ft <command> <path/key>", args[1:]))
 		}
 	}

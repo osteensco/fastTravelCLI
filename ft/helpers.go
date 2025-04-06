@@ -116,7 +116,12 @@ func PipeArgs(args *[]string) error {
 // Parses os.Args and organizes command into a struct
 func ParseArgs(args *[]string) *Cmd {
 	cmd := NewCmd(args)
-	for _, v := range *args {
+	for i, v := range *args {
+		if i == 0 {
+			// the first arg should always correspond to the shell's function call
+			// we don't explicitly check the function call (default 'ft') since a user could potentially use an alias or wrap it in another call
+			continue
+		}
 		// command and flags will have the '-' prefix
 		// acts as a 'permissive' checker
 		if v[0] == '-' {
@@ -135,8 +140,16 @@ func ParseArgs(args *[]string) *Cmd {
 			}
 			continue
 		} else {
+			// hadnle special navigation commands
+			switch v {
+			case "]", "[", "..", "-":
+				if cmd.Cmd == "" {
+					cmd.Cmd = v
+				}
+			default:
 
-			cmd.Args = append(cmd.Args, v)
+				cmd.Args = append(cmd.Args, v)
+			}
 		}
 	}
 
