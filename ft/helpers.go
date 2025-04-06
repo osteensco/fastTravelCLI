@@ -123,7 +123,7 @@ func ParseArgs(args *[]string) *Cmd {
 			v = strings.ToLower(v)
 			switch v {
 			case "-y":
-				cmd.Flags.y = true
+				cmd.Flags.Y = true
 			default:
 				// if not a valid flag, we assume it's a command
 				// validity of command is checked elsewhere

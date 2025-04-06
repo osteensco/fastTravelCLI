@@ -12,6 +12,8 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+
+	"github.com/google/go-cmp/cmp"
 )
 
 // test helpers
@@ -32,18 +34,18 @@ func TestPassCmd(t *testing.T) {
 	tests := []struct {
 		name    string
 		args    []string
-		want    []string
+		want    *Cmd
 		wantErr bool
 	}{
-		{"1. Pass in a path.", []string{"ft", "mypath/dir"}, []string{"_", "mypath/dir"}, false},
-		{"2. Pass in -ls.", []string{"ft", "-ls"}, []string{"-ls"}, false},
-		{"3. Pass in -help.", []string{"ft", "-help"}, []string{"-help"}, false},
-		{"4. Pass in -rn.", []string{"ft", "-rn", "key", "newKey"}, []string{"-rn", "key", "newKey"}, false},
-		{"5. Pass in -set.", []string{"ft", "-set", "key"}, []string{"-set", "key"}, false},
-		{"6. Pass in invalid command.", []string{"ft", "-invalid"}, nil, true},
-		{"7. Pass in not enough arguments for -rn.", []string{"ft", "-rn"}, nil, true},
-		{"8. Pass in not enough arguments for -set.", []string{"ft", "-set"}, nil, true},
-		{"9. Pass in stack navigation.", []string{"ft", "]"}, []string{"-]"}, false},
+		{"1. Pass in a path.", []string{"ft", "mypath/dir"}, &Cmd{Cmd: "_", Args: []string{"mypath/dir"}}, false},
+		{"2. Pass in -ls.", []string{"ft", "-ls"}, &Cmd{Cmd: "-ls"}, false},
+		{"3. Pass in -help.", []string{"ft", "-help"}, &Cmd{Cmd: "-help"}, false},
+		{"4. Pass in -rn.", []string{"ft", "-rn", "key", "newKey"}, &Cmd{Cmd: "-rn", Args: []string{"key", "newkey"}}, false},
+		{"5. pass in -set.", []string{"ft", "-set", "key"}, &Cmd{Cmd: "-set", Args: []string{"key"}}, false},
+		{"6. pass in invalid command.", []string{"ft", "-invalid"}, nil, true},
+		{"7. pass in not enough arguments for -rn.", []string{"ft", "-rn"}, nil, true},
+		{"8. pass in not enough arguments for -set.", []string{"ft", "-set"}, nil, true},
+		{"9. pass in stack navigation.", []string{"ft", "]"}, &Cmd{Cmd: "-]"}, false},
 	}
 
 	for _, tt := range tests {
@@ -52,7 +54,7 @@ func TestPassCmd(t *testing.T) {
 			fmt.Println(tt.name)
 			t.Errorf("passCmd err %v, want err: %v", err, tt.wantErr)
 		}
-		if !tt.wantErr && !equalSlices(got, tt.want) {
+		if !tt.wantErr && !cmp.Equal(got, tt.want) {
 			fmt.Println(tt.name)
 			t.Errorf("passCmd Args: %v\nexpected: %v\ngot:%v\n_________\n", tt.args, tt.want, got)
 		}
@@ -75,7 +77,7 @@ func TestChangeDirectory(t *testing.T) {
 
 	tests := []struct {
 		name     string
-		command  []string
+		command  Cmd
 		expected string
 		allPaths map[string]string
 		file     *os.File
@@ -83,7 +85,7 @@ func TestChangeDirectory(t *testing.T) {
 	}{
 		{
 			name:     "1. Valid key provided, standalone.",
-			command:  []string{"_", "testKey"},
+			command:  Cmd{Cmd: "_", Args: []string{"testKey"}},
 			expected: fmt.Sprintln(tmpdir),
 			allPaths: map[string]string{
 				"testKey": tmpdir,
@@ -93,7 +95,7 @@ func TestChangeDirectory(t *testing.T) {
 		},
 		{
 			name:     "2. Valid key provided, evaluate path.",
-			command:  []string{"_", "testKey/subdir"},
+			command:  Cmd{Cmd: "_", Args: []string{"testKey/subdir"}},
 			expected: fmt.Sprintln(tmpdir2),
 			allPaths: map[string]string{
 				"testKey": tmpdir,
@@ -103,7 +105,7 @@ func TestChangeDirectory(t *testing.T) {
 		},
 		{
 			name:     "3. Invalid key provided.",
-			command:  []string{"_", "testKye"},
+			command:  Cmd{Cmd: "_", Args: []string{"testKye"}},
 			expected: fmt.Sprintf(UnrecognizedKeyMsg, "testKye"),
 			allPaths: map[string]string{
 				"testKey": tmpdir,
@@ -113,7 +115,7 @@ func TestChangeDirectory(t *testing.T) {
 		},
 		{
 			name:     "4. Invalid key provided, evaluate path.",
-			command:  []string{"_", "testKye/subdir"},
+			command:  Cmd{Cmd: "_", Args: []string{"testKye/subdir"}},
 			expected: fmt.Sprintf(InvalidDirectoryMsg, "testKye/subdir", "testKye/subdir"),
 			allPaths: map[string]string{
 				"testKey": tmpdir,
@@ -125,9 +127,9 @@ func TestChangeDirectory(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Log(tt.name)
-		data := NewCmdArgs(
+		data := NewCmdAPI(
 			tmpdir,
-			tt.command,
+			&tt.command,
 			tt.allPaths,
 			tt.file,
 			tt.rdr,
@@ -175,14 +177,14 @@ func TestShowDirectoryVar(t *testing.T) {
 
 	tests := []struct {
 		name     string
-		command  []string
+		command  Cmd
 		paths    map[string]string
 		expected string
 		wanterr  bool
 	}{
 		{
 			name:     "1. Check the directory var using -is",
-			command:  []string{"-is"},
+			command:  Cmd{Cmd: "-is"},
 			paths:    map[string]string{"testKey": CWD},
 			expected: fmt.Sprintf(IsKeyMsg, CWD, "testKey"),
 			wanterr:  false,
@@ -191,9 +193,9 @@ func TestShowDirectoryVar(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Log(tt.name)
-		data := NewCmdArgs(
+		data := NewCmdAPI(
 			CWD,
-			tt.command,
+			&tt.command,
 			tt.paths,
 			nil,
 			nil,
@@ -259,7 +261,7 @@ func TestSetDirectoryVar(t *testing.T) {
 
 	tests := []struct {
 		name     string
-		command  []string
+		command  *Cmd
 		key      string
 		_map     map[string]string
 		input    string
@@ -267,14 +269,14 @@ func TestSetDirectoryVar(t *testing.T) {
 	}{
 		{
 			name:     "1. Set key that doesn't exist.",
-			command:  []string{"-set", "testKey1"},
+			command:  &Cmd{Cmd: "-set", Args: []string{"testKey1"}},
 			key:      "testKey1",
 			_map:     map[string]string{},
 			expected: workdir,
 		},
 		{
 			name:     "2. Set key that already exist, don't overwrite.",
-			command:  []string{"-set", fmt.Sprintf("testKey2=%v", tmpdir)},
+			command:  &Cmd{Cmd: "-set", Args: []string{fmt.Sprintf("testKey2=%v", tmpdir)}},
 			key:      "testKey2",
 			_map:     map[string]string{"testKey2": workdir},
 			input:    "n",
@@ -282,7 +284,7 @@ func TestSetDirectoryVar(t *testing.T) {
 		},
 		{
 			name:     "3. Set key that already exist, overwrite.",
-			command:  []string{"-set", fmt.Sprintf("testKey3=%v", tmpdir)},
+			command:  &Cmd{Cmd: "-set", Args: []string{fmt.Sprintf("testKey3=%v", tmpdir)}},
 			key:      "testKey3",
 			_map:     map[string]string{"testKey3": workdir},
 			input:    "y",
@@ -290,7 +292,7 @@ func TestSetDirectoryVar(t *testing.T) {
 		},
 		{
 			name:     "4. Attempt to set key for a path that is already saved to a key, don't overwrite.",
-			command:  []string{"-set", "newTestKey1"},
+			command:  &Cmd{Cmd: "-set", Args: []string{"newTestKey1"}},
 			key:      "newTestKey1",
 			_map:     map[string]string{"testKey4": workdir},
 			input:    "n",
@@ -298,7 +300,7 @@ func TestSetDirectoryVar(t *testing.T) {
 		},
 		{
 			name:     "5. Attempt to set key for a path that is already saved to a key, overwrite.",
-			command:  []string{"-set", "newTestKey2"},
+			command:  &Cmd{Cmd: "-set", Args: []string{"newTestKey2"}},
 			key:      "newTestKey2",
 			_map:     map[string]string{"testKey5": workdir},
 			input:    "y",
@@ -306,21 +308,21 @@ func TestSetDirectoryVar(t *testing.T) {
 		},
 		{
 			name:     "6. Set key for a path with a space in it.",
-			command:  []string{"-set", fmt.Sprintf("testKey6=%v/some dir", tmpdir)},
+			command:  &Cmd{Cmd: "-set", Args: []string{fmt.Sprintf("testKey6=%v/some dir", tmpdir)}},
 			key:      "testKey6",
 			_map:     map[string]string{},
 			expected: fmt.Sprintf("%v/some dir", tmpdir),
 		},
 		{
 			name:     "7. Force set key for a path that is already saved to a key.",
-			command:  []string{"-setf", "newTestKey7"},
+			command:  &Cmd{Cmd: "-set", Args: []string{"newTestKey7"}, Flags: CmdFlags{Y: true}},
 			key:      "newTestKey7",
 			_map:     map[string]string{"testKey7": workdir},
 			expected: workdir,
 		},
 		{
 			name:     "8. Force set key that already exists.",
-			command:  []string{"-setf", fmt.Sprintf("testKey8=%v", tmpdir)},
+			command:  &Cmd{Cmd: "-set", Args: []string{fmt.Sprintf("testKey8=%v", tmpdir)}, Flags: CmdFlags{Y: true}},
 			key:      "testKey8",
 			_map:     map[string]string{"testKey8": workdir},
 			expected: tmpdir,
@@ -333,7 +335,7 @@ func TestSetDirectoryVar(t *testing.T) {
 		if tt._map != nil {
 			pathMap = tt._map
 		}
-		data := NewCmdArgs(
+		data := NewCmdAPI(
 			workdir,
 			tt.command,
 			pathMap,
@@ -395,9 +397,9 @@ func TestSetDirectoryVar(t *testing.T) {
 }
 
 func TestDisplayAllPaths(t *testing.T) {
-	data := NewCmdArgs(
+	data := NewCmdAPI(
 		"",
-		[]string{"-ls"},
+		&Cmd{Cmd: "-ls"},
 		map[string]string{
 			"key1": "value1",
 			"key2": "value2",
@@ -443,14 +445,14 @@ func TestRemoveKey(t *testing.T) {
 
 	tests := []struct {
 		name     string
-		command  []string
+		command  Cmd
 		allPaths map[string]string
 		input    string
 		wanterr  bool
 	}{
 		{
 			name:    "1. Remove key that exists, confirm removal.",
-			command: []string{"-rm", "key1"},
+			command: Cmd{Cmd: "-rm", Args: []string{"key1"}},
 			allPaths: map[string]string{
 				"key1": "value1",
 				"key2": "value2",
@@ -461,9 +463,9 @@ func TestRemoveKey(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		data := NewCmdArgs(
+		data := NewCmdAPI(
 			"",
-			tt.command,
+			&tt.command,
 			tt.allPaths,
 			tmpfile,
 			strings.NewReader(tt.input),
@@ -515,14 +517,14 @@ func TestRenameKey(t *testing.T) {
 
 	tests := []struct {
 		name     string
-		command  []string
+		command  Cmd
 		allPaths map[string]string
 		input    string
 		wanterr  bool
 	}{
 		{
 			name:    "1. Rename key that exists, confirm rename.",
-			command: []string{"-rn", "key1", "newKey"},
+			command: Cmd{Cmd: "-rn", Args: []string{"key1", "newKey"}},
 			allPaths: map[string]string{
 				"key1": "value1",
 			},
@@ -532,9 +534,9 @@ func TestRenameKey(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		data := NewCmdArgs(
+		data := NewCmdAPI(
 			"",
-			tt.command,
+			&tt.command,
 			tt.allPaths,
 			tmpfile,
 			strings.NewReader(tt.input),
@@ -587,7 +589,7 @@ func TestRenameKey(t *testing.T) {
 }
 
 func TestShowVersion(t *testing.T) {
-	data := NewCmdArgs("", []string{"-version"}, map[string]string{}, nil, nil)
+	data := NewCmdAPI("", &Cmd{Cmd: "-version"}, map[string]string{}, nil, nil)
 
 	old := os.Stdout
 	r, w, err := os.Pipe()
@@ -620,7 +622,7 @@ func TestShowVersion(t *testing.T) {
 }
 
 func TestShowHelp(t *testing.T) {
-	data := NewCmdArgs("", []string{"-help"}, map[string]string{}, nil, nil)
+	data := NewCmdAPI("", &Cmd{Cmd: "-help"}, map[string]string{}, nil, nil)
 
 	old := os.Stdout
 	r, w, err := os.Pipe()
@@ -656,25 +658,25 @@ func TestShowHelp(t *testing.T) {
 func TestNavStack(t *testing.T) {
 	tests := []struct {
 		name     string
-		command  []string
+		command  *Cmd
 		expected string
 		wanterr  bool
 	}{
 		{
 			name:     "1. Move down stack.",
-			command:  []string{"-["},
+			command:  &Cmd{Cmd: "-["},
 			expected: "[\n",
 			wanterr:  false,
 		},
 		{
 			name:     "2. Move up stack.",
-			command:  []string{"-]"},
+			command:  &Cmd{Cmd: "-]"},
 			expected: "]\n",
 			wanterr:  false,
 		},
 		{
 			name:     "3. Not a stack navigation.",
-			command:  []string{"_"},
+			command:  &Cmd{Cmd: "_"},
 			expected: "",
 			wanterr:  true,
 		},
@@ -682,7 +684,7 @@ func TestNavStack(t *testing.T) {
 
 	for _, tt := range tests {
 
-		data := NewCmdArgs("", tt.command, map[string]string{}, nil, nil)
+		data := NewCmdAPI("", tt.command, map[string]string{}, nil, nil)
 
 		stdout := os.Stdout
 		stderr := os.Stderr
@@ -764,29 +766,29 @@ func TestUpdateFT(t *testing.T) {
 
 	tests := []struct {
 		name       string
-		cmd        []string
+		args       []string
 		wantError  bool
 		setVersion func()
 	}{
 		{
 			name:      "1. Update with no version specified.",
-			cmd:       []string{"update"},
+			args:      []string{},
 			wantError: false,
 		},
 		{
 			name:      "2. Update with specific version.",
-			cmd:       []string{"update", "v.0.1.3"},
+			args:      []string{"update", "v.0.1.3"},
 			wantError: false,
 		},
 		{
 			name:       "3. Already up-to-date version.",
-			cmd:        []string{"update", "latest"},
+			args:       []string{"update", "latest"},
 			wantError:  false,
 			setVersion: func() { Version = "v.0.2.0" },
 		},
 		{
 			name:      "4. Nonexistent version.",
-			cmd:       []string{"update", "nonexistentversionnumber"},
+			args:      []string{"update", "nonexistentversionnumber"},
 			wantError: true,
 		},
 	}
@@ -807,7 +809,7 @@ func TestUpdateFT(t *testing.T) {
 			}
 			os.Stdout = w
 
-			data := &CmdArgs{wkDir: testdir, cmd: tt.cmd}
+			data := &CmdAPI{wkDir: testdir, cmd: &Cmd{Cmd: "-update", Args: tt.args}}
 
 			// Run the function
 			err = updateFT(data)
@@ -872,37 +874,37 @@ func TestEditPath(t *testing.T) {
 
 	tests := []struct {
 		name     string
-		command  []string
+		command  *Cmd
 		_map     map[string]string
 		expected map[string]string
 	}{
 		{
 			name:     "1. Update a single key using full path.",
-			command:  []string{"-edit", workdir, "somethingelse"},
+			command:  &Cmd{Cmd: "-edit", Args: []string{workdir, "somethingelse"}},
 			_map:     map[string]string{"testKey1": workdir},
 			expected: map[string]string{"testKey1": fmt.Sprintf("%s/somethingelse", workdirParent)},
 		},
 		{
 			name:     "2. Update a single key using key.",
-			command:  []string{"-edit", "testKey2", "somethingelse"},
+			command:  &Cmd{Cmd: "-edit", Args: []string{"testKey2", "somethingelse"}},
 			_map:     map[string]string{"testKey2": workdir},
 			expected: map[string]string{"testKey2": fmt.Sprintf("%s/somethingelse", workdirParent)},
 		},
 		{
 			name:     "3. Update a single key using relative path.",
-			command:  []string{"-edit", tmpdir_relative, "somethingelse"},
+			command:  &Cmd{Cmd: "-edit", Args: []string{tmpdir_relative, "somethingelse"}},
 			_map:     map[string]string{"testKey3": tmpdir},
 			expected: map[string]string{"testKey3": fmt.Sprintf("%s/somethingelse", workdir)},
 		},
 		{
 			name:     "4. Update a single key, directory name already updated.",
-			command:  []string{"-edit", "testKey4", tmpdir_relative},
+			command:  &Cmd{Cmd: "-edit", Args: []string{"testKey4", tmpdir_relative}},
 			_map:     map[string]string{"testKey4": fmt.Sprintf("%s/somethingelse", workdir)},
 			expected: map[string]string{"testKey4": tmpdir},
 		},
 		{
 			name:    "5. Update multiple keys using full path.",
-			command: []string{"-edit", workdir, "somethingelse"},
+			command: &Cmd{Cmd: "-edit", Args: []string{workdir, "somethingelse"}},
 			_map: map[string]string{
 				"testKey5":   workdir,
 				"testKey5_0": tmpdir,
@@ -918,7 +920,7 @@ func TestEditPath(t *testing.T) {
 		},
 		{
 			name:    "6. Update multiple keys using a key.",
-			command: []string{"-edit", "testKey6", "somethingelse"},
+			command: &Cmd{Cmd: "-edit", Args: []string{"testKey6", "somethingelse"}},
 			_map: map[string]string{
 				"testKey6":   workdir,
 				"testKey6_0": tmpdir,
@@ -939,7 +941,7 @@ func TestEditPath(t *testing.T) {
 		if tt._map != nil {
 			pathMap = tt._map
 		}
-		data := NewCmdArgs(
+		data := NewCmdAPI(
 			workdir,
 			tt.command,
 			pathMap,
@@ -1005,13 +1007,13 @@ func TestEvalPath(t *testing.T) {
 
 	tests := []struct {
 		name     string
-		command  []string
+		command  *Cmd
 		expected string
 		allPaths map[string]string
 	}{
 		{
 			name:     "1. Valid key provided, standalone.",
-			command:  []string{"_", "testKey"},
+			command:  &Cmd{Cmd: "_", Args: []string{"testKey"}},
 			expected: fmt.Sprintln(tmpdir),
 			allPaths: map[string]string{
 				"testKey": tmpdir,
@@ -1019,7 +1021,7 @@ func TestEvalPath(t *testing.T) {
 		},
 		{
 			name:     "2. Valid key provided, evaluate path.",
-			command:  []string{"_", "testKey/subdir"},
+			command:  &Cmd{Cmd: "_", Args: []string{"testKey/subdir"}},
 			expected: fmt.Sprintln(tmpdir2),
 			allPaths: map[string]string{
 				"testKey": tmpdir,
@@ -1027,7 +1029,7 @@ func TestEvalPath(t *testing.T) {
 		},
 		{
 			name:     "3. Invalid key provided.",
-			command:  []string{"_", "testKye"},
+			command:  &Cmd{Cmd: "_", Args: []string{"testKye"}},
 			expected: fmt.Sprintf(UnrecognizedKeyMsg, "testKye"),
 			allPaths: map[string]string{
 				"testKey": tmpdir,
@@ -1035,7 +1037,7 @@ func TestEvalPath(t *testing.T) {
 		},
 		{
 			name:     "4. Invalid key provided, evaluate path.",
-			command:  []string{"_", "testKye/subdir"},
+			command:  &Cmd{Cmd: "_", Args: []string{"testKye/subdir"}},
 			expected: fmt.Sprintf(InvalidDirectoryMsg, "testKye/subdir", "testKye/subdir"),
 			allPaths: map[string]string{
 				"testKey": tmpdir,
@@ -1045,7 +1047,7 @@ func TestEvalPath(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Log(tt.name)
-		data := NewCmdArgs(
+		data := NewCmdAPI(
 			tmpdir,
 			tt.command,
 			tt.allPaths,

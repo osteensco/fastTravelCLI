@@ -182,7 +182,7 @@ func setDirectoryVar(data *CmdAPI) error {
 		if ok {
 			var res string
 			// if force setting we don't need to read in a response from the user
-			if !data.cmd.Flags.y {
+			if !data.cmd.Flags.Y {
 				fmt.Printf(PathAlreadyExistsMsg, path, k, key)
 				_, err := fmt.Fscan(data.rdr, &res)
 				if err != nil {
@@ -190,7 +190,7 @@ func setDirectoryVar(data *CmdAPI) error {
 				}
 			}
 
-			if overwrite, err := verifyInput(res, data.cmd.Flags.y); !overwrite {
+			if overwrite, err := verifyInput(res, data.cmd.Flags.Y); !overwrite {
 				if err != nil {
 					return err
 				}
@@ -212,7 +212,7 @@ func setDirectoryVar(data *CmdAPI) error {
 		val, ok := data.allPaths[key]
 		if ok {
 			var res string
-			if !data.cmd.Flags.y {
+			if !data.cmd.Flags.Y {
 				// capture user response and act accordingly
 				fmt.Printf(KeyAlreadyExistsMsg, key, val, key)
 				_, err := fmt.Fscan(data.rdr, &res)
@@ -220,7 +220,7 @@ func setDirectoryVar(data *CmdAPI) error {
 					return err
 				}
 			}
-			if overwrite, err := verifyInput(res, data.cmd.Flags.y); !overwrite {
+			if overwrite, err := verifyInput(res, data.cmd.Flags.Y); !overwrite {
 				if err != nil {
 					return err
 				}

@@ -20,7 +20,7 @@ func NewCmdAPI(ftDir string, inputCmd *Cmd, allPaths map[string]string, file *os
 
 // struct used to identify flags that were provided with a given command
 type CmdFlags struct {
-	y bool
+	Y bool
 }
 
 // struct used to dissect and organize a command into it's individual components
@@ -33,7 +33,7 @@ type Cmd struct {
 func NewCmd(args *[]string) *Cmd {
 	return &Cmd{
 		// flags and cmd will be empty defaults
-		// args is explicit so that enough space is allocated to unerlying array for slight optimization
+		// args is explicit so that enough space is allocated to underlying array for slight optimization
 		Args: make([]string, 0, len(*args)),
 	}
 }
