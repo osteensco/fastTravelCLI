@@ -748,11 +748,15 @@ func TestNavStack(t *testing.T) {
 func TestUpdateFT(t *testing.T) {
 	// Mock server to simulate GitHub API responses
 	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		t.Logf("Received request: %v", r)
 		tag := strings.TrimPrefix(r.URL.Path, "/repos/osteensco/fastTravelCLI/")
+		t.Logf("tag: %v", tag)
 		if tag == "releases/latest" {
+			t.Logf("releases/latest: %v", true)
 			w.WriteHeader(http.StatusOK)
 			json.NewEncoder(w).Encode(map[string]string{"tag_name": "v.0.2.0"})
 		} else if tag == "tags/v.0.1.3" {
+			t.Logf("tags/v.0.1.3: %v", true)
 			w.WriteHeader(http.StatusOK)
 			json.NewEncoder(w).Encode(map[string]string{"tag_name": "v.0.1.3"})
 
@@ -776,6 +780,7 @@ func TestUpdateFT(t *testing.T) {
 	// Override endpoint URL to use the test server
 	EndpointGH = server.URL + "/repos/osteensco/fastTravelCLI/tags/%s"
 	EndpointLatestGH = server.URL + "/repos/osteensco/fastTravelCLI/releases/latest"
+
 	// Override Git related constants for testing
 	GitCloneCMD = []string{"echo", "'", "mocking", "version", "", "git", "clone", "dev", "'"}
 	GitCloneDir = strings.TrimSuffix(cwd, "/ft")
@@ -794,18 +799,18 @@ func TestUpdateFT(t *testing.T) {
 		},
 		{
 			name:      "2. Update with specific version.",
-			args:      []string{"update", "v.0.1.3"},
+			args:      []string{"v.0.1.3"},
 			wantError: false,
 		},
 		{
 			name:       "3. Already up-to-date version.",
-			args:       []string{"update", "latest"},
+			args:       []string{"latest"},
 			wantError:  false,
 			setVersion: func() { Version = "v.0.2.0" },
 		},
 		{
 			name:      "4. Nonexistent version.",
-			args:      []string{"update", "nonexistentversionnumber"},
+			args:      []string{"nonexistentversionnumber"},
 			wantError: true,
 		},
 	}
@@ -813,6 +818,7 @@ func TestUpdateFT(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			t.Log(tt.name)
+			t.Log(server.URL)
 
 			if tt.setVersion != nil {
 				defaultVersion = Version

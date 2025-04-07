@@ -165,7 +165,7 @@ func TestMainFunc(t *testing.T) {
 		},
 		{
 			name:     "10. Check force set command.",
-			args:     []string{"ft", "-setf", fmt.Sprintf("key=%v", forcedir)},
+			args:     []string{"ft", "-set", "-y", fmt.Sprintf("key=%v", forcedir)},
 			expected: fmt.Sprintf(ft.AddKeyMsg, "key", forcedir),
 			wantErr:  false,
 		},
