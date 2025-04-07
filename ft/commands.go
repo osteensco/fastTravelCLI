@@ -249,8 +249,6 @@ func displayAllPaths(data *CmdAPI) error {
 	return nil
 }
 
-// TODO
-// - add data.cmd.Flags.y option like in setDirectoryVar
 func removeKey(data *CmdAPI) error {
 	var res string
 	key := data.cmd.Args[0]
@@ -260,20 +258,22 @@ func removeKey(data *CmdAPI) error {
 		fmt.Printf(KeyDoesNotExistMsg, key)
 		return nil
 	}
-	fmt.Printf(VerifyRemoveMsg, key)
-	_, err := fmt.Fscan(data.rdr, &res)
-	if err != nil {
-		return err
-	}
-	if rm, err := verifyInput(res, false); !rm {
+	if !data.cmd.Flags.Y {
+		fmt.Printf(VerifyRemoveMsg, key)
+		_, err := fmt.Fscan(data.rdr, &res)
 		if err != nil {
 			return err
 		}
-		fmt.Printf(AbortRemoveKeyMsg, key)
-		return nil
-	} else {
-		if err != nil {
-			return err
+		if rm, err := verifyInput(res, false); !rm {
+			if err != nil {
+				return err
+			}
+			fmt.Printf(AbortRemoveKeyMsg, key)
+			return nil
+		} else {
+			if err != nil {
+				return err
+			}
 		}
 	}
 	delete(data.allPaths, key)
@@ -282,8 +282,6 @@ func removeKey(data *CmdAPI) error {
 	return nil
 }
 
-// TODO
-// - add force option like in setDirectoryVar
 func renameKey(data *CmdAPI) error {
 	originalKey := data.cmd.Args[0]
 	newKey := data.cmd.Args[1]
@@ -299,22 +297,23 @@ func renameKey(data *CmdAPI) error {
 		return nil
 	}
 
-	var res string
-
-	fmt.Printf(VerifyRenameMsg, originalKey, newKey)
-	_, err := fmt.Fscan(data.rdr, &res)
-	if err != nil {
-		return err
-	}
-	if rm, err := verifyInput(res, false); !rm {
-		if err != nil {
-			fmt.Println("Error: ", err)
-		}
-		fmt.Printf(AbortRenameKeyMsg, originalKey, newKey)
-		return nil
-	} else {
+	if !data.cmd.Flags.Y {
+		var res string
+		fmt.Printf(VerifyRenameMsg, originalKey, newKey)
+		_, err := fmt.Fscan(data.rdr, &res)
 		if err != nil {
 			return err
+		}
+		if rm, err := verifyInput(res, false); !rm {
+			if err != nil {
+				return err
+			}
+			fmt.Printf(AbortRenameKeyMsg, originalKey, newKey)
+			return nil
+		} else {
+			if err != nil {
+				return err
+			}
 		}
 	}
 	delete(data.allPaths, originalKey)
@@ -355,31 +354,42 @@ func editPath(data *CmdAPI) error {
 	pathArray[len(pathArray)-1] = newDirName
 	newPath := strings.Join(pathArray, "/")
 
-	// TODO
-	//  - add keys updated tracker
-	//  - prompt user to confirm changes
-	//      - add force option like in setDirectoryVar
-
 	// update all keys that contain this prefix
 	for k, v := range data.allPaths {
 		if strings.Contains(v, path) {
-			pathReplacement := strings.Replace(v, path, newPath, 1)
-			data.allPaths[k] = pathReplacement
 
-			// TODO
-			//  - use this block to inform user directory doesn't exist in confirmation prompt
-			// dir, err := os.Stat(pathReplacement)
-			// if err != nil {
-			// 	return err
-			// }
-			// fmt.Println(dir.IsDir())
-			// if dir.IsDir() {
-			// 	data.allPaths[k] = pathReplacement
-			// } else {
-			// 	// TODO
-			// 	//  - make this error message a constant, evalPath() needs this
-			// 	return errors.New(fmt.Sprintf("%v is not a Directory", dir))
-			// }
+			pathReplacement := strings.Replace(v, path, newPath, 1)
+
+			if !data.cmd.Flags.Y {
+
+				// check if new path is a valid directory
+				dir, err := os.Stat(pathReplacement)
+				if err != nil || !dir.IsDir() {
+					fmt.Printf(PathIsNotValidDirWarn, pathReplacement)
+				}
+
+				fmt.Printf(VerifyEditMsg, k, v, k, pathReplacement)
+
+				var res string
+				_, err = fmt.Fscan(data.rdr, &res)
+				if err != nil {
+					return err
+				}
+				if rm, err := verifyInput(res, false); !rm {
+					if err != nil {
+						return err
+					}
+					fmt.Printf(AbortEditMsg, k, v, k, pathReplacement)
+					return nil
+				} else {
+					if err != nil {
+						return err
+					}
+				}
+
+			}
+			data.allPaths[k] = pathReplacement
+			fmt.Printf(PathOverwriteMsg, k, pathReplacement)
 		}
 	}
 

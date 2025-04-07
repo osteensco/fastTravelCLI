@@ -45,7 +45,6 @@ var AvailCmds = map[string]struct {
 }{
 	"_":        {changeDirectory, true},
 	"-set":     {setDirectoryVar, true},
-	"-setf":    {setDirectoryVar, true}, // TODO delete me
 	"-ls":      {displayAllPaths, true},
 	"-rm":      {removeKey, true},
 	"-rn":      {renameKey, true},
@@ -67,7 +66,6 @@ var AvailCmds = map[string]struct {
 var CmdDesc = map[string]string{
 	"key":      "change directory to provided key's path - Usage: ft [key]",
 	"-set":     "set key to a directory path, if no directory path is given attempts to set key to CWD - Usage: ft -set [key], ft -set [key]=[path]",
-	"-setf":    "force set key to a directory path, if no directory path is given force set key to CWD - Usage: ft -setf [key], ft -setf [key]=[path]",
 	"-ls":      "display all current key value pairs - Usage: ft -ls",
 	"-rm":      "deletes provided key - Usage: ft -rm [key]",
 	"-rn":      "renames key to new key - Usage: ft -rn [key] [new key]",
@@ -118,4 +116,7 @@ const (
 	AbortRenameKeyMsg         = "Aborted renaming of key '%s' to '%s'. \n"
 	IsKeyMsg                  = "Directory %s is saved to key : %s. \n"
 	IsNotKeyMsg               = "No key was found for the specified path: %s. \n"
+	VerifyEditMsg             = "Are you sure you want to change '%s: %s' to '%s: %s'? (y/n) \n"
+	AbortEditMsg              = "Aborted replacing '%s: %s' with '%s: %s'. \n"
+	PathIsNotValidDirWarn     = "Warning: Path %s is not a valid directory. \n"
 )

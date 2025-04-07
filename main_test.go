@@ -91,7 +91,7 @@ func TestMainFunc(t *testing.T) {
 			// TODO
 			//  - generate this string dynamically?
 			expected: fmt.Sprintf(
-				"\n-edit: %s\n-help: %s\n-hist: %s\n-is: %s\n-ls: %s\n-rm: %s\n-rn: %s\n-set: %s\n-setf: %s\n-update: %s\n-version: %s\n[: %s\n]: %s\nkey: %s\n\n",
+				"\n-edit: %s\n-help: %s\n-hist: %s\n-is: %s\n-ls: %s\n-rm: %s\n-rn: %s\n-set: %s\n-update: %s\n-version: %s\n[: %s\n]: %s\nkey: %s\n\n",
 				ft.CmdDesc["-edit"],
 				ft.CmdDesc["-help"],
 				ft.CmdDesc["-hist"],
@@ -100,7 +100,6 @@ func TestMainFunc(t *testing.T) {
 				ft.CmdDesc["-rm"],
 				ft.CmdDesc["-rn"],
 				ft.CmdDesc["-set"],
-				ft.CmdDesc["-setf"],
 				ft.CmdDesc["-update"],
 				ft.CmdDesc["-version"],
 				ft.CmdDesc["["],

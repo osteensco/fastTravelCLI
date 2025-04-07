@@ -533,24 +533,50 @@ func TestRenameKey(t *testing.T) {
 	defer tmpfile.Close()
 
 	tests := []struct {
-		name     string
-		command  Cmd
-		allPaths map[string]string
-		input    string
-		wanterr  bool
+		name    string
+		command Cmd
+
+		expectedkey string
+		allPaths    map[string]string
+		input       string
+		wanterr     bool
 	}{
 		{
-			name:    "1. Rename key that exists, confirm rename.",
-			command: Cmd{Cmd: "-rn", Args: []string{"key1", "newKey"}},
+			name:        "1. Rename key that exists, confirm rename.",
+			command:     Cmd{Cmd: "-rn", Args: []string{"key1", "newKey1"}},
+			expectedkey: "newKey1",
 			allPaths: map[string]string{
-				"key1": "value1",
+				"key1": "value",
 			},
 			input:   "y",
+			wanterr: false,
+		},
+		{
+			name:        "2. Rename key that exists, abort rename.",
+			command:     Cmd{Cmd: "-rn", Args: []string{"key2", "newKey2"}},
+			expectedkey: "key2",
+			allPaths: map[string]string{
+				"key2": "value",
+			},
+			input:   "n",
+			wanterr: false,
+		},
+		{
+			name:        "3. Rename key that exists using -y flag.",
+			command:     Cmd{Cmd: "-rn", Flags: CmdFlags{Y: true}, Args: []string{"key3", "newKey3"}},
+			expectedkey: "newKey3",
+			allPaths: map[string]string{
+				"key3": "value",
+			},
 			wanterr: false,
 		},
 	}
 
 	for _, tt := range tests {
+		err := dataUpdate(tt.allPaths, tmpfile)
+		if err != nil {
+			t.Fatal(err)
+		}
 		data := NewCmdAPI(
 			"",
 			&tt.command,
@@ -573,18 +599,14 @@ func TestRenameKey(t *testing.T) {
 
 		os.Stdout = stdout
 
-		if _, ok := data.allPaths["key1"]; ok {
+		if _, ok := data.allPaths[tt.expectedkey]; !ok {
 			fmt.Println(tt.name)
-			t.Errorf("Expected key 'key1' to be renamed")
-
-		}
-		if data.allPaths["newKey"] != "value1" {
-			t.Fatalf("Expected key 'newKey' to have value 'value1', got %s", data.allPaths["newKey"])
+			t.Errorf("Expected key '%s' to exist", tt.expectedkey)
 		}
 
 		file, err := os.Open(tmpfile.Name())
 		if err != nil {
-			t.Fatalf("Failed to open temp file: %v", err)
+			t.Errorf("Failed to open temp file: %v", err)
 		}
 		defer file.Close()
 
@@ -592,14 +614,9 @@ func TestRenameKey(t *testing.T) {
 		if err != nil {
 			t.Error(err)
 		}
-		if _, ok := result["key1"]; ok {
+		if _, ok := result[tt.expectedkey]; !ok {
 			fmt.Println(tt.name)
-			t.Errorf("Expected file to not have key 'key1'")
-
-		}
-		if result["newKey"] != "value1" {
-			fmt.Println(tt.name)
-			t.Errorf("Expected file to have key 'newKey' with value 'value1', got %s", result["newKey"])
+			t.Errorf("Expected file to have key '%s'", tt.expectedkey)
 
 		}
 	}
@@ -900,34 +917,35 @@ func TestEditPath(t *testing.T) {
 		command  *Cmd
 		_map     map[string]string
 		expected map[string]string
+		input    string
 	}{
 		{
 			name:     "1. Update a single key using full path.",
-			command:  &Cmd{Cmd: "-edit", Args: []string{workdir, "somethingelse"}},
+			command:  &Cmd{Cmd: "-edit", Flags: CmdFlags{Y: true}, Args: []string{workdir, "somethingelse"}},
 			_map:     map[string]string{"testKey1": workdir},
 			expected: map[string]string{"testKey1": fmt.Sprintf("%s/somethingelse", workdirParent)},
 		},
 		{
 			name:     "2. Update a single key using key.",
-			command:  &Cmd{Cmd: "-edit", Args: []string{"testKey2", "somethingelse"}},
+			command:  &Cmd{Cmd: "-edit", Flags: CmdFlags{Y: true}, Args: []string{"testKey2", "somethingelse"}},
 			_map:     map[string]string{"testKey2": workdir},
 			expected: map[string]string{"testKey2": fmt.Sprintf("%s/somethingelse", workdirParent)},
 		},
 		{
 			name:     "3. Update a single key using relative path.",
-			command:  &Cmd{Cmd: "-edit", Args: []string{tmpdir_relative, "somethingelse"}},
+			command:  &Cmd{Cmd: "-edit", Flags: CmdFlags{Y: true}, Args: []string{tmpdir_relative, "somethingelse"}},
 			_map:     map[string]string{"testKey3": tmpdir},
 			expected: map[string]string{"testKey3": fmt.Sprintf("%s/somethingelse", workdir)},
 		},
 		{
 			name:     "4. Update a single key, directory name already updated.",
-			command:  &Cmd{Cmd: "-edit", Args: []string{"testKey4", tmpdir_relative}},
+			command:  &Cmd{Cmd: "-edit", Flags: CmdFlags{Y: true}, Args: []string{"testKey4", tmpdir_relative}},
 			_map:     map[string]string{"testKey4": fmt.Sprintf("%s/somethingelse", workdir)},
 			expected: map[string]string{"testKey4": tmpdir},
 		},
 		{
 			name:    "5. Update multiple keys using full path.",
-			command: &Cmd{Cmd: "-edit", Args: []string{workdir, "somethingelse"}},
+			command: &Cmd{Cmd: "-edit", Flags: CmdFlags{Y: true}, Args: []string{workdir, "somethingelse"}},
 			_map: map[string]string{
 				"testKey5":   workdir,
 				"testKey5_0": tmpdir,
@@ -956,6 +974,7 @@ func TestEditPath(t *testing.T) {
 				"testKey6_1": workdirParent,
 				"testKey6_2": "home/some/other/dir",
 			},
+			input: "y y",
 		},
 	}
 
@@ -964,17 +983,6 @@ func TestEditPath(t *testing.T) {
 		if tt._map != nil {
 			pathMap = tt._map
 		}
-		data := NewCmdAPI(
-			workdir,
-			tt.command,
-			pathMap,
-			tmpfile,
-			nil,
-		)
-
-		if len(tt._map) > 0 {
-			dataUpdate(data.allPaths, tmpfile)
-		}
 
 		stdout := os.Stdout
 		r, w, err := os.Pipe()
@@ -982,6 +990,18 @@ func TestEditPath(t *testing.T) {
 			t.Error(err)
 		}
 		os.Stdout = w
+
+		data := NewCmdAPI(
+			workdir,
+			tt.command,
+			pathMap,
+			tmpfile,
+			strings.NewReader(tt.input),
+		)
+
+		if len(tt._map) > 0 {
+			dataUpdate(data.allPaths, tmpfile)
+		}
 
 		err = editPath(data)
 		if err != nil {

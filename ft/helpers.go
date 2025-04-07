@@ -140,7 +140,7 @@ func ParseArgs(args *[]string) *Cmd {
 			}
 			continue
 		} else {
-			// hadnle special navigation commands
+			// handle special navigation commands
 			switch v {
 			case "]", "[", "..", "-":
 				if cmd.Cmd == "" {
