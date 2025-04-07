@@ -461,20 +461,43 @@ func TestRemoveKey(t *testing.T) {
 	defer tmpfile.Close()
 
 	tests := []struct {
-		name     string
-		command  Cmd
-		allPaths map[string]string
-		input    string
-		wanterr  bool
+		name       string
+		command    Cmd
+		removedkey bool
+		allPaths   map[string]string
+		input      string
+		wanterr    bool
 	}{
 		{
-			name:    "1. Remove key that exists, confirm removal.",
-			command: Cmd{Cmd: "-rm", Args: []string{"key1"}},
+			name:       "1. Remove key that exists, confirm removal.",
+			command:    Cmd{Cmd: "-rm", Args: []string{"key1"}},
+			removedkey: true,
 			allPaths: map[string]string{
 				"key1": "value1",
 				"key2": "value2",
 			},
 			input:   "y",
+			wanterr: false,
+		},
+		{
+			name:       "2. Remove key that exists, abort removal.",
+			command:    Cmd{Cmd: "-rm", Args: []string{"key2"}},
+			removedkey: false,
+			allPaths: map[string]string{
+				"key1": "value1",
+				"key2": "value2",
+			},
+			input:   "n",
+			wanterr: false,
+		},
+		{
+			name:       "3. Remove key that exists, use -y flag.",
+			command:    Cmd{Cmd: "-rm", Flags: CmdFlags{Y: true}, Args: []string{"key1"}},
+			removedkey: true,
+			allPaths: map[string]string{
+				"key1": "value1",
+				"key2": "value2",
+			},
 			wanterr: false,
 		},
 	}
@@ -487,22 +510,30 @@ func TestRemoveKey(t *testing.T) {
 			tmpfile,
 			strings.NewReader(tt.input),
 		)
+
+		key := data.cmd.Args[0]
+
 		stdout := os.Stdout
 		_, w, err := os.Pipe()
 		if err != nil {
 			t.Fatalf("Error establishing Pipe: %v", err)
 		}
-
 		os.Stdout = w
+
 		err = removeKey(data)
 		if err != nil {
 			t.Error(err)
 		}
-		os.Stdout = stdout
-		if _, ok := data.allPaths["key1"]; ok {
-			fmt.Println(tt.name)
-			t.Errorf("Expected key 'key1' to be removed")
 
+		os.Stdout = stdout
+
+		_, ok := data.allPaths[key]
+		if ok && tt.removedkey {
+			t.Log(tt.name)
+			t.Errorf("Expected key '%s' to be removed", key)
+		} else if !ok && !tt.removedkey {
+			t.Log(tt.name)
+			t.Errorf("Expected key '%s' to NOT be removed", key)
 		}
 
 		file, err := os.Open(tmpfile.Name())
@@ -516,10 +547,13 @@ func TestRemoveKey(t *testing.T) {
 			t.Error(err)
 		}
 
-		if _, ok := result["key1"]; ok {
-			fmt.Println(tt.name)
-			t.Errorf("Expected file to not have key 'key1'")
-
+		_, ok = result[key]
+		if ok && tt.removedkey {
+			t.Log(tt.name)
+			t.Errorf("Expected file to NOT have key '%s'", key)
+		} else if !ok && !tt.removedkey {
+			t.Log(tt.name)
+			t.Errorf("Expected file to have key '%s'", key)
 		}
 	}
 }
