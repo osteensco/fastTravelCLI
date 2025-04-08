@@ -103,6 +103,10 @@ echo "mykey=some/project/path" > myfile.txt
 cat myfile.txt | ft -set
 
 
+# if you change a directory's name on your machine, you can easily update fastTravelCLI
+ft -edit my/old/dirname newdirname
+
+
 # ft is easy to update to the latest release
 ft -update
 # or
