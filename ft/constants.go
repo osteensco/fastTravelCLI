@@ -6,26 +6,45 @@ import (
 )
 
 // ft command api
-type CmdArgs struct {
+type CmdAPI struct {
 	wkDir    string
-	cmd      []string
+	cmd      *Cmd
 	allPaths map[string]string
 	file     *os.File
 	rdr      io.Reader
 }
 
-func NewCmdArgs(ftDir string, inputCmd []string, allPaths map[string]string, file *os.File, rdr io.Reader) *CmdArgs {
-	return &CmdArgs{ftDir, inputCmd, allPaths, file, rdr}
+func NewCmdAPI(ftDir string, inputCmd *Cmd, allPaths map[string]string, file *os.File, rdr io.Reader) *CmdAPI {
+	return &CmdAPI{ftDir, inputCmd, allPaths, file, rdr}
+}
+
+// struct used to identify flags that were provided with a given command
+type CmdFlags struct {
+	Y bool
+}
+
+// struct used to dissect and organize a command into it's individual components
+type Cmd struct {
+	Flags CmdFlags
+	Cmd   string
+	Args  []string
+}
+
+func NewCmd(args *[]string) *Cmd {
+	return &Cmd{
+		// flags and cmd will be empty defaults
+		// args is explicit so that enough space is allocated to underlying array for slight optimization
+		Args: make([]string, 0, len(*args)),
+	}
 }
 
 // map of available commands
 var AvailCmds = map[string]struct {
-	Callback func(data *CmdArgs) error
+	Callback func(data *CmdAPI) error
 	LoadData bool
 }{
 	"_":        {changeDirectory, true},
 	"-set":     {setDirectoryVar, true},
-	"-setf":    {setDirectoryVar, true},
 	"-ls":      {displayAllPaths, true},
 	"-rm":      {removeKey, true},
 	"-rn":      {renameKey, true},
@@ -47,7 +66,6 @@ var AvailCmds = map[string]struct {
 var CmdDesc = map[string]string{
 	"key":      "change directory to provided key's path - Usage: ft [key]",
 	"-set":     "set key to a directory path, if no directory path is given attempts to set key to CWD - Usage: ft -set [key], ft -set [key]=[path]",
-	"-setf":    "force set key to a directory path, if no directory path is given force set key to CWD - Usage: ft -setf [key], ft -setf [key]=[path]",
 	"-ls":      "display all current key value pairs - Usage: ft -ls",
 	"-rm":      "deletes provided key - Usage: ft -rm [key]",
 	"-rn":      "renames key to new key - Usage: ft -rn [key] [new key]",
@@ -98,4 +116,7 @@ const (
 	AbortRenameKeyMsg         = "Aborted renaming of key '%s' to '%s'. \n"
 	IsKeyMsg                  = "Directory %s is saved to key : %s. \n"
 	IsNotKeyMsg               = "No key was found for the specified path: %s. \n"
+	VerifyEditMsg             = "Are you sure you want to change '%s: %s' to '%s: %s'? (y/n) \n"
+	AbortEditMsg              = "Aborted replacing '%s: %s' with '%s: %s'. \n"
+	PathIsNotValidDirWarn     = "Warning: Path %s is not a valid directory. \n"
 )

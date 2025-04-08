@@ -31,7 +31,7 @@ func main() {
 		fmt.Println("Error: ", err)
 		return
 	}
-	action := inputCommand[0]
+	action := inputCommand.Cmd
 
 	// grab command from registry
 	cmd, ok := ft.AvailCmds[action]
@@ -66,7 +66,7 @@ func main() {
 	}
 
 	// manifest API
-	data := ft.NewCmdArgs(dataDirPath, inputCommand, allPaths, file, os.Stdin)
+	data := ft.NewCmdAPI(dataDirPath, inputCommand, allPaths, file, os.Stdin)
 
 	// execute user provided action
 	err = cmd.Callback(data)

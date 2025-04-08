@@ -49,15 +49,15 @@ func TestVerifyInput(t *testing.T) {
 		name     string
 		expected bool
 		force    bool
-		data     CmdArgs
+		data     CmdAPI
 		wantErr  bool
 	}{
 		{
 			name:     "1. User inputs 'y'.",
 			expected: true,
 			force:    false,
-			data: CmdArgs{
-				cmd:      []string{},
+			data: CmdAPI{
+				cmd:      nil,
 				allPaths: map[string]string{},
 				file:     nil,
 				rdr:      strings.NewReader("y"),
@@ -68,8 +68,8 @@ func TestVerifyInput(t *testing.T) {
 			name:     "2. User inputs 'n'.",
 			expected: false,
 			force:    false,
-			data: CmdArgs{
-				cmd:      []string{},
+			data: CmdAPI{
+				cmd:      nil,
 				allPaths: map[string]string{},
 				file:     nil,
 				rdr:      strings.NewReader("n"),
@@ -80,8 +80,8 @@ func TestVerifyInput(t *testing.T) {
 			name:     "3. User inputs invalid option.",
 			expected: false,
 			force:    false,
-			data: CmdArgs{
-				cmd:      []string{},
+			data: CmdAPI{
+				cmd:      nil,
 				allPaths: map[string]string{},
 				file:     nil,
 				rdr:      strings.NewReader("x\n"),
@@ -92,8 +92,8 @@ func TestVerifyInput(t *testing.T) {
 			name:     "4. User uses force option.",
 			expected: true,
 			force:    true,
-			data: CmdArgs{
-				cmd:      []string{},
+			data: CmdAPI{
+				cmd:      nil,
 				allPaths: map[string]string{},
 				file:     nil,
 				rdr:      strings.NewReader("n"),
@@ -185,4 +185,8 @@ func TestPipeArgs(t *testing.T) {
 		t.Errorf("Expected: %q length %v, got: %q length %v", tt.expected, len(tt.expected), args, len(args))
 	}
 
+}
+
+func TestParseArgs(t *testing.T) {
+	// TODO implement
 }
