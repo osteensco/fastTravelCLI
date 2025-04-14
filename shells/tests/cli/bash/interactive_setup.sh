@@ -10,7 +10,6 @@ source maketree.sh
 source ./tests/bash/sudo.sh
 
 # Install fastTravelCLI
-git clone https://github.com/osteensco/fastTravelCLI.git
 cd fastTravelCLI
 source ./install/linux.sh
 
