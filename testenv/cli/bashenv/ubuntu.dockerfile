@@ -12,6 +12,9 @@ COPY testenv/maketree.sh ./
 
 COPY shells/tests/cli/ ./tests/
 
+COPY . ./fastTravelCLI/
+# Actual install step will need to occur in each shell's test script in order for it to install properly.
+
 # Dependencies
 RUN apt-get update && apt-get install -y \
     golang \
@@ -23,10 +26,6 @@ RUN apt-get update && apt-get install -y \
 # Install fzf
 RUN git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf && \
     ~/.fzf/install --all
-
-###
-# fastTravelCLI install occurins in setup script
-###
 
 # Add golang binary to path
 RUN echo 'export PATH=$PATH:/usr/lib/go/bin' >> ~/.bashrc

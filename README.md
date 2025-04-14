@@ -111,6 +111,9 @@ ft -edit my/old/dirname newdirname
 ft -update
 # or
 ft -u
+# you can also specify a specific version or nightly
+ft -u v.0.2.92
+ft -u nightly
 
 
 # To see a full list of available commands run

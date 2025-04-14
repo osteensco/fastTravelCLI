@@ -10,8 +10,12 @@ COPY testenv/maketree.sh ./
 
 COPY /shells/tests/cli/ ./tests/
 
+COPY . ./fastTravelCLI/
+# Actual install step will need to occur in each shell's test script in order for it to install properly.
+
 # Dependencies
 RUN apt-get update && apt-get install -y \
+    golang \
     git \
     curl \
     tree \
@@ -21,12 +25,8 @@ RUN apt-get update && apt-get install -y \
 RUN git clone --depth 1 https://github.com/junegunn/fzf.git ~/.fzf && \
     ~/.fzf/install --all
 
-#####
-# Install fastTravelCLI step will need to occur in each shell's test script in order for it to install properly.
-#####
-
 # Source test wrapper script
 RUN chmod +x ./tests/test.sh
 
 # Run tests
-CMD ["/bin/bash", "-c", "./tests/test.sh"]
+CMD ["/bin/bash", "-i", "-c", "./tests/test.sh"]

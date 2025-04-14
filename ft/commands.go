@@ -441,45 +441,48 @@ func updateFT(data *CmdAPI) error {
 	var endpoint string
 	if version == "latest" {
 		endpoint = EndpointLatestGH
+	} else if version == "nightly" {
+		// no enpoint needed
 	} else {
 		endpoint = fmt.Sprintf(EndpointGH, version)
 	}
 
-	resp, err := http.Get(endpoint)
-	if err != nil {
-		return errors.New(fmt.Sprintf("Error sending Get request to %q: %v", endpoint, err))
-	}
+	if endpoint != "" {
+		resp, err := http.Get(endpoint)
+		if err != nil {
+			return errors.New(fmt.Sprintf("Error sending Get request to %q: %v", endpoint, err))
+		}
+		defer resp.Body.Close()
 
-	defer resp.Body.Close()
+		if resp.StatusCode != http.StatusOK {
+			return errors.New(
+				fmt.Sprintf(
+					"Error while attempting to retrieve version from github repo - status: %v %s. \n %s",
+					resp.StatusCode,
+					http.StatusText(resp.StatusCode),
+					endpoint,
+				),
+			)
+		}
 
-	if resp.StatusCode != http.StatusOK {
-		return errors.New(
-			fmt.Sprintf(
-				"Error while attempting to retrieve version from github repo - status: %v %s. \n %s",
-				resp.StatusCode,
-				http.StatusText(resp.StatusCode),
-				endpoint,
-			),
-		)
+		type respBody struct {
+			TagName string `json:"tag_name"`
+		}
+		var body respBody
+		decoder := json.NewDecoder(resp.Body)
+		err = decoder.Decode(&body)
+		if err != nil {
+			return err
+		}
+		version = body.TagName
 	}
-
-	type respBody struct {
-		TagName string `json:"tag_name"`
-	}
-	var body respBody
-	decoder := json.NewDecoder(resp.Body)
-	err = decoder.Decode(&body)
-	if err != nil {
-		return err
-	}
-	version = body.TagName
 
 	// verify current version is not the version attempting to be updated to
 	if Version == version {
 		fmt.Println("fastTravelCLI version is already ", version)
 		return nil
 	} else {
-		fmt.Printf("fastTravelCLI %v updating to %v \n", Version, version)
+		fmt.Printf("fastTravelCLI %v updating to %v release \n", Version, version)
 	}
 
 	// make temp directory, clone the repo
@@ -496,17 +499,24 @@ func updateFT(data *CmdAPI) error {
 
 	// TODO
 	// may need to handle git clone from https, ssh, or cli
-
 	// just using https for now
-	GitCloneCMD[3] = version
+
+	if version == "nightly" {
+		// clone from main branch
+		if len(GitCloneCMD) != 5 {
+			return errors.New(fmt.Sprintf("Error! Constant GitCloneCMD has length %v expected 5. %v", len(GitCloneCMD), GitCloneCMD))
+		}
+		GitCloneCMD = []string{GitCloneCMD[0], GitCloneCMD[1], GitCloneCMD[4]}
+	} else {
+		// clone with specific version tag
+		GitCloneCMD[3] = version
+	}
 
 	clonecmd := exec.Command(GitCloneCMD[0], GitCloneCMD[1:]...)
 	err = clonecmd.Run()
 	if err != nil {
 		return errors.New(fmt.Sprintf("Error cloning repo: %v - Command used: %q", err, clonecmd.String()))
 	}
-	// TODO
-	// handle distinction between stable and nightly
 
 	// run install script
 	output := ""
