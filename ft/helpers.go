@@ -23,9 +23,7 @@ func verifyInput(s string, f bool) (bool, error) {
 	}
 }
 
-func printMap(hashmap map[string]string) {
-
-	fmt.Println("")
+func printMap(hashmap map[string]string, formatstr string) {
 
 	keys := make([]string, 0, len(hashmap))
 	for k := range hashmap {
@@ -36,11 +34,9 @@ func printMap(hashmap map[string]string) {
 
 	for i := range keys {
 
-		fmt.Printf("%v: %v\n", keys[i], hashmap[keys[i]])
+		fmt.Printf(formatstr, keys[i], hashmap[keys[i]])
 
 	}
-
-	fmt.Println("")
 
 }
 

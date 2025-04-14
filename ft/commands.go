@@ -245,7 +245,9 @@ func setDirectoryVar(data *CmdAPI) error {
 }
 
 func displayAllPaths(data *CmdAPI) error {
-	printMap(data.allPaths)
+	fmt.Println("")
+	printMap(data.allPaths, "%v: %v\n")
+	fmt.Println("")
 	return nil
 }
 
@@ -397,7 +399,15 @@ func editPath(data *CmdAPI) error {
 }
 
 func showHelp(data *CmdAPI) error {
-	printMap(CmdDesc)
+	fmt.Println("\nUsage:")
+	for _, cmd := range CmdDesc {
+		printMap(cmd, HelpLineStrFormat)
+	}
+
+	fmt.Println("\nExamples:")
+	fmt.Println("  ft projects                 → cd into the directory saved as 'projects'")
+	fmt.Println("  ft -set docs=~/Documents    → set key 'docs' to '~/Documents'")
+	fmt.Println("  ft -rn -y old new           → rename 'old' key to 'new' and skip confirmation prompt")
 	return nil
 }
 

@@ -23,7 +23,7 @@ func TestPrintMap(t *testing.T) {
 	}
 	os.Stdout = w
 
-	printMap(hashmap)
+	printMap(hashmap, "%s")
 
 	// Use go routine so printing doesn't block program
 	outChan := make(chan string)

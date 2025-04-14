@@ -50,7 +50,6 @@ var AvailCmds = map[string]struct {
 	"-rn":      {renameKey, true},
 	"-edit":    {editPath, true},
 	"-help":    {showHelp, false},
-	"-h":       {showHelp, false},
 	"-]":       {passToShell, false},
 	"-[":       {passToShell, false},
 	"-hist":    {passToShell, false},
@@ -63,20 +62,83 @@ var AvailCmds = map[string]struct {
 	"-u":       {updateFT, false},
 }
 
-var CmdDesc = map[string]string{
-	"key":      "change directory to provided key's path - Usage: ft [key]",
-	"-set":     "set key to a directory path, if no directory path is given attempts to set key to CWD - Usage: ft -set [key], ft -set [key]=[path]",
-	"-ls":      "display all current key value pairs - Usage: ft -ls",
-	"-rm":      "deletes provided key - Usage: ft -rm [key]",
-	"-rn":      "renames key to new key - Usage: ft -rn [key] [new key]",
-	"-edit":    "renames a given directory and all child directories assigned to a key to a new folder name - Usage: ft -edit mydir mynewdir",
-	"]":        "navigate history forwards - Usage: ft ]",
-	"[":        "navigate history backwards - Usage: ft [",
-	"-hist":    "show history, provides fzf selection for navigation - Usage: ft -hist",
-	"-is":      "identify the key that the current working directory is saved to if it is saved to a key - Usage: ft -is",
-	"-help":    "you are here :) - Usage: ft -help, -h",
-	"-version": "print current version of fastTravelCLI - Usage: ft -version, -v",
-	"-update":  "update fastTravel - Usage: ft -update, -u [version](optional)",
+// Help docs
+var HelpLineStrFormat = "  %-18s %s\n"
+
+// TODO
+var HelpDescExamples = ""
+
+// TODO
+var HelpUsageMappings = map[string]string{
+	"set": "ft -set [-y] <key>=[path]",
+}
+
+var CmdDesc = []map[string]string{
+	{
+		"ft <key>": "Change directory to a saved key",
+	},
+	{
+		HelpUsageMappings["set"]: "Save a key to a path (defaults to CWD if no path)",
+	},
+	{
+		"ft -ls": "List all saved key-path pairs",
+	},
+	{
+		"ft -rm [-y] <key>": "Remove a saved key",
+	},
+	{
+		"ft -rn [-y] <key> <new key>": "Renames an existing key",
+	},
+	{
+		"ft -edit [-y] <path> <new dir name>": "Updates a given directory to it's new name for any key assigned to it or a child directory",
+	},
+	{
+		"ft ]": "Navigate history forwards",
+	},
+	{
+		"ft [": "Navigate history backwards",
+	},
+	{
+		"ft -hist": "Show directory history with fzf",
+	},
+	{
+		"ft -is": "Show the key associated with CWD",
+	},
+	{
+		"ft -version, -v": "Show current version",
+	},
+	{
+		"ft -update, -u [version][nightly]": "Update fastTravelCLI, optionally specify version or nightly, defaults to latest",
+	},
+	{
+		"ft -help": "Show this help message",
+	},
+}
+
+// Detailed help docs
+
+// TODO
+var DetailedCmdDescriptions = [][]string{
+	{HelpUsageMappings["set"], "A detailed description here"},
+}
+
+var DetailedCmdDescMapping = map[string]string{
+	"-set":     "",
+	"-ls":      "",
+	"-rm":      "",
+	"-rn":      "",
+	"-edit":    "",
+	"-help":    "",
+	"-]":       "",
+	"-[":       "",
+	"-hist":    "",
+	"-..":      "",
+	"--":       "",
+	"-version": "",
+	"-v":       "",
+	"-is":      "",
+	"-update":  "",
+	"-u":       "",
 }
 
 // default value for version
