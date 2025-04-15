@@ -63,82 +63,125 @@ var AvailCmds = map[string]struct {
 }
 
 // Help docs
-var HelpLineStrFormat = "  %-18s %s\n"
+const HelpLineStrFormat = "  %-18s %s\n"
 
-// TODO
-var HelpDescExamples = ""
+const HelpDescExamples = `
+    Examples: 
+	  ft projects                 → cd into the directory saved as 'projects'
+	  ft -set docs=~/Documents    → set key 'docs' to '~/Documents'
+	  ft -rn -y old new           → rename 'old' key to 'new' and skip confirmation prompt
+    `
 
 // TODO
 var HelpUsageMappings = map[string]string{
-	"set": "ft -set [-y] <key>=[path]",
+	"key":     "ft <key>",
+	"set":     "ft -set [-y] <key>=[path]",
+	"ls":      "ft ls",
+	"rm":      "ft -rm [-y] <key>",
+	"rn":      "ft -rn [-y] <key> <new key>",
+	"edit":    "ft -edit [-y] <path> <new dir name>",
+	"]":       "ft ]",
+	"[":       "ft [",
+	"hist":    "ft -hist",
+	"is":      "ft -is",
+	"version": "ft -version, -v",
+	"update":  "ft -update, -u [version][nightly]",
+	"help":    "ft -help",
 }
 
 var CmdDesc = []map[string]string{
 	{
-		"ft <key>": "Change directory to a saved key",
+		HelpUsageMappings["key"]: "Change directory to a saved key",
 	},
 	{
 		HelpUsageMappings["set"]: "Save a key to a path (defaults to CWD if no path)",
 	},
 	{
-		"ft -ls": "List all saved key-path pairs",
+		HelpUsageMappings["ls"]: "List all saved key-path pairs",
 	},
 	{
-		"ft -rm [-y] <key>": "Remove a saved key",
+		HelpUsageMappings["rm"]: "Remove a saved key",
 	},
 	{
-		"ft -rn [-y] <key> <new key>": "Renames an existing key",
+		HelpUsageMappings["rn"]: "Renames an existing key",
 	},
 	{
-		"ft -edit [-y] <path> <new dir name>": "Updates a given directory to it's new name for any key assigned to it or a child directory",
+		HelpUsageMappings["edit"]: "Updates a given directory to it's new name for any key assigned to it or a child directory",
 	},
 	{
-		"ft ]": "Navigate history forwards",
+		HelpUsageMappings["]"]: "Navigate history forwards",
 	},
 	{
-		"ft [": "Navigate history backwards",
+		HelpUsageMappings["["]: "Navigate history backwards",
 	},
 	{
-		"ft -hist": "Show directory history with fzf",
+		HelpUsageMappings["hist"]: "Show directory history with fzf",
 	},
 	{
-		"ft -is": "Show the key associated with CWD",
+		HelpUsageMappings["is"]: "Show the key associated with CWD",
 	},
 	{
-		"ft -version, -v": "Show current version",
+		HelpUsageMappings["version"]: "Show current version",
 	},
 	{
-		"ft -update, -u [version][nightly]": "Update fastTravelCLI, optionally specify version or nightly, defaults to latest",
+		HelpUsageMappings["update"]: "Update fastTravelCLI, optionally specify version or nightly, defaults to latest",
 	},
 	{
-		"ft -help": "Show this help message",
+		HelpUsageMappings["help"]: "Show this help message",
 	},
 }
 
 // Detailed help docs
-
-// TODO
 var DetailedCmdDescriptions = [][]string{
-	{HelpUsageMappings["set"], "A detailed description here"},
+	{HelpUsageMappings["key"],
+		`Description:
+  Changes the current directory to the one associated with the given key.
+
+Examples:
+  ft projects         # cd into the path saved as "projects"
+  ft dev/mytool       # cd into a subdirectory under the "dev" key`},
+
+	{HelpUsageMappings["set"],
+		`Description:
+  Saves a key to a directory path.
+  If no path is specified, the current working directory is used.
+
+Arguments:
+  key         The name to assign the path to.
+  path        (Optional) The path to associate with the key.
+
+Flags:
+  -y    Auto accept confirmation prompt.
+
+Examples:
+  ft -set docs                        # Set "docs" to the current working directory
+  ft -set code=~/Projects             # Set "code" to a specific path
+  ft -set os=~/Projects/opensource    # Set "os" to specified path and auto accept confirmation prompt`},
+	{HelpUsageMappings["ls"],
+		`Description:
+  Lists all saved key-path pairs.`},
 }
 
+const HelpCmdMsg = "Use ft -help information on other commands"
+
 var DetailedCmdDescMapping = map[string]string{
-	"-set":     "",
-	"-ls":      "",
-	"-rm":      "",
-	"-rn":      "",
-	"-edit":    "",
-	"-help":    "",
-	"-]":       "",
-	"-[":       "",
-	"-hist":    "",
-	"-..":      "",
-	"--":       "",
-	"-version": "",
-	"-v":       "",
-	"-is":      "",
-	"-update":  "",
-	"-u":       "",
+	"_":        CreateCmdHelpDoc(DetailedCmdDescriptions[0]),
+	"-set":     CreateCmdHelpDoc(DetailedCmdDescriptions[1]),
+	"-ls":      CreateCmdHelpDoc(DetailedCmdDescriptions[2]),
+	"-rm":      CreateCmdHelpDoc(DetailedCmdDescriptions[3]),
+	"-rn":      CreateCmdHelpDoc(DetailedCmdDescriptions[4]),
+	"-edit":    CreateCmdHelpDoc(DetailedCmdDescriptions[5]),
+	"-]":       CreateCmdHelpDoc(DetailedCmdDescriptions[6]),
+	"-[":       CreateCmdHelpDoc(DetailedCmdDescriptions[7]),
+	"-hist":    CreateCmdHelpDoc(DetailedCmdDescriptions[8]),
+	"-version": CreateCmdHelpDoc(DetailedCmdDescriptions[9]),
+	"-v":       CreateCmdHelpDoc(DetailedCmdDescriptions[9]),
+	"-is":      CreateCmdHelpDoc(DetailedCmdDescriptions[10]),
+	"-update":  CreateCmdHelpDoc(DetailedCmdDescriptions[11]),
+	"-u":       CreateCmdHelpDoc(DetailedCmdDescriptions[11]),
+	"-help":    CreateCmdHelpDoc(DetailedCmdDescriptions[12]),
+	"--":       CreateCmdHelpDoc(DetailedCmdDescriptions[13]),
+	"-..":      CreateCmdHelpDoc(DetailedCmdDescriptions[13]),
 }
 
 // default value for version

@@ -403,11 +403,8 @@ func showHelp(data *CmdAPI) error {
 	for _, cmd := range CmdDesc {
 		printMap(cmd, HelpLineStrFormat)
 	}
+	fmt.Print(HelpDescExamples)
 
-	fmt.Println("\nExamples:")
-	fmt.Println("  ft projects                 → cd into the directory saved as 'projects'")
-	fmt.Println("  ft -set docs=~/Documents    → set key 'docs' to '~/Documents'")
-	fmt.Println("  ft -rn -y old new           → rename 'old' key to 'new' and skip confirmation prompt")
 	return nil
 }
 

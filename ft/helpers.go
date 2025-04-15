@@ -151,3 +151,15 @@ func ParseArgs(args *[]string) *Cmd {
 
 	return cmd
 }
+
+func CreateCmdHelpDoc(DescSlice []string) string {
+	cmd := DescSlice[0]
+	desc := DescSlice[1]
+	return fmt.Sprintf("\nUsage: %s\n\n%s", cmd, desc)
+}
+
+func EnsureLength(actual int, expected int) {
+	if actual != expected {
+		panic(fmt.Sprintf("DetailedCmdDescriptions length expected to be %v, actual %v", expected, actual))
+	}
+}
