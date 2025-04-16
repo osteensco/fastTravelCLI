@@ -175,6 +175,7 @@ func CreateHelpOutput() string {
 		}
 	}
 	output += HelpDescExamples
+	output += "\nFor more detailed help for a specific command, add -h or -help to that command (e.g. ft -set -h)\n"
 
 	return output
 }

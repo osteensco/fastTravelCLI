@@ -117,6 +117,11 @@ ft -u
 ft -help
 # or
 ft -h
+
+# You can get more detailed help with a specific command
+ft -set -help 
+# or 
+ft -set -h
 ```
 *NOTE:* If you run into an error opening the file `fastTravel.bin` you may need to adjust ownership of the fastTravelCLI folder.
 ```bash
