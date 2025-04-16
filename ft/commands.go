@@ -408,7 +408,6 @@ func showHelp(data *CmdAPI) error {
 	} else {
 		fmt.Print(CreateHelpOutput())
 	}
-	fmt.Print(HelpDescExamples)
 
 	return nil
 }
