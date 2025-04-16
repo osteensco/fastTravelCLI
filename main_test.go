@@ -77,15 +77,6 @@ func TestMainFunc(t *testing.T) {
 	cdpath := os.Getenv("CDPATH")
 	err = os.Setenv("CDPATH", fmt.Sprint(cdpathdir, ":", cdpath))
 
-	var expectedHelp string
-	for _, val := range ft.CmdDesc {
-		// TODO
-		// Instead of remaking this string, add a helper function that does it and assign the string to this variable
-		for k, v := range val {
-			expectedHelp += fmt.Sprintf(ft.HelpLineStrFormat, k, v)
-		}
-	}
-
 	// tests
 	tests := []struct {
 		name       string
