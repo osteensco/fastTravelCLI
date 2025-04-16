@@ -114,8 +114,8 @@ func ParseArgs(args *[]string) *Cmd {
 	cmd := NewCmd(args)
 	for i, v := range *args {
 		if i == 0 {
-			// the first arg should always correspond to the shell's function call
-			// we don't explicitly check the function call (default 'ft') since a user could potentially use an alias or wrap it in another call
+			// the first arg should always correspond to the shell's function call (default 'ft')
+			// we don't explicitly check the function call since a user could potentially use an alias or wrap it in another call
 			continue
 		}
 		// command and flags will have the '-' prefix
@@ -125,6 +125,9 @@ func ParseArgs(args *[]string) *Cmd {
 			switch v {
 			case "-y":
 				cmd.Flags.Y = true
+				// while help is a stand alone command, it can be passed as a flag to get detailed help on other commands.
+			case "-h", "-help":
+				cmd.Flags.H = true
 			default:
 				// if not a valid flag, we assume it's a command
 				// validity of command is checked elsewhere
@@ -148,6 +151,11 @@ func ParseArgs(args *[]string) *Cmd {
 			}
 		}
 	}
+	// handle -help as a command
+	if cmd.Flags.H && cmd.Cmd == "" {
+		cmd.Flags.H = false
+		cmd.Cmd = "-help"
+	}
 
 	return cmd
 }
@@ -156,6 +164,27 @@ func CreateCmdHelpDoc(DescSlice []string) string {
 	cmd := DescSlice[0]
 	desc := DescSlice[1]
 	return fmt.Sprintf("\nUsage: %s\n\n%s", cmd, desc)
+}
+
+func CreateHelpOutput() string {
+
+	output := "\nUsage:\n"
+	for _, val := range CmdDesc {
+		for k, v := range val {
+			output += fmt.Sprintf(HelpLineStrFormat, k, v)
+		}
+	}
+	output += HelpDescExamples
+
+	return output
+}
+
+func DisplayDetailedHelp(action string) string {
+	help, ok := DetailedCmdDescMapping[action]
+	if !ok {
+		panic(fmt.Sprintf("Command does not have a DetailedCmdDescMapping - '%s'", action))
+	}
+	return help
 }
 
 func EnsureLength(actual int, expected int) {

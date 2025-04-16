@@ -21,6 +21,7 @@ func NewCmdAPI(ftDir string, inputCmd *Cmd, allPaths map[string]string, file *os
 // struct used to identify flags that were provided with a given command
 type CmdFlags struct {
 	Y bool
+	H bool
 }
 
 // struct used to dissect and organize a command into it's individual components
@@ -86,7 +87,7 @@ var HelpUsageMappings = map[string]string{
 	"is":      "ft -is",
 	"version": "ft -version, -v",
 	"update":  "ft -update, -u [version][nightly]",
-	"help":    "ft -help",
+	"help":    "ft -help, -h [command]",
 }
 
 var CmdDesc = []map[string]string{
@@ -137,6 +138,12 @@ var DetailedCmdDescriptions = [][]string{
 		`Description:
   Changes the current directory to the one associated with the given key.
 
+Accepted Formats for <key>:
+  - A valid saved key
+  - A key/subdir format (e.g., pr/docs/work)
+  - A relative path (e.g., ./mydir)
+  - An absolute path (e.g., /home/user/mydir)
+
 Examples:
   ft projects         # cd into the path saved as "projects"
   ft dev/mytool       # cd into a subdirectory under the "dev" key`},
@@ -151,15 +158,77 @@ Arguments:
   path        (Optional) The path to associate with the key.
 
 Flags:
-  -y    Auto accept confirmation prompt.
+  -y    Skip confirmation prompt.
 
 Examples:
   ft -set docs                        # Set "docs" to the current working directory
   ft -set code=~/Projects             # Set "code" to a specific path
-  ft -set os=~/Projects/opensource    # Set "os" to specified path and auto accept confirmation prompt`},
+  ft -set os=~/Projects/opensource    # Set "os" to specified path without confirmation prompt`},
 	{HelpUsageMappings["ls"],
 		`Description:
   Lists all saved key-path pairs.`},
+	{HelpUsageMappings["rm"],
+		`Description:
+  Deletes a saved key.
+
+Flags:
+  -y    Skip confirmation prompt.
+
+Examples:
+  ft -rm archive       # Prompts for confirmation
+  ft -rm archive -y    # Removes without confirmation`},
+	{HelpUsageMappings["rn"],
+		`Description:
+  Renames an existing key to a new one.
+
+Flags:
+  -y    Skip confirmation prompt.
+
+Examples:
+  ft -rn old new       # "old" is renamed to "new"
+  ft -rn old new -y    # "old" is renamed to "new" without confirmation`},
+	{HelpUsageMappings["edit"],
+		`Description:
+  Renames a directory (and all child directories) associated with a key or path.
+  Updates any keys pointing to subdirectories of the renamed folder.
+
+Accepted Formats for <old>:
+  - A relative path (e.g., ./mydir)
+  - An absolute path (e.g., /home/user/mydir)
+  - A key/subdir format (e.g., projects/docs)
+
+Examples:
+  ft -edit ./api api-v2
+  ft -edit projects/docs documents`},
+	{HelpUsageMappings["]"],
+		`Description:
+  Navigate forward in directory history.`},
+	{HelpUsageMappings["["],
+		`Description:
+  Navigate backward in directory history.`},
+	{HelpUsageMappings["hist"],
+		`Description:
+  Shows an interactive history for fuzzy selection.
+
+Notes:
+  Requires 'fzf' and 'tree' to be installed.`},
+	{HelpUsageMappings["version"],
+		`Description:
+  Displays the current version of fastTravelCLI.`},
+	{HelpUsageMappings["is"],
+		`Description:
+  Displays the key associated with the current working directory, if one exists.`},
+	{HelpUsageMappings["update"],
+		`Description:
+  Updates fastTravelCLI to the latest version.
+  If a version is specified, attempts to install that version.
+  Use "nightly" to install the latest pre-release build.
+
+Examples:
+  ft -update
+  ft -update v.0.2.1
+  ft -update nightly`},
+	{"This is a standard directory navigation command.", "ft can replace cd entirely as it inherits cd's commands."},
 }
 
 const HelpCmdMsg = "Use ft -help information on other commands"
@@ -179,9 +248,8 @@ var DetailedCmdDescMapping = map[string]string{
 	"-is":      CreateCmdHelpDoc(DetailedCmdDescriptions[10]),
 	"-update":  CreateCmdHelpDoc(DetailedCmdDescriptions[11]),
 	"-u":       CreateCmdHelpDoc(DetailedCmdDescriptions[11]),
-	"-help":    CreateCmdHelpDoc(DetailedCmdDescriptions[12]),
-	"--":       CreateCmdHelpDoc(DetailedCmdDescriptions[13]),
-	"-..":      CreateCmdHelpDoc(DetailedCmdDescriptions[13]),
+	"--":       CreateCmdHelpDoc(DetailedCmdDescriptions[12]),
+	"-..":      CreateCmdHelpDoc(DetailedCmdDescriptions[12]),
 }
 
 // default value for version

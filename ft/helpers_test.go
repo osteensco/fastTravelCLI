@@ -23,7 +23,7 @@ func TestPrintMap(t *testing.T) {
 	}
 	os.Stdout = w
 
-	printMap(hashmap, "%s")
+	printMap(hashmap, "\n%s: %s")
 
 	// Use go routine so printing doesn't block program
 	outChan := make(chan string)
@@ -38,7 +38,7 @@ func TestPrintMap(t *testing.T) {
 	os.Stdout = old
 	actual := <-outChan
 
-	expected := "\nkey1: value1\nkey2: value2\n\n"
+	expected := "\nkey1: value1\nkey2: value2"
 	if actual != expected {
 		t.Errorf("Expected %s, got %s", expected, actual)
 	}

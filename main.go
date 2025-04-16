@@ -11,7 +11,7 @@ import (
 // fastTravelCLI main process
 func main() {
 	// assertions
-	ft.EnsureLength(len(ft.DetailedCmdDescriptions), 14)
+	ft.EnsureLength(len(ft.DetailedCmdDescriptions), 13)
 
 	// identify exe path to establish a working directory and find dependency files
 	exePath, err := os.Executable()
@@ -34,6 +34,12 @@ func main() {
 		return
 	}
 	action := inputCommand.Cmd
+
+	// handle showing detailed help
+	if inputCommand.Flags.H {
+		fmt.Println(ft.DisplayDetailedHelp(action))
+		return
+	}
 
 	// grab command from registry
 	cmd, ok := ft.AvailCmds[action]
