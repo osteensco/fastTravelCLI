@@ -77,6 +77,15 @@ func TestMainFunc(t *testing.T) {
 	cdpath := os.Getenv("CDPATH")
 	err = os.Setenv("CDPATH", fmt.Sprint(cdpathdir, ":", cdpath))
 
+	var expectedHelp string
+	for _, val := range ft.CmdDesc {
+		// TODO
+		// Instead of remaking this string, add a helper function that does it and assign the string to this variable
+		for k, v := range val {
+			expectedHelp += fmt.Sprintf(ft.HelpLineStrFormat, k, v)
+		}
+	}
+
 	// tests
 	tests := []struct {
 		name       string
@@ -86,26 +95,9 @@ func TestMainFunc(t *testing.T) {
 		wantErr    bool
 	}{
 		{
-			name: "1. Check help command.",
-			args: []string{"ft", "-help"},
-			// TODO
-			//  - generate this string dynamically?
-			expected: fmt.Sprintf(
-				"\n-edit: %s\n-help: %s\n-hist: %s\n-is: %s\n-ls: %s\n-rm: %s\n-rn: %s\n-set: %s\n-update: %s\n-version: %s\n[: %s\n]: %s\nkey: %s\n\n",
-				ft.CmdDesc["-edit"],
-				ft.CmdDesc["-help"],
-				ft.CmdDesc["-hist"],
-				ft.CmdDesc["-is"],
-				ft.CmdDesc["-ls"],
-				ft.CmdDesc["-rm"],
-				ft.CmdDesc["-rn"],
-				ft.CmdDesc["-set"],
-				ft.CmdDesc["-update"],
-				ft.CmdDesc["-version"],
-				ft.CmdDesc["["],
-				ft.CmdDesc["]"],
-				ft.CmdDesc["key"],
-			),
+			name:     "1. Check help command.",
+			args:     []string{"ft", "-help"},
+			expected: ft.CreateHelpOutput(),
 		},
 		{
 			name:     "2. Check set command.",
@@ -166,6 +158,102 @@ func TestMainFunc(t *testing.T) {
 			name:     "10. Check force set command.",
 			args:     []string{"ft", "-set", "-y", fmt.Sprintf("key=%v", forcedir)},
 			expected: fmt.Sprintf(ft.AddKeyMsg, "key", forcedir),
+			wantErr:  false,
+		},
+		{
+			name:     "11. Check detailed help -key.",
+			args:     []string{"ft", "-h", "somekey"},
+			expected: ft.DisplayDetailedHelp("_") + "\n",
+			wantErr:  false,
+		},
+		{
+			name:     "12. Check detailed help -set.",
+			args:     []string{"ft", "-h", "-set"},
+			expected: ft.DisplayDetailedHelp("-set") + "\n",
+			wantErr:  false,
+		},
+		{
+			name:     "13. Check detailed help -ls.",
+			args:     []string{"ft", "-h", "-ls"},
+			expected: ft.DisplayDetailedHelp("-ls") + "\n",
+			wantErr:  false,
+		},
+		{
+			name:     "14. Check detailed help -rm.",
+			args:     []string{"ft", "-help", "-rm"},
+			expected: ft.DisplayDetailedHelp("-rm") + "\n",
+			wantErr:  false,
+		},
+		{
+			name:     "15. Check detailed help -rn.",
+			args:     []string{"ft", "-help", "-rn"},
+			expected: ft.DisplayDetailedHelp("-rn") + "\n",
+			wantErr:  false,
+		},
+		{
+			name:     "16. Check detailed help -edit.",
+			args:     []string{"ft", "-help", "-edit"},
+			expected: ft.DisplayDetailedHelp("-edit") + "\n",
+			wantErr:  false,
+		},
+		{
+			name:     "17. Check detailed help -].",
+			args:     []string{"ft", "-]", "-h"},
+			expected: ft.DisplayDetailedHelp("-]") + "\n",
+			wantErr:  false,
+		},
+		{
+			name:     "18. Check detailed help -[.",
+			args:     []string{"ft", "-[", "-h"},
+			expected: ft.DisplayDetailedHelp("-[") + "\n",
+			wantErr:  false,
+		},
+		{
+			name:     "19. Check detailed help -hist.",
+			args:     []string{"ft", "-hist", "-h"},
+			expected: ft.DisplayDetailedHelp("-hist") + "\n",
+			wantErr:  false,
+		},
+		{
+			name:     "20. Check detailed help -version.",
+			args:     []string{"ft", "-version", "-help"},
+			expected: ft.DisplayDetailedHelp("-version") + "\n",
+			wantErr:  false,
+		},
+		{
+			name:     "21. Check detailed help -v.",
+			args:     []string{"ft", "-v", "-help"},
+			expected: ft.DisplayDetailedHelp("-v") + "\n",
+			wantErr:  false,
+		},
+		{
+			name:     "22. Check detailed help -is.",
+			args:     []string{"ft", "-is", "-help"},
+			expected: ft.DisplayDetailedHelp("-is") + "\n",
+			wantErr:  false,
+		},
+		{
+			name:     "23. Check detailed help -update.",
+			args:     []string{"ft", "-update", "-help"},
+			expected: ft.DisplayDetailedHelp("-update") + "\n",
+			wantErr:  false,
+		},
+		{
+			name:     "24. Check detailed help -u.",
+			args:     []string{"ft", "-u", "-help"},
+			expected: ft.DisplayDetailedHelp("-u") + "\n",
+			wantErr:  false,
+		},
+		{
+			name:     "25. Check detailed help --.",
+			args:     []string{"ft", "-", "-help"},
+			expected: ft.DisplayDetailedHelp("--") + "\n",
+			wantErr:  false,
+		},
+		{
+			name:     "26. Check detailed help -..",
+			args:     []string{"ft", "..", "-help"},
+			expected: ft.DisplayDetailedHelp("-..") + "\n",
 			wantErr:  false,
 		},
 	}

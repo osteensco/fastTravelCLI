@@ -37,13 +37,15 @@ func PassCmd(args []string) (*Cmd, error) {
 		return nil, errors.New(fmt.Sprintf("%v is not a valid command, use 'ft -h' or 'ft -help' for a list of valid commands", cmd.Cmd))
 	}
 
+	// We don't care about minimum number of args if we're just getting help docs for a command
+	if cmd.Flags.H {
+		return cmd, nil
+	}
+
 	// verify user provided correct minimum number of arguments
 	// too many args will work, any args beyond expected number are simply ignored
 	switch cmd.Cmd {
-	case "-ls", "-]", "-[", "-..", "--", "-hist":
-		return cmd, nil
-	// providing help for a specific command may be needed in the future
-	case "-help", "-h", "-version", "-v", "-is", "-update", "-u":
+	case "-ls", "-]", "-[", "-..", "--", "-hist", "-help", "-h", "-version", "-v", "-is", "-update", "-u":
 		break
 	case "-rn", "-edit":
 		if len(cmd.Args) < 2 {
@@ -245,7 +247,9 @@ func setDirectoryVar(data *CmdAPI) error {
 }
 
 func displayAllPaths(data *CmdAPI) error {
-	printMap(data.allPaths)
+	fmt.Println("")
+	printMap(data.allPaths, "%v: %v\n")
+	fmt.Println("")
 	return nil
 }
 
@@ -397,7 +401,14 @@ func editPath(data *CmdAPI) error {
 }
 
 func showHelp(data *CmdAPI) error {
-	printMap(CmdDesc)
+	// handle edge cases where -help gets picked up as a command but not a flag
+	// if intent is for -h or -help to be a flag, the user wants detailed help docs
+	if len(data.cmd.Args) > 0 {
+		fmt.Println(DisplayDetailedHelp("_"))
+	} else {
+		fmt.Print(CreateHelpOutput())
+	}
+
 	return nil
 }
 
