@@ -63,6 +63,7 @@ var AvailCmds = map[string]struct {
 	"-u":       {updateFT, false},
 }
 
+
 // Help docs
 const HelpLineStrFormat = "  %-18s %s\n"
 
@@ -250,6 +251,7 @@ var DetailedCmdDescMapping = map[string]string{
 	"-u":       CreateCmdHelpDoc(DetailedCmdDescriptions[11]),
 	"--":       CreateCmdHelpDoc(DetailedCmdDescriptions[12]),
 	"-..":      CreateCmdHelpDoc(DetailedCmdDescriptions[12]),
+
 }
 
 // default value for version
