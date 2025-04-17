@@ -193,3 +193,14 @@ func EnsureLength(actual int, expected int) {
 		panic(fmt.Sprintf("DetailedCmdDescriptions length expected to be %v, actual %v", expected, actual))
 	}
 }
+
+func FindUsageMaxLen(usages map[string]string) int {
+	maxLen := 0
+	for _, u := range usages {
+		if len(u) > maxLen {
+			maxLen = len(u)
+		}
+	}
+
+	return maxLen + 2
+}

@@ -1,6 +1,7 @@
 package ft
 
 import (
+	"fmt"
 	"io"
 	"os"
 )
@@ -65,7 +66,7 @@ var AvailCmds = map[string]struct {
 
 
 // Help docs
-const HelpLineStrFormat = "  %-18s %s\n"
+var HelpLineStrFormat = fmt.Sprintf("  %%-%ds %%s\n", FindUsageMaxLen(HelpUsageMappings))
 
 const HelpDescExamples = `
     Examples: 
@@ -74,7 +75,6 @@ const HelpDescExamples = `
 	  ft -rn -y old new           → rename 'old' key to 'new' and skip confirmation prompt
     `
 
-// TODO
 var HelpUsageMappings = map[string]string{
 	"key":     "ft <key>",
 	"set":     "ft -set [-y] <key>=[path]",
@@ -87,7 +87,7 @@ var HelpUsageMappings = map[string]string{
 	"hist":    "ft -hist",
 	"is":      "ft -is",
 	"version": "ft -version, -v",
-	"update":  "ft -update, -u [version][nightly]",
+	"update":  "ft -update, -u [version]",
 	"help":    "ft -help, -h [command]",
 }
 
@@ -126,7 +126,7 @@ var CmdDesc = []map[string]string{
 		HelpUsageMappings["version"]: "Show current version",
 	},
 	{
-		HelpUsageMappings["update"]: "Update fastTravelCLI, optionally specify version or nightly, defaults to latest",
+		HelpUsageMappings["update"]: "Update fastTravelCLI, optionally specify version or 'nightly', defaults to latest stable release",
 	},
 	{
 		HelpUsageMappings["help"]: "Show this help message",
@@ -145,6 +145,9 @@ Accepted Formats for <key>:
   - A relative path (e.g., ./mydir)
   - An absolute path (e.g., /home/user/mydir)
 
+Flags:
+  -h, -help  Show this help message.
+
 Examples:
   ft projects         # cd into the path saved as "projects"
   ft dev/mytool       # cd into a subdirectory under the "dev" key`},
@@ -159,7 +162,8 @@ Arguments:
   path        (Optional) The path to associate with the key.
 
 Flags:
-  -y    Skip confirmation prompt.
+  -y         Skip confirmation prompt.
+  -h, -help  Show this help message.
 
 Examples:
   ft -set docs                        # Set "docs" to the current working directory
@@ -167,13 +171,21 @@ Examples:
   ft -set os=~/Projects/opensource    # Set "os" to specified path without confirmation prompt`},
 	{HelpUsageMappings["ls"],
 		`Description:
-  Lists all saved key-path pairs.`},
+  Lists all saved key-path pairs.
+
+Flags:
+  -h, -help  Show this help message.
+  `},
 	{HelpUsageMappings["rm"],
 		`Description:
   Deletes a saved key.
 
+Arguments:
+  key         The key you wish to remove.
+
 Flags:
   -y    Skip confirmation prompt.
+  -h, -help  Show this help message.
 
 Examples:
   ft -rm archive       # Prompts for confirmation
@@ -182,8 +194,13 @@ Examples:
 		`Description:
   Renames an existing key to a new one.
 
+Arguments:
+  key         The key you wish to rename.
+  new key     The name you wish to rename the key to.
+
 Flags:
   -y    Skip confirmation prompt.
+  -h, -help  Show this help message.
 
 Examples:
   ft -rn old new       # "old" is renamed to "new"
@@ -193,37 +210,65 @@ Examples:
   Renames a directory (and all child directories) associated with a key or path.
   Updates any keys pointing to subdirectories of the renamed folder.
 
-Accepted Formats for <old>:
+Arguments:
+  path          The path to the directory that needs to be renamed.
+  new dir name  The new name of the directory.
+
+Accepted Formats for <path>:
   - A relative path (e.g., ./mydir)
   - An absolute path (e.g., /home/user/mydir)
   - A key/subdir format (e.g., projects/docs)
+
+Flags:
+  -y    Skip confirmation prompt.
+  -h, -help  Show this help message.
 
 Examples:
   ft -edit ./api api-v2
   ft -edit projects/docs documents`},
 	{HelpUsageMappings["]"],
 		`Description:
-  Navigate forward in directory history.`},
+  Navigate forward in directory history.
+Flags:
+  -h, -help  Show this help message.`},
 	{HelpUsageMappings["["],
 		`Description:
-  Navigate backward in directory history.`},
+  Navigate backward in directory history.
+
+Flags:
+  -h, -help  Show this help message.`},
 	{HelpUsageMappings["hist"],
 		`Description:
   Shows an interactive history for fuzzy selection.
+
+Flags:
+  -h, -help  Show this help message.
 
 Notes:
   Requires 'fzf' and 'tree' to be installed.`},
 	{HelpUsageMappings["version"],
 		`Description:
-  Displays the current version of fastTravelCLI.`},
+  Displays the current version of fastTravelCLI.
+
+Flags:
+  -h, -help  Show this help message.`},
 	{HelpUsageMappings["is"],
 		`Description:
-  Displays the key associated with the current working directory, if one exists.`},
+  Displays the key associated with the current working directory, if one exists.
+
+Flags:
+  -h, -help  Show this help message.`},
 	{HelpUsageMappings["update"],
 		`Description:
-  Updates fastTravelCLI to the latest version.
+  Updates fastTravelCLI to the latest version if version is unspecified.
   If a version is specified, attempts to install that version.
   Use "nightly" to install the latest pre-release build.
+
+Arguments:
+  version         The version to update to. Must be either 'nightly' or have format v.n.n.n.
+
+Flags:
+  -h, -help  Show this help message.
 
 Examples:
   ft -update
