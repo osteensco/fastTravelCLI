@@ -81,6 +81,7 @@ func TestMainFunc(t *testing.T) {
 	tests := []struct {
 		name       string
 		args       []string
+		hook       func()
 		pipedInput string
 		expected   string
 		wantErr    bool
@@ -105,7 +106,7 @@ func TestMainFunc(t *testing.T) {
 		{
 			name:     "4. Check cd command with bad key.",
 			args:     []string{"ft", "badkey"},
-			expected: fmt.Sprintf(ft.UnrecognizedKeyMsg, "badkey"),
+			expected: "\nfastTravelCLI returned an error:  " + fmt.Sprintf(ft.UnrecognizedKeyMsg, "badkey") + "\n",
 			wantErr:  false,
 		},
 		{
@@ -134,11 +135,29 @@ func TestMainFunc(t *testing.T) {
 			wantErr:    false,
 		},
 		{
-			name:       "9. Check set command with multiple args piped in using various seperators.",
-			args:       []string{"ft", "-set"},
-			pipedInput: fmt.Sprintf("pipekey1=%v/pipedtest/one\npipekey2=%v/pipedtest/two pipekey3='%v/pipe test/three'", tmpdir, tmpdir, tmpdir),
+			name: "9. Check set command with multiple args piped in using various seperators.",
+			args: []string{"ft", "-set"},
+			hook: func() {
+				err := os.Mkdir(fmt.Sprintf("%v/pipedtest", tmpdir), 0777)
+				if err != nil {
+					t.Fatalf("Failed to create temp dir: %v", err)
+				}
+				err = os.Mkdir(fmt.Sprintf("%v/pipedtest/one", tmpdir), 0777)
+				if err != nil {
+					t.Fatalf("Failed to create temp dir: %v", err)
+				}
+				err = os.Mkdir(fmt.Sprintf("%v/pipedtest/two", tmpdir), 0777)
+				if err != nil {
+					t.Fatalf("Failed to create temp dir: %v", err)
+				}
+				err = os.Mkdir(fmt.Sprintf("%v/pipedtest/three", tmpdir), 0777)
+				if err != nil {
+					t.Fatalf("Failed to create temp dir: %v", err)
+				}
+			},
+			pipedInput: fmt.Sprintf("pipekey1=%v/pipedtest/one\npipekey2=%v/pipedtest/two pipekey3='%v/pipedtest/three'", tmpdir, tmpdir, tmpdir),
 			expected: fmt.Sprintf(
-				"Added destination 'pipekey1': '%v/pipedtest/one'. \nAdded destination 'pipekey2': '%v/pipedtest/two'. \nAdded destination 'pipekey3': '%v/pipe test/three'. \n",
+				"Added destination 'pipekey1': '%v/pipedtest/one'. \nAdded destination 'pipekey2': '%v/pipedtest/two'. \nAdded destination 'pipekey3': '%v/pipedtest/three'. \n",
 				tmpdir,
 				tmpdir,
 				tmpdir,
@@ -305,6 +324,10 @@ func TestMainFunc(t *testing.T) {
 			t.Errorf("WriteString failed: %v", err)
 		}
 		stdinWriter.Close()
+
+		if tt.hook != nil {
+			tt.hook()
+		}
 
 		main()
 

@@ -64,7 +64,6 @@ var AvailCmds = map[string]struct {
 	"-u":       {updateFT, false},
 }
 
-
 // Help docs
 var HelpLineStrFormat = fmt.Sprintf("  %%-%ds %%s\n", FindUsageMaxLen(HelpUsageMappings))
 
@@ -296,7 +295,6 @@ var DetailedCmdDescMapping = map[string]string{
 	"-u":       CreateCmdHelpDoc(DetailedCmdDescriptions[11]),
 	"--":       CreateCmdHelpDoc(DetailedCmdDescriptions[12]),
 	"-..":      CreateCmdHelpDoc(DetailedCmdDescriptions[12]),
-
 }
 
 // default value for version
@@ -319,7 +317,7 @@ var UPDATEMOCK bool = false
 // user messages
 const (
 	InvalidDirectoryMsg       = "Provided path '%s' evaluates to '%s' which is not a valid directory. Use 'ft -ls' to see all saved destinations. \n"
-	UnrecognizedKeyMsg        = "Did not recognize key or relative path '%s', use 'ft -ls' to see all saved destinations. \n"
+	UnrecognizedKeyMsg        = "Did not recognize key or relative path '%s', use 'ft -ls' to see all saved destinations. "
 	PathAlreadyExistsMsg      = "Path '%s' already exists with key '%s', overwrite key '%s'? (y/n) \n"
 	AbortedOverwriteKeyMsg    = "Aborted overwriting of key '%s'. \n"
 	PathOverwriteMsg          = "The value of key '%s' has been overwritten and is now '%s'. \n"
