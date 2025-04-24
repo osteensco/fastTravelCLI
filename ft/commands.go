@@ -60,15 +60,16 @@ func PassCmd(args []string) (*Cmd, error) {
 	return cmd, nil
 }
 
-// Takes a key or relative path and returns it's full explict path or an error.
-func evalPath(data *CmdAPI) (string, error) {
+// Takes a key or relative path and returns it's absolute path or an error.
+// Path is a seperate argument to handle evaluating many paths as part of a loop.
+func evalPath(data *CmdAPI, path *string) (string, error) {
 
 	// TODO
 	//  - check for SPECIFIC errors in directory checks (ex: *PathError)
 	//  - ensure other types of errors are caught and returned early
 
 	var key string
-	provided_string := data.cmd.Args[0]
+	provided_string := *path
 
 	if strings.Contains(provided_string, "/") {
 
@@ -93,13 +94,11 @@ func evalPath(data *CmdAPI) (string, error) {
 		dir, err := os.Stat(path)
 		if err == nil {
 			if dir.IsDir() {
-				return fmt.Sprintf("%s\n", path), nil
+				return fmt.Sprintf("%s", path), nil
 			}
 		}
 
-		// TODO
-		// - this should return an error instead
-		return fmt.Sprintf(InvalidDirectoryMsg, provided_string, path), nil
+		return "", errors.New(fmt.Sprintf(InvalidDirectoryMsg, provided_string, path))
 
 	} else {
 
@@ -116,7 +115,7 @@ func evalPath(data *CmdAPI) (string, error) {
 					if err != nil {
 						return "", err
 					}
-					return fmt.Sprintf("%s\n", p), nil
+					return fmt.Sprintf("%s", p), nil
 				}
 			}
 
@@ -128,16 +127,16 @@ func evalPath(data *CmdAPI) (string, error) {
 					cdPathResult := filepath.Join(path, key)
 					dir, err := os.Stat(cdPathResult)
 					if err == nil && dir.IsDir() {
-						return fmt.Sprintf("%s\n", cdPathResult), nil
+						return fmt.Sprintf("%s", cdPathResult), nil
 					}
 				}
 			}
 
-			return fmt.Sprintf(UnrecognizedKeyMsg, key), nil
+			return "", errors.New(fmt.Sprintf(UnrecognizedKeyMsg, key))
 
 		}
 
-		return fmt.Sprintf("%s\n", p), nil
+		return fmt.Sprintf("%s", p), nil
 
 	}
 }
@@ -145,8 +144,8 @@ func evalPath(data *CmdAPI) (string, error) {
 // changeDirectory can handle key lookup, relative paths, directories in CDPATH, and key evaluation.
 func changeDirectory(data *CmdAPI) error {
 
-	path, err := evalPath(data)
-	fmt.Print(path)
+	path, err := evalPath(data, &data.cmd.Args[0])
+	fmt.Println(path)
 	return err
 
 }
@@ -166,17 +165,19 @@ func setDirectoryVar(data *CmdAPI) error {
 		var path string
 		var err error
 
-		// if not key not explicitly set to a directory, assume user is trying to set key to CWD
+		// when key is not explicitly set to a directory, assume user is trying to set key to CWD
+		// key, value pairs are expected to be in the format key=value space delimited
 		if strings.Contains(arg, "=") {
 			pair := make([]string, 2)
 			pair = strings.Split(arg, "=")
 			key, path = pair[0], pair[1]
+			path, err = evalPath(data, &path)
 		} else {
 			key = arg
 			path, err = os.Getwd()
-			if err != nil {
-				return err
-			}
+		}
+		if err != nil {
+			return err
 		}
 
 		// verify if path is already saved to another key
@@ -329,24 +330,22 @@ func renameKey(data *CmdAPI) error {
 }
 
 // Edits a saved path matching a specific prefix to the given new directory name.
-// Path provided can be explicit, another key, a sub directory of a key, or relative path.
+// Path provided can be absolute, another key, a sub directory of a key, or relative path.
 //
-// Path is evaluated to explicit path to ensure replacement accuracy.
+// Path is evaluated to absolute path to ensure replacement accuracy.
 // Simple substring replacement would lead to erroneous results
 // i.e. ft -edit something different
 // This would update mydir/something/project1 and mydir/something/project2
 // but erroneously updates myotherdir/important_project/something
 // ft -edit mydir/something different
-// Using explicit path (or evaluated path) avoids this problem.
+// Using absolute (or evaluated path) avoids this problem.
 func editPath(data *CmdAPI) error {
 
 	// evaluate path to handle relative path, CDPATH, other keys, etc
-	path, err := evalPath(data)
+	path, err := evalPath(data, &data.cmd.Args[0])
 	// handle directory name changed on machine prior to updating fastTravelCLI
 	if path == fmt.Sprintf(InvalidDirectoryMsg, data.cmd.Args[0], data.cmd.Args[0]) {
 		path = data.cmd.Args[0]
-	} else {
-		path = strings.TrimSuffix(path, "\n")
 	}
 	if err != nil {
 		return err

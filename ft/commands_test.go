@@ -96,6 +96,8 @@ func TestChangeDirectory(t *testing.T) {
 		name     string
 		command  Cmd
 		expected string
+		wantErr  bool
+		err      string
 		allPaths map[string]string
 		file     *os.File
 		rdr      io.Reader
@@ -123,7 +125,9 @@ func TestChangeDirectory(t *testing.T) {
 		{
 			name:     "3. Invalid key provided.",
 			command:  Cmd{Cmd: "_", Args: []string{"testKye"}},
-			expected: fmt.Sprintf(UnrecognizedKeyMsg, "testKye"),
+			expected: "\n",
+			wantErr:  true,
+			err:      fmt.Sprintf(UnrecognizedKeyMsg, "testKye"),
 			allPaths: map[string]string{
 				"testKey": tmpdir,
 			},
@@ -133,7 +137,9 @@ func TestChangeDirectory(t *testing.T) {
 		{
 			name:     "4. Invalid key provided, evaluate path.",
 			command:  Cmd{Cmd: "_", Args: []string{"testKye/subdir"}},
-			expected: fmt.Sprintf(InvalidDirectoryMsg, "testKye/subdir", "testKye/subdir"),
+			expected: "\n",
+			wantErr:  true,
+			err:      fmt.Sprintf(InvalidDirectoryMsg, "testKye/subdir", "testKye/subdir"),
 			allPaths: map[string]string{
 				"testKey": tmpdir,
 			},
@@ -156,16 +162,12 @@ func TestChangeDirectory(t *testing.T) {
 		stderr := os.Stderr
 		r, w, err := os.Pipe()
 		if err != nil {
-			fmt.Println(tt.name)
 			t.Error("Error establishing pipe.")
 		}
 		os.Stdout = w
 		os.Stderr = w
 		err = changeDirectory(data)
-		if err != nil {
-			fmt.Println(tt.name)
-			t.Error(err)
-		}
+
 		// Use go routine so printing doesn't block program
 		outChan := make(chan string)
 		go func() {
@@ -178,6 +180,17 @@ func TestChangeDirectory(t *testing.T) {
 		os.Stdout = stdout
 		os.Stderr = stderr
 		actual := <-outChan
+
+		if tt.wantErr {
+			if err == nil {
+				t.Error("expected the following error but did not get it - ", tt.err)
+			}
+			if tt.err != err.Error() {
+				t.Errorf("Expected error: %q, got: %q", tt.err, err)
+			}
+		} else if err != nil {
+			t.Error(err)
+		}
 
 		if actual != tt.expected {
 			t.Errorf("Expected: %q, got: %q", tt.expected, actual)
@@ -276,9 +289,26 @@ func TestSetDirectoryVar(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	// reltmpdir for testing relative pathing
+	reltmpdir, err := os.MkdirTemp(workdir, "testdata")
+	if err != nil {
+		t.Fatalf("Failed to create temp dir: %v", err)
+	}
+	reltmpdir, err = filepath.EvalSymlinks(reltmpdir)
+	if err != nil {
+		t.Fatalf("Failed to create temp dir: %v", err)
+	}
+	reltmpdir = strings.Trim(reltmpdir, " ")
+	reltmpdir, err = filepath.Rel(workdir, reltmpdir)
+	if err != nil {
+		t.Fatalf("Failed to create temp dir: %v", err)
+	}
+	defer os.RemoveAll(reltmpdir)
+
 	tests := []struct {
 		name     string
 		command  *Cmd
+		hook     func()
 		key      string
 		_map     map[string]string
 		input    string
@@ -324,8 +354,14 @@ func TestSetDirectoryVar(t *testing.T) {
 			expected: workdir,
 		},
 		{
-			name:     "6. Set key for a path with a space in it.",
-			command:  &Cmd{Cmd: "-set", Args: []string{fmt.Sprintf("testKey6=%v/some dir", tmpdir)}},
+			name:    "6. Set key for a path with a space in it.",
+			command: &Cmd{Cmd: "-set", Args: []string{fmt.Sprintf("testKey6=%v/some dir", tmpdir)}},
+			hook: func() {
+				err := os.Mkdir(fmt.Sprintf("%v/some dir", tmpdir), 0777)
+				if err != nil {
+					t.Fatalf("Failed to create temp dir: %v", err)
+				}
+			},
 			key:      "testKey6",
 			_map:     map[string]string{},
 			expected: fmt.Sprintf("%v/some dir", tmpdir),
@@ -343,6 +379,13 @@ func TestSetDirectoryVar(t *testing.T) {
 			key:      "testKey8",
 			_map:     map[string]string{"testKey8": workdir},
 			expected: tmpdir,
+		},
+		{
+			name:     "9. Force set key to a relative path.",
+			command:  &Cmd{Cmd: "-set", Args: []string{fmt.Sprintf("testKey8=%s", reltmpdir)}, Flags: CmdFlags{Y: true}},
+			key:      "testKey8",
+			_map:     map[string]string{"testKey8": tmpdir},
+			expected: workdir + "/" + reltmpdir,
 		},
 	}
 
@@ -376,10 +419,15 @@ func TestSetDirectoryVar(t *testing.T) {
 		r, w, _ := os.Pipe()
 		os.Stdout = w
 
+		if tt.hook != nil {
+			tt.hook()
+		}
+
 		err := setDirectoryVar(data)
 		if err != nil {
 			t.Error(err)
 		}
+
 		w.Close()
 
 		os.Stdin = stdin
@@ -394,7 +442,7 @@ func TestSetDirectoryVar(t *testing.T) {
 		t.Log(output.String())
 
 		if data.allPaths[tt.key] != tt.expected {
-			t.Errorf("Expected key 'testKey' to have value %s, got %s", tt.expected, data.allPaths[tt.key])
+			t.Errorf("Expected key 'testKey' to have value %q, got %q", tt.expected, data.allPaths[tt.key])
 		}
 
 		file, err := os.Open(tmpfile.Name())
@@ -408,7 +456,7 @@ func TestSetDirectoryVar(t *testing.T) {
 			t.Error(err)
 		}
 		if result[tt.key] != tt.expected {
-			t.Errorf("Expected file to have key 'testKey' with value %s, got %s", tt.expected, result[tt.key])
+			t.Errorf("Expected file to have key 'testKey' with value %q, got %q", tt.expected, result[tt.key])
 		}
 	}
 }
@@ -1086,12 +1134,14 @@ func TestEvalPath(t *testing.T) {
 		name     string
 		command  *Cmd
 		expected string
+		wantErr  bool
+		err      string
 		allPaths map[string]string
 	}{
 		{
 			name:     "1. Valid key provided, standalone.",
 			command:  &Cmd{Cmd: "_", Args: []string{"testKey"}},
-			expected: fmt.Sprintln(tmpdir),
+			expected: tmpdir,
 			allPaths: map[string]string{
 				"testKey": tmpdir,
 			},
@@ -1099,7 +1149,7 @@ func TestEvalPath(t *testing.T) {
 		{
 			name:     "2. Valid key provided, evaluate path.",
 			command:  &Cmd{Cmd: "_", Args: []string{"testKey/subdir"}},
-			expected: fmt.Sprintln(tmpdir2),
+			expected: tmpdir2,
 			allPaths: map[string]string{
 				"testKey": tmpdir,
 			},
@@ -1107,7 +1157,9 @@ func TestEvalPath(t *testing.T) {
 		{
 			name:     "3. Invalid key provided.",
 			command:  &Cmd{Cmd: "_", Args: []string{"testKye"}},
-			expected: fmt.Sprintf(UnrecognizedKeyMsg, "testKye"),
+			expected: "",
+			wantErr:  true,
+			err:      fmt.Sprintf(UnrecognizedKeyMsg, "testKye"),
 			allPaths: map[string]string{
 				"testKey": tmpdir,
 			},
@@ -1115,7 +1167,9 @@ func TestEvalPath(t *testing.T) {
 		{
 			name:     "4. Invalid key provided, evaluate path.",
 			command:  &Cmd{Cmd: "_", Args: []string{"testKye/subdir"}},
-			expected: fmt.Sprintf(InvalidDirectoryMsg, "testKye/subdir", "testKye/subdir"),
+			expected: "",
+			wantErr:  true,
+			err:      fmt.Sprintf(InvalidDirectoryMsg, "testKye/subdir", "testKye/subdir"),
 			allPaths: map[string]string{
 				"testKey": tmpdir,
 			},
@@ -1132,9 +1186,15 @@ func TestEvalPath(t *testing.T) {
 			nil,
 		)
 
-		actual, err := evalPath(data)
-		if err != nil {
-			fmt.Println(tt.name)
+		actual, err := evalPath(data, &data.cmd.Args[0])
+		if tt.wantErr {
+			if err == nil {
+				t.Error("expected the following error but did not get it - ", tt.err)
+			}
+			if tt.err != err.Error() {
+				t.Errorf("Expected error: %q, got: %q", tt.err, err)
+			}
+		} else if err != nil {
 			t.Error(err)
 		}
 
