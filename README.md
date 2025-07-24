@@ -14,8 +14,9 @@
 
 fastTravelCLI is a fast, lightweight, and feature rich CD command replacement.
 
-Typing out a long directory path can be a bit painful. Most tools that solve this problem give you less to type but still involve additional steps afterwards. 
-fastTravelCLI allows you to easily save destinations as key-value pairs, and provides simple commands to manage your keys.
+Typing out a long directory path can be a bit painful. 
+fastTravelCLI provides robust bookmarking capabilities, navigation history and more.
+
 
 fastTravelCLI is being continuously improved, check out the issues for new features, support, and integrations in the works. 
 Specifically, a fallback matching algorithm is in development for users that want a more automated experience.
