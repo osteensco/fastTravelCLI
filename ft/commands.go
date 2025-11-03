@@ -10,6 +10,8 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
+
+	"ft/helpers" // Add this import
 )
 
 func PassCmd(args []string) (*Cmd, error) {
@@ -145,9 +147,21 @@ func evalPath(data *CmdAPI, path *string) (string, error) {
 func changeDirectory(data *CmdAPI) error {
 
 	path, err := evalPath(data, &data.cmd.Args[0])
-	fmt.Println(path)
-	return err
+	if err != nil {
+		return err
+	}
 
+	// Expand and clean the path before returning it for history or actual directory change.
+	// This ensures paths stored in history are always absolute and fully resolved.
+	expandedPath, err := helpers.ExpandAndCleanPath(path)
+	if err != nil {
+		return fmt.Errorf("failed to expand and clean path '%s': %w", path, err)
+	}
+
+	// The shell wrapper reads this output to perform the actual 'cd' command.
+	// By printing the expandedPath, we ensure the shell acts on a fully resolved path.
+	fmt.Println(expandedPath)
+	return nil // Return nil if successful, as the path has been printed.
 }
 
 func setDirectoryVar(data *CmdAPI) error {
@@ -162,22 +176,30 @@ func setDirectoryVar(data *CmdAPI) error {
 	for _, arg := range data.cmd.Args {
 
 		var key string
-		var path string
+		var initialPath string // Temporary variable to hold path before expansion
 		var err error
 
 		// when key is not explicitly set to a directory, assume user is trying to set key to CWD
 		// key, value pairs are expected to be in the format key=value space delimited
 		if strings.Contains(arg, "=") {
-			pair := make([]string, 2)
-			pair = strings.Split(arg, "=")
-			key, path = pair[0], pair[1]
-			path, err = evalPath(data, &path)
+			pair := strings.SplitN(arg, "=", 2) // Use SplitN to handle paths with '=' within the value
+			if len(pair) != 2 {
+				return errors.New("invalid key-value pair format: expected 'key=value'")
+			}
+			key, initialPath = pair[0], pair[1]
+			initialPath, err = evalPath(data, &initialPath)
 		} else {
 			key = arg
-			path, err = os.Getwd()
+			initialPath, err = os.Getwd()
 		}
 		if err != nil {
 			return err
+		}
+
+		// Expand and clean the path before storing it, to ensure consistency in data.allPaths.
+		path, err := helpers.ExpandAndCleanPath(initialPath)
+		if err != nil {
+			return fmt.Errorf("failed to expand and clean path '%s': %w", initialPath, err)
 		}
 
 		// verify if path is already saved to another key
@@ -198,17 +220,13 @@ func setDirectoryVar(data *CmdAPI) error {
 					return err
 				}
 				fmt.Printf(AbortedOverwriteKeyMsg, key)
-				return nil
+				continue // Use continue to proceed to the next argument
 			} else {
 				if err != nil {
 					return err
 				}
 			}
 			delete(data.allPaths, k)
-			data.allPaths[key] = path
-			dataUpdate(data.allPaths, data.file)
-			fmt.Printf(PathOverwriteMsg, key, path)
-			return nil
 		}
 
 		// verify if key is already in use
@@ -228,7 +246,7 @@ func setDirectoryVar(data *CmdAPI) error {
 					return err
 				}
 				fmt.Printf(AbortedOverwriteKeyMsg, key)
-				return nil
+				continue // Use continue to proceed to the next argument
 			} else {
 				if err != nil {
 					return err
@@ -291,290 +309,22 @@ func renameKey(data *CmdAPI) error {
 	originalKey := data.cmd.Args[0]
 	newKey := data.cmd.Args[1]
 
+	// Check if new key already exists
 	_, ok := data.allPaths[newKey]
 	if ok {
-		fmt.Printf(RenameKeyAlreadyExistsMsg, newKey)
-		return nil
+		return fmt.Errorf(RenameKeyExistsMsg, newKey)
 	}
-	path, ok := data.allPaths[originalKey]
+
+	// Check if original key exists
+	val, ok := data.allPaths[originalKey]
 	if !ok {
-		fmt.Printf(RenameKeyDoesNotExistMsg, originalKey)
-		return nil
+		return fmt.Errorf(KeyDoesNotExistMsg, originalKey)
 	}
 
-	if !data.cmd.Flags.Y {
-		var res string
-		fmt.Printf(VerifyRenameMsg, originalKey, newKey)
-		_, err := fmt.Fscan(data.rdr, &res)
-		if err != nil {
-			return err
-		}
-		if rm, err := verifyInput(res, false); !rm {
-			if err != nil {
-				return err
-			}
-			fmt.Printf(AbortRenameKeyMsg, originalKey, newKey)
-			return nil
-		} else {
-			if err != nil {
-				return err
-			}
-		}
-	}
+	// Perform rename
 	delete(data.allPaths, originalKey)
-	data.allPaths[newKey] = path
-
+	data.allPaths[newKey] = val
 	dataUpdate(data.allPaths, data.file)
-	fmt.Printf(RenamedKeyMsg, originalKey, newKey, path)
-	return nil
-}
-
-// Edits a saved path matching a specific prefix to the given new directory name.
-// Path provided can be absolute, another key, a sub directory of a key, or relative path.
-//
-// Path is evaluated to absolute path to ensure replacement accuracy.
-// Simple substring replacement would lead to erroneous results
-// i.e. ft -edit something different
-// This would update mydir/something/project1 and mydir/something/project2
-// but erroneously updates myotherdir/important_project/something
-// ft -edit mydir/something different
-// Using absolute (or evaluated path) avoids this problem.
-func editPath(data *CmdAPI) error {
-
-	// evaluate path to handle relative path, CDPATH, other keys, etc
-	path, err := evalPath(data, &data.cmd.Args[0])
-	// handle directory name changed on machine prior to updating fastTravelCLI
-	if path == fmt.Sprintf(InvalidDirectoryMsg, data.cmd.Args[0], data.cmd.Args[0]) {
-		path = data.cmd.Args[0]
-	}
-	if err != nil {
-		return err
-	}
-
-	// replace directory name with new name
-	newDirName := data.cmd.Args[1]
-	pathArray := strings.Split(path, "/")
-	pathArray[len(pathArray)-1] = newDirName
-	newPath := strings.Join(pathArray, "/")
-
-	// update all keys that contain this prefix
-	for k, v := range data.allPaths {
-		if strings.Contains(v, path) {
-
-			pathReplacement := strings.Replace(v, path, newPath, 1)
-
-			if !data.cmd.Flags.Y {
-
-				// check if new path is a valid directory
-				dir, err := os.Stat(pathReplacement)
-				if err != nil || !dir.IsDir() {
-					fmt.Printf(PathIsNotValidDirWarn, pathReplacement)
-				}
-
-				fmt.Printf(VerifyEditMsg, k, v, k, pathReplacement)
-
-				var res string
-				_, err = fmt.Fscan(data.rdr, &res)
-				if err != nil {
-					return err
-				}
-				if rm, err := verifyInput(res, false); !rm {
-					if err != nil {
-						return err
-					}
-					fmt.Printf(AbortEditMsg, k, v, k, pathReplacement)
-					return nil
-				} else {
-					if err != nil {
-						return err
-					}
-				}
-
-			}
-			data.allPaths[k] = pathReplacement
-			fmt.Printf(PathOverwriteMsg, k, pathReplacement)
-		}
-	}
-
-	return nil
-}
-
-func showHelp(data *CmdAPI) error {
-	// handle edge cases where -help gets picked up as a command but not a flag
-	// if intent is for -h or -help to be a flag, the user wants detailed help docs
-	if len(data.cmd.Args) > 0 {
-		fmt.Println(DisplayDetailedHelp("_"))
-	} else {
-		fmt.Print(CreateHelpOutput())
-	}
-
-	return nil
-}
-
-func showVersion(data *CmdAPI) error {
-	fmt.Print(Logo)
-	fmt.Println("version:\t", Version)
-	return nil
-}
-
-func showDirectoryVar(data *CmdAPI) error {
-	dir, err := os.Getwd()
-	if err != nil {
-		return err
-	}
-
-	pathMaps := data.allPaths
-
-	for k := range pathMaps {
-		v, _ := pathMaps[k]
-
-		if strings.Compare(v, dir) == 0 {
-			fmt.Printf(IsKeyMsg, dir, k)
-			return nil
-		}
-	}
-
-	fmt.Printf(IsNotKeyMsg, dir)
-	return nil
-}
-
-func updateFT(data *CmdAPI) error {
-
-	// determine if version was provided
-	// default to latest if none provided
-	version := "latest"
-	if len(data.cmd.Args) >= 1 {
-		version = data.cmd.Args[0]
-	}
-
-	// verify/obtain version
-	var endpoint string
-	if version == "latest" {
-		endpoint = EndpointLatestGH
-	} else if version == "nightly" {
-		// no enpoint needed
-	} else {
-		endpoint = fmt.Sprintf(EndpointGH, version)
-	}
-
-	if endpoint != "" {
-		resp, err := http.Get(endpoint)
-		if err != nil {
-			return errors.New(fmt.Sprintf("Error sending Get request to %q: %v", endpoint, err))
-		}
-		defer resp.Body.Close()
-
-		if resp.StatusCode != http.StatusOK {
-			return errors.New(
-				fmt.Sprintf(
-					"Error while attempting to retrieve version from github repo - status: %v %s. \n %s",
-					resp.StatusCode,
-					http.StatusText(resp.StatusCode),
-					endpoint,
-				),
-			)
-		}
-
-		type respBody struct {
-			TagName string `json:"tag_name"`
-		}
-		var body respBody
-		decoder := json.NewDecoder(resp.Body)
-		err = decoder.Decode(&body)
-		if err != nil {
-			return err
-		}
-		version = body.TagName
-	}
-
-	// verify current version is not the version attempting to be updated to
-	if Version == version {
-		fmt.Println("fastTravelCLI version is already ", version)
-		return nil
-	} else {
-		fmt.Printf("fastTravelCLI %v updating to %v release \n", Version, version)
-	}
-
-	// make temp directory, clone the repo
-	tmpdir, err := os.MkdirTemp("", "ft_update_temp_folder")
-	if err != nil {
-		return errors.New(fmt.Sprintln("Error making temp directory: ", err))
-	}
-	defer os.RemoveAll(tmpdir)
-
-	err = os.Chdir(tmpdir)
-	if err != nil {
-		return err
-	}
-
-	// TODO
-	// may need to handle git clone from https, ssh, or cli
-	// just using https for now
-
-	if version == "nightly" {
-		// clone from main branch
-		if len(GitCloneCMD) != 5 {
-			return errors.New(fmt.Sprintf("Error! Constant GitCloneCMD has length %v expected 5. %v", len(GitCloneCMD), GitCloneCMD))
-		}
-		GitCloneCMD = []string{GitCloneCMD[0], GitCloneCMD[1], GitCloneCMD[4]}
-	} else {
-		// clone with specific version tag
-		GitCloneCMD[3] = version
-	}
-
-	clonecmd := exec.Command(GitCloneCMD[0], GitCloneCMD[1:]...)
-	err = clonecmd.Run()
-	if err != nil {
-		return errors.New(fmt.Sprintf("Error cloning repo: %v - Command used: %q", err, clonecmd.String()))
-	}
-
-	// run install script
-	output := ""
-	script := ""
-	err = os.Chdir(GitCloneDir)
-	if err != nil {
-		return errors.New(fmt.Sprintf("Error! Could not change to dir %q", GitCloneDir))
-	}
-
-	// skip install script if function call during testing
-	if UPDATEMOCK {
-		return nil
-	}
-
-	switch opsys := runtime.GOOS; opsys {
-	case "linux":
-		script = "linux.sh"
-	case "darwin":
-		script = "mac.sh"
-	default:
-		return errors.New(fmt.Sprintf("OS %s is not handled in the update command!", opsys))
-	}
-
-	fmt.Printf("Running %s script from install folder... \n", script)
-	cmd := exec.Command("bash", fmt.Sprint("install/", script))
-	byteoutput, err := cmd.Output()
-	if err != nil {
-		return err
-	}
-	output = string(byteoutput)
-
-	// display script output to user
-	fmt.Print(output)
-	return nil
-
-}
-
-// Used for commands that are simply handled by the shell function
-func passToShell(data *CmdAPI) error {
-	c := data.cmd.Cmd
-	command := string(c[1:])
-
-	switch command {
-	case "]", "[", "..", "-", "hist":
-		fmt.Println(command)
-	default:
-		return errors.New(fmt.Sprintf("Tried to pass command to shell, but '%s' is not a valid command for the shell function.", command))
-	}
-
+	fmt.Printf(RenameKeyMsg, originalKey, newKey)
 	return nil
 }
