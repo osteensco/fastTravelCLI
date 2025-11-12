@@ -45,41 +45,38 @@ Fuzzy finding features require [tree](https://github.com/Old-Man-Programmer/tree
 
 
 ```bash
-# Go to a directory you would like to set a waypoint for and run 
+# Go to a directory you would like to add a bookmark for and run 
 ft -set [key]
 
 
 # You can also explicitly set a key to a directory, or set multiple at once
-ft -set key1=some/sub/dir key2=some/other/dir
+ft -set key1=some/other/dir key2=./some/relative/path
 
 
 # Travel to a location by running
 ft [key]
 
 
-# You can also travel to a subdirectory of a key
+# fastTravelCLI evaluates keys to their absolute filepath, so you can do stuff like this
 ft [key]/some/subdir
 
 
-# ft can replace your cd command entirely
+# ft can replace your cd command entirely and respects CDPATH
 ft relative/dir
 ft ..
 ft -
-
-
-# ft supports relative paths in the working directory and CDPATH
 ft mydir
 
 
-# To remove a location run
+# To remove a bookmark run
 ft -rm [key]
 
 
-# To rename a location run
+# To rename a bookmark run
 ft -rn [key] [new key]
 
 
-# ft allows you to visit previously visited directories
+# ft allows you to visit previously visited directories in your current session
 ft [
 
 
@@ -87,11 +84,25 @@ ft [
 ft ]
 
 
-# You can also view your entire session history in a fuzzy finder (powered by fzf)
+# fastTravelCLI has fzf integrations
+# The default behavior of ft is to pull up fzf with all your bookmarks
+ft
+
+# View immediate child directories in a given project (current project by default) in fzf
+ft -f
+ft -f mykey
+ft -f my/project/dir
+
+# View all child directories in a given project in fzf
+ft -fa
+ft -fa mykey
+ft -fa my/project/dir
+
+# You can also view your session history in fzf
 ft -hist
 
 
-# View your saved locations with 
+# View all your bookmarks with 
 ft -ls
 
 
@@ -108,9 +119,9 @@ ft -edit my/old/dirname newdirname
 ft -update
 # or
 ft -u
-# you can also specify a specific version or nightly
+# you can also specify a specific version or latest
 ft -u v.0.2.92
-ft -u nightly
+
 
 
 # To see a full list of available commands run
