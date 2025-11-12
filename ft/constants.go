@@ -32,6 +32,7 @@ type Cmd struct {
 	Args  []string
 }
 
+// returns a new empty Cmd struct
 func NewCmd(args *[]string) *Cmd {
 	return &Cmd{
 		// flags and cmd will be empty defaults
@@ -57,6 +58,9 @@ var AvailCmds = map[string]struct {
 	"-hist":    {passToShell, false},
 	"-..":      {passToShell, false},
 	"--":       {passToShell, false},
+	"-fzf":     {passToShell, false},
+	"-fzfc":    {passToShell, false},
+	"-fzfa":    {passToShell, false},
 	"-version": {showVersion, false},
 	"-v":       {showVersion, false},
 	"-is":      {showDirectoryVar, true},
@@ -64,6 +68,7 @@ var AvailCmds = map[string]struct {
 	"-u":       {updateFT, false},
 }
 
+// TODO: add helpdocs to man pages
 // Help docs
 var HelpLineStrFormat = fmt.Sprintf("  %%-%ds %%s\n", FindUsageMaxLen(HelpUsageMappings))
 
@@ -88,6 +93,7 @@ var HelpUsageMappings = map[string]string{
 	"version": "ft -version, -v",
 	"update":  "ft -update, -u [version]",
 	"help":    "ft -help, -h [command]",
+	// TODO: add helpdocs for fzf, fzfc, and fzfa
 }
 
 var CmdDesc = []map[string]string{
