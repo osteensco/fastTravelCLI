@@ -63,6 +63,10 @@ func TestPassCmd(t *testing.T) {
 		{"7. pass in not enough arguments for -rn.", []string{"ft", "-rn"}, nil, true},
 		{"8. pass in not enough arguments for -set.", []string{"ft", "-set"}, nil, true},
 		{"9. pass in stack navigation.", []string{"ft", "]"}, &Cmd{Cmd: "-]"}, false},
+		{"10. pass in default command (fzf bookmarks).", []string{"ft"}, &Cmd{Cmd: "-fzf"}, false},
+		{"11. pass in fzf current level.", []string{"ft", "-f"}, &Cmd{Cmd: "-fzfc"}, false},
+		{"12. pass in fzf all levels.", []string{"ft", "-fa"}, &Cmd{Cmd: "-fzfa"}, false},
+		{"13. pass invalid command.", []string{"ft", "-notvalid"}, nil, true},
 	}
 
 	for _, tt := range tests {
@@ -74,6 +78,72 @@ func TestPassCmd(t *testing.T) {
 		if !tt.wantErr && !equalCmd(tt.want, got) {
 			t.Log(tt.name)
 			t.Errorf("passCmd Args: %v\nexpected: %v\ngot: %v\n_________\n", tt.args, tt.want, got)
+		}
+
+	}
+}
+
+func TestPassToShell(t *testing.T) {
+	tmpdir, err := os.MkdirTemp("", "testing")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer os.RemoveAll(tmpdir)
+	mock_allPaths := map[string]string{"valid": tmpdir}
+
+	tests := []struct {
+		name     string
+		data     *CmdAPI
+		expected string
+		wantErr  bool
+	}{
+		{"1. Pass ']' to shell.", NewCmdAPI("", &Cmd{Cmd: "-]"}, mock_allPaths, nil, nil), "]\n", false},
+		{"2. Pass '[' to shell.", NewCmdAPI("", &Cmd{Cmd: "-["}, mock_allPaths, nil, nil), "[\n", false},
+		{"3. Pass '..' to shell.", NewCmdAPI("", &Cmd{Cmd: "-.."}, mock_allPaths, nil, nil), "..\n", false},
+		{"4. Pass '-' to shell.", NewCmdAPI("", &Cmd{Cmd: "--"}, mock_allPaths, nil, nil), "-\n", false},
+		{"5. Pass 'hist' to shell.", NewCmdAPI("", &Cmd{Cmd: "-hist"}, mock_allPaths, nil, nil), "hist\n", false},
+		{"6. Pass 'fzf' to shell.", NewCmdAPI("", &Cmd{Cmd: "-fzf"}, mock_allPaths, nil, nil), "fzf\n", false},
+		{"7. Pass 'fzfc' to shell.", NewCmdAPI("", &Cmd{Cmd: "-fzfc"}, mock_allPaths, nil, nil), "fzfc\n", false},
+		{"8. Pass 'fzfa' to shell.", NewCmdAPI("", &Cmd{Cmd: "-fzfa"}, mock_allPaths, nil, nil), "fzfa\n", false},
+		{"9. Pass invalid command to shell.", NewCmdAPI("", &Cmd{Cmd: "-invalid"}, mock_allPaths, nil, nil), "", true},
+		{"10. Pass 'fzfc invalid dir' to shell.", NewCmdAPI("", &Cmd{Cmd: "-fzfc", Args: []string{"invalid"}}, mock_allPaths, nil, nil), "fzfc\n", true},
+		{"11. Pass 'fzfc valid dir' to shell.", NewCmdAPI("", &Cmd{Cmd: "-fzfc", Args: []string{"valid"}}, mock_allPaths, nil, nil), fmt.Sprintf("fzfc %s\n", tmpdir), false},
+		{"12. Pass 'fzfa invalid dir' to shell.", NewCmdAPI("", &Cmd{Cmd: "-fzfa", Args: []string{"invalid"}}, mock_allPaths, nil, nil), "fzfa\n", true},
+		{"13. Pass 'fzfa valid dir' to shell.", NewCmdAPI("", &Cmd{Cmd: "-fzfa", Args: []string{"valid"}}, mock_allPaths, nil, nil), fmt.Sprintf("fzfa %s\n", tmpdir), false},
+	}
+
+	for _, tt := range tests {
+		t.Log(tt.name)
+		stdout := os.Stdout
+		stderr := os.Stderr
+		r, w, err := os.Pipe()
+		if err != nil {
+			t.Error("Error establishing pipe.")
+		}
+		os.Stdout = w
+		os.Stderr = w
+		err = passToShell(tt.data)
+
+		// Use go routine so printing doesn't block program
+		outChan := make(chan string)
+		go func() {
+			var buf bytes.Buffer
+			io.Copy(&buf, r)
+			outChan <- buf.String()
+		}()
+
+		w.Close()
+		os.Stdout = stdout
+		os.Stderr = stderr
+		actual := <-outChan
+
+		if (err != nil) != tt.wantErr {
+			t.Log(tt.name)
+			t.Errorf("passToShell err %v, want err: %v", err, tt.wantErr)
+		}
+		if !tt.wantErr && (tt.expected != actual) {
+			t.Log(tt.name)
+			t.Errorf("passToShell Cmd: %v\nexpected: '%v'\nactual: '%v'\n_________\n", tt.data.cmd.Cmd, tt.expected, actual)
 		}
 
 	}
@@ -768,79 +838,6 @@ func TestShowHelp(t *testing.T) {
 	// really just need confirmation something printed out
 	if !(len(actual) > 1) {
 		t.Errorf("Expected a string of len > 1, got %s", actual)
-	}
-}
-
-func TestNavStack(t *testing.T) {
-	tests := []struct {
-		name     string
-		command  *Cmd
-		expected string
-		wanterr  bool
-	}{
-		{
-			name:     "1. Move down stack.",
-			command:  &Cmd{Cmd: "-["},
-			expected: "[\n",
-			wanterr:  false,
-		},
-		{
-			name:     "2. Move up stack.",
-			command:  &Cmd{Cmd: "-]"},
-			expected: "]\n",
-			wanterr:  false,
-		},
-		{
-			name:     "3. Not a stack navigation.",
-			command:  &Cmd{Cmd: "_"},
-			expected: "",
-			wanterr:  true,
-		},
-	}
-
-	for _, tt := range tests {
-
-		data := NewCmdAPI("", tt.command, map[string]string{}, nil, nil)
-
-		stdout := os.Stdout
-		stderr := os.Stderr
-		r, w, err := os.Pipe()
-		if err != nil {
-			t.Error(err)
-		}
-		os.Stdout = w
-		os.Stderr = w
-
-		err = passToShell(data)
-
-		// Use go routine so printing doesn't block program
-		outChan := make(chan string)
-		go func() {
-			var buf bytes.Buffer
-			io.Copy(&buf, r)
-			outChan <- buf.String()
-		}()
-
-		w.Close()
-		os.Stdout = stdout
-		os.Stderr = stderr
-		actual := <-outChan
-
-		if tt.wanterr {
-			if err == nil {
-				fmt.Println(tt.name)
-				t.Error("Expected error, got nil")
-			}
-		} else {
-			if err != nil {
-				fmt.Println(tt.name)
-				t.Errorf("Unexpected error: %s", err)
-			}
-		}
-		if actual != tt.expected {
-			fmt.Println(tt.name)
-			t.Errorf("Expected %s, got %s", tt.expected, actual)
-		}
 	}
 }
 

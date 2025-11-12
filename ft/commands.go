@@ -16,20 +16,29 @@ func PassCmd(args []string) (*Cmd, error) {
 	// Dissect provided args
 	cmd := ParseArgs(&args)
 
+	switch cmd.Cmd {
 	// all commands are expected to lead with "-"
 	// the only command that doesn't is a change directory
 	// commands that are symbols have this leader added to avoid logic
 	// meant for a directory path
-	switch cmd.Cmd {
 	case "]", "[", "..", "-":
 		cmd.Cmd = fmt.Sprintf("-%s", cmd.Cmd)
-	}
-
+	// for added clarity in the ft shell function we adjust these commands
+	// these stand for fzf current level (-f) and fzf all (-fa)
+	case "-f":
+		cmd.Cmd = "-fzfc"
+	case "-fa":
+		cmd.Cmd = "-fzfa"
 	// keys and key evals are given a leader of "_"
-	// to help identify the appropriate function
-	// in the map
-	if cmd.Cmd == "" {
-		cmd.Cmd = "_"
+	// to help identify the appropriate function in the map
+	case "":
+		if len(cmd.Args) == 0 {
+			// handle default command (fzf bookmarks)
+			cmd.Cmd = "-fzf"
+		} else {
+			// base change directory functionality
+			cmd.Cmd = "_"
+		}
 	}
 
 	_, ok := AvailCmds[cmd.Cmd]
@@ -45,23 +54,35 @@ func PassCmd(args []string) (*Cmd, error) {
 	// verify user provided correct minimum number of arguments
 	// too many args will work, any args beyond expected number are simply ignored
 	switch cmd.Cmd {
-	case "-ls", "-]", "-[", "-..", "--", "-hist", "-help", "-h", "-version", "-v", "-is", "-update", "-u":
+	case "-ls", "-]", "-[", "-..", "--", "-hist", "-help", "-h", "-version", "-v", "-is", "-update", "-u", "-fzf", "-fzfc", "-fzfa":
 		break
 	case "-rn", "-edit":
 		if len(cmd.Args) < 2 {
 			return nil, errors.New(fmt.Sprintf("Insufficient args provided %v, see ft -help for more info", args[1:]))
 		}
+	case "-set":
+		if len(cmd.Args) < 1 {
+			return nil, errors.New(fmt.Sprintf("Insufficient args provided %v, see ft -help for more info", args[1:]))
+		}
+	// these should never be reached
+	// a call to 'ft' with no args should map to the '-fzf' command
+	// all other commands that args should be accounted for above
+	case "":
+		panic(fmt.Sprintf("A call of 'ft' with no arguments should have a default behavior that wasn't found! Command used '%s'", cmd.Cmd))
 	default:
 		if len(cmd.Args) == 0 {
-			return nil, errors.New(fmt.Sprintf("Insufficient args provided %v, usage: ft <command> <path/key>", args[1:]))
+			panic(fmt.Sprintf("A call of 'ft' with no arguments should have a default behavior that wasn't found! Command used '%s'", cmd.Cmd))
 		}
 	}
 
 	return cmd, nil
 }
 
-// Takes a key or relative path and returns it's absolute path or an error.
-// Path is a seperate argument to handle evaluating many paths as part of a loop.
+/*
+Takes a key or relative path and returns it's absolute path or an error.
+
+Path is a seperate argument to handle evaluating many paths as part of a loop.
+*/
 func evalPath(data *CmdAPI, path *string) (string, error) {
 
 	// TODO
@@ -567,11 +588,22 @@ func updateFT(data *CmdAPI) error {
 // Used for commands that are simply handled by the shell function
 func passToShell(data *CmdAPI) error {
 	c := data.cmd.Cmd
+	if len(c) < 2 {
+		panic(fmt.Sprintf("Cmd provided is too short to parse! Cmd string provided: '%s'.",c))
+	}
 	command := string(c[1:])
 
 	switch command {
-	case "]", "[", "..", "-", "hist":
+	case "]", "[", "..", "-", "hist", "fzf":
 		fmt.Println(command)
+	case "fzfc", "fzfa":
+		if len(data.cmd.Args) == 0 {
+			fmt.Println(command)
+		} else {
+			path, err := evalPath(data, &data.cmd.Args[0])
+			fmt.Println(fmt.Sprintf("%s %s", command, path))
+			return err
+		}
 	default:
 		return errors.New(fmt.Sprintf("Tried to pass command to shell, but '%s' is not a valid command for the shell function.", command))
 	}

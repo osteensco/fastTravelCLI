@@ -2,7 +2,7 @@
 
 
 
-TARGET_DIR="$HOME/fastTravelCLI"
+TARGET_DIR="$HOME/.fastTravelCLI"
 
 
 # get the version from the github

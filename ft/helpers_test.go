@@ -138,6 +138,7 @@ func TestPipeArgs(t *testing.T) {
 			input:       "-set keyname",
 			expected:    []string{"ft", "-set", "keyname"},
 		},
+		// TODO: add more tests
 	}
 	for _, tt := range tests {
 		t.Log(tt.name)

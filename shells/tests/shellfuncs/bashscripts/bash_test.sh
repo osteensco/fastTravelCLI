@@ -92,7 +92,7 @@ for command in "${test_cmds[@]}"; do
     i=$((i+1))
 done
 
-# Simulate fzf for the `ft hist` command
+# Simulate fzf for the `ft -hist` command
 export FZF_DEFAULT_OPTS="--filter=testspace" # Automatically select the first match
 hist_output=$(ft hist 2>&1 | head -n 2) # stdout will capture fzf directory check, so we only want first two lines since the rest is hidden to the user
 expected_hist_output=$(echo -e "hist\n/testspace")

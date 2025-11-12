@@ -18,6 +18,7 @@ source ~/.bashrc
 cd /testspace/
 
 # CLI feature tests
-ft -u nightly
+ft -u latest
+
 # TODO
 #  - Implement more tests

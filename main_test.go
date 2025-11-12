@@ -266,6 +266,13 @@ func TestMainFunc(t *testing.T) {
 			expected: ft.DisplayDetailedHelp("-..") + "\n",
 			wantErr:  false,
 		},
+		{
+			name:       "27. Check cd command with key piped in.", //simulate echo "key" | ft
+			args:       []string{"ft"},
+			expected:   fmt.Sprintf("%v\n", forcedir),
+			wantErr:    false,
+			pipedInput: "key",
+		},
 	}
 
 	for _, tt := range tests {
