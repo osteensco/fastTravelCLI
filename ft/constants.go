@@ -74,10 +74,11 @@ var HelpLineStrFormat = fmt.Sprintf("  %%-%ds %%s\n", FindUsageMaxLen(HelpUsageM
 
 const HelpDescExamples = `
     Examples: 
+	  ft 						  →	Shows bookmarks for fuzzy selection (requires tree and fzf)
 	  ft projects                 → cd into the directory saved as 'projects'
 	  ft -set docs=~/Documents    → set key 'docs' to '~/Documents'
 	  ft -rn -y old new           → rename 'old' key to 'new' and skip confirmation prompt
-    `
+`
 
 var HelpUsageMappings = map[string]string{
 	"key":     "ft <key>",
@@ -93,7 +94,9 @@ var HelpUsageMappings = map[string]string{
 	"version": "ft -version, -v",
 	"update":  "ft -update, -u [version]",
 	"help":    "ft -help, -h [command]",
-	// TODO: add helpdocs for fzf, fzfc, and fzfa
+	"fzf": "ft",
+	"fzfc": "ft -f [key or path]",
+	"fzfa": "ft -fa [key or path]",
 }
 
 var CmdDesc = []map[string]string{
@@ -135,6 +138,15 @@ var CmdDesc = []map[string]string{
 	},
 	{
 		HelpUsageMappings["help"]: "Show this help message",
+	},
+	{
+		HelpUsageMappings["fzf"]: "Show bookmarks with fzf",
+	},
+	{
+		HelpUsageMappings["fzfc"]: "Show current level project directories with fzf",
+	},
+	{
+		HelpUsageMappings["fzfa"]: "Show all project directories with fzf",
 	},
 }
 
@@ -278,8 +290,38 @@ Flags:
 Examples:
   ft -update
   ft -update v.0.2.1
-  ft -update nightly`},
+  ft -update latest`},
 	{"This is a standard directory navigation command.", "ft can replace cd entirely as it inherits cd's commands."},
+
+
+	{HelpUsageMappings["fzfc"],
+		`Description:
+  Shows immediate child directories in current or optionally provided project directory for fuzzy selection.
+
+Flags:
+  -h, -help  Show this help message.
+
+Examples:
+	ft -f
+	ft -f somekey
+	ft -f some/dir
+
+Notes:
+  Requires 'fzf' and 'tree' to be installed.`},
+	{HelpUsageMappings["fzfa"],
+		`Description:
+  Shows all child directories in current or optionally provided project directory for fuzzy selection.
+
+Flags:
+  -h, -help  Show this help message.
+
+Examples:
+	ft -fa
+	ft -fa somekey
+	ft -fa some/dir
+
+Notes:
+  Requires 'fzf' and 'tree' to be installed.`},
 }
 
 const HelpCmdMsg = "Use ft -help information on other commands"
@@ -301,6 +343,8 @@ var DetailedCmdDescMapping = map[string]string{
 	"-u":       CreateCmdHelpDoc(DetailedCmdDescriptions[11]),
 	"--":       CreateCmdHelpDoc(DetailedCmdDescriptions[12]),
 	"-..":      CreateCmdHelpDoc(DetailedCmdDescriptions[12]),
+	"-fzfc": CreateCmdHelpDoc(DetailedCmdDescriptions[13]),
+	"-fzfa": CreateCmdHelpDoc(DetailedCmdDescriptions[14]),
 }
 
 // default value for version

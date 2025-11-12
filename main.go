@@ -11,7 +11,7 @@ import (
 // fastTravelCLI main process
 func main() {
 	// assertions
-	ft.EnsureLength(len(ft.DetailedCmdDescriptions), 13)
+	ft.EnsureLength(len(ft.DetailedCmdDescriptions), 15) //make sure help docs lookup don't result in a panic
 
 	// identify exe path to establish a working directory and find dependency files
 	exePath, err := os.Executable()

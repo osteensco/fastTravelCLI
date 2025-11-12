@@ -12,10 +12,6 @@ import (
 	"strings"
 )
 
-
-// TODO: there is a bug with piped keys to ft (ex. echo "mykey" | ft), it's probably in this function somewhere
-//	additionally, it might be in ParseArgs which needs tests written for it anyways
-
 func PassCmd(args []string) (*Cmd, error) {
 	// Dissect provided args
 	cmd := ParseArgs(&args)
