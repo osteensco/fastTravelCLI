@@ -41,12 +41,12 @@ ft__phist() {
 ft__handle_fzf_dirs() {
     # handle more complex fzf integrated actions
     local output_array=(${=1})
-    local fzf_cmd="${output_array[0]}"
+    local fzf_cmd="${output_array[1]}"
     local dir=""
     if (( ${#output_array[@]} == 1 )); then
         dir="."
     elif (( ${#output_array[@]} > 1)); then
-        dir="${output_array[1]}"
+        dir="${output_array[2]}"
     fi
     # if [[ ! -d "$dir" ]]; then
     #     echo "Error: '$dir' is not a valid directory"
