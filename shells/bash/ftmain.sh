@@ -40,8 +40,7 @@ ft__phist() {
 
 ft__handle_fzf_dirs() {
     # handle more complex fzf integrated actions
-    local output_array=()
-    read -r -a output_array <<< "$1"
+    local output_array=(${=1})
     local fzf_cmd="${output_array[0]}"
     local dir=""
     if (( ${#output_array[@]} == 1 )); then
