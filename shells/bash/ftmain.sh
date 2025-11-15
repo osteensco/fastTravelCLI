@@ -22,6 +22,7 @@ ft__upperStack=()
 
 ft__pushup() {
     local path="$1"
+    path="${path/#\~/$HOME}"
     ft__upperStack+=("$path")
 }
 
@@ -32,7 +33,7 @@ ft__popup() {
 
 ft__phist() {
     # print fastTravelCLI's history stack
-    local lowerStack=($(dirs -v | awk '{print $2}'))
+    local lowerStack=($(dirs -v | awk '{print $2}' | sed "s|^~|$HOME|"))
     local historyStack=("${ft__upperStack[@]}" "${lowerStack[@]}")
 
     printf "%s\n" "${historyStack[@]}" 
@@ -58,7 +59,7 @@ ft__handle_fzf_dirs() {
             ft__check_fzf
             ft__check_tree
             # fuzzy find current level
-            eval ft "$(ls "$dir" -d */ | fzf --tac --header " fastTravelCLI " --border-label " fastTravelCLI " --preview 'tree -L 1 {}')"
+            eval ft "$(find "$dir" -mindepth 1 -maxdepth 1 -type d | fzf --tac --header " fastTravelCLI " --border-label " fastTravelCLI " --preview 'tree -L 1 {}')"
             ;;
 
         fzfa)
