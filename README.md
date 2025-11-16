@@ -10,6 +10,14 @@
                                                                     
 ```
 
+[![Latest Version](https://img.shields.io/github/v/release/osteensco/fastTravelCLI?style=for-the-badge)](https://github.com/osteensco/fastTravelCLI/releases/latest)
+[![License](https://img.shields.io/github/license/osteensco/fastTravelCLI.svg?style=for-the-badge)](https://github.com/osteensco/fastTravelCLI/blob/main/LICENSE)
+![Go](https://img.shields.io/badge/Go-00ADD8.svg?style=for-the-badge&logo=go&logoColor=white)
+![CLI](https://img.shields.io/badge/CLI-000000.svg?style=for-the-badge&logo=terminal&logoColor=white)
+
+[![Tests](https://github.com/osteensco/fastTravelCLI/actions/workflows/tests.yml/badge.svg)](https://github.com/osteensco/fastTravelCLI/actions/workflows/tests.yml)
+[![Deployment](https://github.com/osteensco/fastTravelCLI/actions/workflows/pages/pages-build-deployment/badge.svg)](https://github.com/osteensco/fastTravelCLI/actions/workflows/pages/pages-build-deployment)
+
 <h1>A better CLI navigation experience</h1>
 
 fastTravelCLI is a fast, lightweight, and feature rich CD command replacement.
