@@ -87,7 +87,7 @@ ft__handle_fzf_bookmarks() {
     ft__check_tree
     # TODO generate a different view for no bookmarks?
     # fuzzy find bookmarks
-    eval ft -ls | fzf --tac --header " fastTravelCLI - Bookmarks" --border-label " fastTravelCLI - Bookmarks" --delimiter=": " --preview 'tree -L 1 {2}' | cut -d':' -f1 | ft
+    eval ft -ls | grep -v '^$' | fzf --tac --header " fastTravelCLI - Bookmarks" --border-label " fastTravelCLI - Bookmarks" --delimiter=": " --preview 'tree -L 1 {2}' | cut -d':' -f1 | ft
 }
 
 ft__handle_fzf_hist() {
