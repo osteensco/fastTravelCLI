@@ -21,3 +21,6 @@ cli_ubuntu:
 
 go-test:
 	go test ./...
+
+tidy_repo:
+	rm -rf fastTravelCLI fastTravel.bin

@@ -16,21 +16,21 @@ func main() {
 	// identify exe path to establish a working directory and find dependency files
 	exePath, err := os.Executable()
 	if err != nil {
-		fmt.Println("Error:", err)
+		fmt.Println("Error: establish a working directory failed")
 		return
 	}
 
 	// handle piped args
 	err = ft.PipeArgs(&os.Args)
 	if err != nil {
-		fmt.Println("Error: ", err)
+		fmt.Println("PipeArgs Error:", err)
 		return
 	}
 
 	// sanitize user input
 	inputCommand, err := ft.PassCmd(os.Args)
 	if err != nil {
-		fmt.Println("Error: ", err)
+		fmt.Println("PassCmd Error:", err)
 		return
 	}
 	action := inputCommand.Cmd
@@ -61,7 +61,7 @@ func main() {
 
 		file, err = ft.EnsureData(dataPath)
 		if err != nil {
-			fmt.Println("Error: ", err)
+			fmt.Println("EnsureData Error:", err)
 			return
 		}
 		defer file.Close()
@@ -69,7 +69,7 @@ func main() {
 		// read keys into memory
 		allPaths, err = ft.ReadMap(file)
 		if err != nil {
-			fmt.Println("Error: ", err)
+			fmt.Println("ReadMap Error:", err)
 			return
 		}
 	}
@@ -80,8 +80,7 @@ func main() {
 	// execute user provided action
 	err = cmd.Callback(data)
 	if err != nil {
-		fmt.Println("fastTravelCLI returned an error: ", err)
+		fmt.Println("fastTravelCLI returned an error:", err)
 		return
 	}
-
 }

@@ -8,7 +8,6 @@ import (
 )
 
 func ReadMap(file *os.File) (map[string]string, error) {
-
 	pathMap := make(map[string]string)
 
 	fileInfo, err := file.Stat()

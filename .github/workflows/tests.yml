@@ -12,12 +12,12 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Set up Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
-          go-version: '1.22'
+          go-version: "1.22"
 
       - name: Set up Lua
         run: sudo apt-get update && sudo apt-get install -y lua5.4
@@ -42,13 +42,13 @@ jobs:
 
       - name: Test install Script in bash
         shell: bash
-        run: | 
+        run: |
           echo "Testing install script in bash..."
           lua install/tests/linux_test.lua
 
       - name: Test install Script in zsh
         shell: zsh {0}
-        run: | 
+        run: |
           echo "Testing install script in zsh..."
           lua install/tests/linux_test.lua
 
@@ -58,12 +58,12 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Set up Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
-          go-version: '1.22'
+          go-version: "1.22"
 
       - name: Set up Lua
         run: brew install lua@5.4
@@ -84,14 +84,12 @@ jobs:
 
       - name: Test install Script in bash
         shell: bash
-        run: | 
+        run: |
           echo "Testing install script in bash..."
           lua install/tests/mac_test.lua
 
       - name: Test install Script in zsh
         shell: zsh {0}
-        run: | 
+        run: |
           echo "Testing install script in zsh..."
           lua install/tests/mac_test.lua
-
-        
