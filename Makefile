@@ -22,5 +22,8 @@ cli_ubuntu:
 go-test:
 	go test ./...
 
+buid_site:
+	mkdocs build
+
 tidy_repo:
 	rm -rf fastTravelCLI fastTravel.bin
