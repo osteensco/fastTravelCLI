@@ -51,7 +51,7 @@ ft -hist
 # View all your bookmarks with
 ft -ls
 
-# fastTravelCLI accepts args piped to it
+# fastTravelCLI accepts args piped to it and is highly scriptable
 echo "mykey=some/project/path" > myfile.txt
 cat myfile.txt | ft -set
 

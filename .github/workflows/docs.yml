@@ -1,0 +1,32 @@
+name: Deploy MkDocs to GitHub Pages
+
+on:
+  push:
+    branches:
+      - master 
+  workflow_dispatch: 
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4 
+
+      - name: Configure Git Credentials
+        run: |
+          git config user.name github-actions[bot]
+          git config user.email 41898282+github-actions[bot]@users.noreply.github.com
+
+      - uses: actions/setup-python@v5 
+        with:
+          python-version: '3.x'
+
+      - name: Install MkDocs and Theme (e.g., Material for MkDocs)
+        run: pip install mkdocs mkdocs-material 
+
+      - name: Deploy MkDocs
+        run: mkdocs gh-deploy --force 
+
+permissions:
+  contents: write 
+

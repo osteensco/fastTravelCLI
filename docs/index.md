@@ -26,3 +26,30 @@ Fuzzy finding features require [tree](https://github.com/Old-Man-Programmer/tree
 ## Contributing
 
 PRs and feature suggestions are welcome. I originally made this for myself so there's not alot of structure or official-ness to this project.
+
+
+## Getting Started
+
+To set up the project locally for development, clone the repo and ensure you have the following installed - 
+
+ * Docker 
+ * go 1.22+
+ * python 3.11+
+ * lua 5.4+
+ * GNU Make 4.4+
+
+Run all tests by running the default make command or `make all`.
+
+### Documentation Site
+To run the docs site locally add a python virtual environment to the project.
+```bash
+python3 -m venv venv
+```
+Activate the virtual environment and install mkdocs and mkdocs-material.
+```bash
+pip install mkdocs mkdocs-material
+```
+You can then serve the site.
+```bash
+make site
+```

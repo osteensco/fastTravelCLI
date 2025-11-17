@@ -100,7 +100,7 @@ ft -hist
 ft -ls
 
 
-# fastTravelCLI accepts args piped to it
+# fastTravelCLI accepts args piped to it and is highly scriptable
 echo "mykey=some/project/path" > myfile.txt
 cat myfile.txt | ft -set
 
@@ -132,3 +132,29 @@ ft -set -h
 <h1>Contributing</h1>
 
 PRs and feature suggestions are welcome. I originally made this for myself so there's not alot of structure or official-ness to this project.
+
+<h2>Getting Started</h2>
+
+To set up the project locally for development, clone the repo and ensure you have the following installed - 
+
+ * Docker 
+ * go 1.22+
+ * python 3.11+
+ * lua 5.4+
+ * GNU Make 4.4+
+
+Run all tests by running the default make command or `make all`.
+
+<h4>Documentation Site</h4>
+To run the docs site locally add a python virtual environment to the project.
+```bash
+python3 -m venv venv
+```
+Activate the virtual environment and install mkdocs and mkdocs-material.
+```bash
+pip install mkdocs mkdocs-material
+```
+You can then serve the site.
+```bash
+make site
+```
