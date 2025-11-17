@@ -156,14 +156,19 @@ Run all tests by running the default make command or `make all`.
 
 <h4>Documentation Site</h4>
 To run the docs site locally add a python virtual environment to the project.
+
 ```bash
 python3 -m venv venv
 ```
+
 Activate the virtual environment and install mkdocs and mkdocs-material.
+
 ```bash
 pip install mkdocs mkdocs-material
 ```
+
 You can then serve the site.
+
 ```bash
 make site
 ```
