@@ -42,7 +42,8 @@ Currently available for Unix-like OS and bash/zsh shells. May work in more shell
 <br><br>
 Compiles using go version >= 1.20.0, may work with older versions but not guaranteed.
 <br><br>
-Fuzzy finding features require [tree](https://github.com/Old-Man-Programmer/tree) and [fzf](https://github.com/junegunn/fzf):
+
+Fuzzy finding features require [tree](https://github.com/Old-Man-Programmer/tree) and [fzf](https://github.com/junegunn/fzf).
 
 <h1>Usage</h1>
 
