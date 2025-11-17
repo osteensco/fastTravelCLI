@@ -1,2 +1,6 @@
 fastTravel.exe
 fastTravel.json
+fastTravelCLI
+fastTravel.bin
+.venv
+venv

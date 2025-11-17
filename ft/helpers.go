@@ -2,7 +2,6 @@ package ft
 
 import (
 	"bufio"
-	"errors"
 	"fmt"
 	"os"
 	"sort"
@@ -19,7 +18,7 @@ func verifyInput(s string, f bool) (bool, error) {
 	case "n":
 		return false, nil
 	default:
-		return false, errors.New(fmt.Sprintf("%v is not a valid response, please type y/n", s))
+		return false, fmt.Errorf("%v is not a valid response, please type y/n", s)
 	}
 }
 
@@ -85,28 +84,23 @@ func PipeArgs(args *[]string) error {
 		return err
 	}
 
-	// Exit early if no piped input is detected
+	// exit early if no piped input is detected (stdin is terminal)
 	if fileinfo.Mode()&os.ModeCharDevice != 0 {
 		return nil
 	}
 
-	// read from stdin
+	// read from stdin (piped input)
 	scanner := bufio.NewScanner(os.Stdin)
 	scanner.Split(bufio.ScanLines)
 	for scanner.Scan() {
-
 		line := scanner.Text()
-		pipedArgs := splitWords(line)
-
-		// append to args
+		pipedArgs := splitWords(line) // split into individual arguments
 		*args = append(*args, pipedArgs...)
 	}
 	if err := scanner.Err(); err != nil {
 		return err
 	}
-
 	return nil
-
 }
 
 // Parses os.Args and organizes command into a struct

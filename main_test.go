@@ -106,7 +106,7 @@ func TestMainFunc(t *testing.T) {
 		{
 			name:     "4. Check cd command with bad key.",
 			args:     []string{"ft", "badkey"},
-			expected: "\nfastTravelCLI returned an error:  " + fmt.Sprintf(ft.UnrecognizedKeyMsg, "badkey") + "\n",
+			expected: "\nfastTravelCLI returned an error: " + fmt.Sprintf(ft.UnrecognizedKeyMsg, "badkey") + "\n",
 			wantErr:  false,
 		},
 		{
@@ -361,5 +361,4 @@ func TestMainFunc(t *testing.T) {
 		}
 
 	}
-
 }
