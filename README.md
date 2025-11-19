@@ -140,7 +140,7 @@ ft -set -h
 
 <h1>Contributing</h1>
 
-PRs and feature suggestions are welcome. I originally made this for myself so there's not alot of structure or official-ness to this project.
+PRs and feature suggestions are welcome. I originally made this for myself but if others find it useful and have feedback I'm open to it.
 
 <h2>Getting Started</h2>
 
