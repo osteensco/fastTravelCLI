@@ -6,19 +6,17 @@ import (
 	lg "github.com/charmbracelet/lipgloss"
 )
 
-type navigateBackMsg struct{}
-
-func back() tea.Cmd {
-	return func() tea.Msg {
-		return navigateBackMsg{}
-	}
-}
+type exitDetail struct{}
+type unfocusDetail struct{}
+type handledCommand struct{}
 
 type settingsModel struct {
 	docStyle lg.Style
 	list          list.Model
-	selectedView  ViewFunc
+	models []tea.Model
 	selectedModel tea.Model
+	selectedView ViewFunc
+	focusDetail bool
 	width int
 	height int
 }
@@ -36,7 +34,7 @@ func (i item) FilterValue() string { return i.name }
 var (
 	modelList = []tea.Model{
 		cascadeModel{
-			docStyle: lg.NewStyle().Margin(1, 2),
+			delegate: list.NewDefaultDelegate(),
 			items: []string{"one", "two", "three", "four"}, //import from ft settings
 			cursor: 0,
 			selected: -1,
@@ -83,6 +81,26 @@ func (m settingsModel) Init() tea.Cmd {
 
 func (m settingsModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
+
+	if m.focusDetail {
+		var sm tea.Model
+		sm, cmd = m.selectedModel.Update(msg)
+		m.selectedModel = sm
+
+		if cmd != nil {
+			msg = cmd()
+			switch msg.(type) {
+			case exitDetail:
+				m.focusDetail = false
+				m.selectedModel = nil
+				m.selectedView = nil
+			case unfocusDetail:
+				m.focusDetail = false
+			}
+		return m, cmd
+		}
+	}
+
 	switch msg := msg.(type) {
 	case tea.WindowSizeMsg:
 		top, right, bottom, left := m.docStyle.GetMargin()
@@ -100,10 +118,15 @@ func (m settingsModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "enter":
 			i := m.list.SelectedItem().(item)
 			m.selectedView = i.view
-
-			m.selectedModel = modelList[i.model]
-			return m.selectedModel, setSizeMsg(m.width, m.height)
+			m.selectedModel = m.models[i.model]
+			m.focusDetail = true
+			return m, nil
+		case "l", "right":
+			if m.selectedModel != nil && m.selectedView != nil {
+				m.focusDetail = true
+			}
 		}
+
 	}
 
 	m.list, cmd = m.list.Update(msg)
@@ -112,9 +135,6 @@ func (m settingsModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 // The view is just one big string that gets passed to the UI for rendering
 func (m settingsModel) View() string {
-	if m.selectedView != nil {
-		return m.selectedView(m.selectedModel)
-	}
 	return renderSettingsView(m)
 }
 
@@ -124,7 +144,7 @@ func (m settingsModel) View() string {
 
 
 type cascadeModel struct {
-	docStyle lg.Style
+	delegate list.DefaultDelegate
 	items []string
 	cursor int
 	selected int
@@ -132,15 +152,15 @@ type cascadeModel struct {
 	height       int
 }
 
+type cascadeItem string
+func (i cascadeItem) FilterValue() string { return string(i) }
+
 func (m cascadeModel) Init() tea.Cmd {
 	return nil
 }
 
 func (m cascadeModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
-	case tea.WindowSizeMsg:
-		m.width = msg.Width
-		m.height = msg.Height
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "up", "k":
@@ -203,16 +223,19 @@ func (m cascadeModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, tea.Quit
 		case "esc", "backspace":
 			if m.selected == -1 {
-				return resetSettings(), setSizeMsg(m.width, m.height)
+				return m, tea.Cmd(func() tea.Msg {return exitDetail{}})
 			}
 			m.selected = -1
+		case "left", "h":
+			return m, tea.Cmd(func() tea.Msg {return unfocusDetail{}})
 		}
+		return m, tea.Cmd(func() tea.Msg {return handledCommand{}})
 	}
 	return m, nil
 }
 
 func (m cascadeModel) View() string {
-	return renderCascadeOrderView(m)
+	return renderCascadeOrderView(parentModel)
 }
 
 
@@ -240,7 +263,7 @@ func (m bookmarksModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "ctrl+c", "q":
 			return m, tea.Quit
 		case "esc", "backspace":
-			return resetSettings(), setSizeMsg(m.width, m.height)
+			// return resetSettings(), setSizeMsg(m.width, m.height)
 		}
 	}
 	return m, nil
@@ -275,7 +298,7 @@ func (m versionModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "ctrl+c", "q":
 			return m, tea.Quit
 		case "esc", "backspace":
-			return resetSettings(), setSizeMsg(m.width, m.height)
+			// return resetSettings(), setSizeMsg(m.width, m.height)
 		}
 	}
 	return m, nil

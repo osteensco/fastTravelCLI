@@ -5,8 +5,7 @@ import (
 	lg "github.com/charmbracelet/lipgloss"
 )
 
-
-func setSizeMsg(w,h int) func() tea.Msg {
+func setSizeMsg(w, h int) func() tea.Msg {
 	sizeCmd := func() tea.Msg {
 		return tea.WindowSizeMsg{Width: w, Height: h}
 	}
@@ -15,19 +14,14 @@ func setSizeMsg(w,h int) func() tea.Msg {
 }
 
 func initSettings() settingsModel {
-	var docStyle = lg.NewStyle().Margin(1, 2)
-	return settingsModel{docStyle: docStyle, list: settingsList, selectedView: nil}
+	var docStyle = lg.NewStyle().Margin(10, 2)
+	return settingsModel{docStyle: docStyle, list: settingsList, models: modelList}
 }
 
-var initialModel = initSettings()
-
-func resetSettings() settingsModel {
-	initialModel.selectedView = nil
-	return initialModel
-}
+var parentModel = initSettings()
 
 func Run() error {
-	p := tea.NewProgram(initialModel, tea.WithAltScreen())
+	p := tea.NewProgram(parentModel, tea.WithAltScreen())
 	if _, err := p.Run(); err != nil {
 		return err
 	}
