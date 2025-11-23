@@ -46,26 +46,27 @@ var AvailCmds = map[string]struct {
 	Callback func(data *CmdAPI) error
 	LoadData bool
 }{
-	"_":        {changeDirectory, true},
-	"-set":     {setDirectoryVar, true},
-	"-ls":      {displayAllPaths, true},
-	"-rm":      {removeKey, true},
-	"-rn":      {renameKey, true},
-	"-edit":    {editPath, true},
-	"-help":    {showHelp, false},
-	"-]":       {passToShell, false},
-	"-[":       {passToShell, false},
-	"-hist":    {passToShell, false},
-	"-..":      {passToShell, false},
-	"--":       {passToShell, false},
-	"-fzf":     {passToShell, false},
-	"-fzfc":    {passToShell, true},
-	"-fzfa":    {passToShell, true},
-	"-version": {showVersion, false},
-	"-v":       {showVersion, false},
-	"-is":      {showDirectoryVar, true},
-	"-update":  {updateFT, false},
-	"-u":       {updateFT, false},
+	"_":         {changeDirectory, true},
+	"-set":      {setDirectoryVar, true},
+	"-ls":       {displayAllPaths, true},
+	"-rm":       {removeKey, true},
+	"-rn":       {renameKey, true},
+	"-edit":     {editPath, true},
+	"-help":     {showHelp, false},
+	"-]":        {passToShell, false},
+	"-[":        {passToShell, false},
+	"-hist":     {passToShell, false},
+	"-..":       {passToShell, false},
+	"--":        {passToShell, false},
+	"-fzf":      {passToShell, false},
+	"-fzfc":     {passToShell, true},
+	"-fzfa":     {passToShell, true},
+	"-version":  {showVersion, false},
+	"-v":        {showVersion, false},
+	"-is":       {showDirectoryVar, true},
+	"-update":   {updateFT, false},
+	"-u":        {updateFT, false},
+	"-settings": {settingsTui, false},
 }
 
 // TODO: add helpdocs to man pages
@@ -94,9 +95,9 @@ var HelpUsageMappings = map[string]string{
 	"version": "ft -version, -v",
 	"update":  "ft -update, -u [version]",
 	"help":    "ft -help, -h [command]",
-	"fzf": "ft",
-	"fzfc": "ft -f [key or path]",
-	"fzfa": "ft -fa [key or path]",
+	"fzf":     "ft",
+	"fzfc":    "ft -f [key or path]",
+	"fzfa":    "ft -fa [key or path]",
 }
 
 var CmdDesc = []map[string]string{
@@ -293,7 +294,6 @@ Examples:
   ft -update latest`},
 	{"This is a standard directory navigation command.", "ft can replace cd entirely as it inherits cd's commands."},
 
-
 	{HelpUsageMappings["fzfc"],
 		`Description:
   Shows immediate child directories in current or optionally provided project directory for fuzzy selection.
@@ -343,8 +343,8 @@ var DetailedCmdDescMapping = map[string]string{
 	"-u":       CreateCmdHelpDoc(DetailedCmdDescriptions[11]),
 	"--":       CreateCmdHelpDoc(DetailedCmdDescriptions[12]),
 	"-..":      CreateCmdHelpDoc(DetailedCmdDescriptions[12]),
-	"-fzfc": CreateCmdHelpDoc(DetailedCmdDescriptions[13]),
-	"-fzfa": CreateCmdHelpDoc(DetailedCmdDescriptions[14]),
+	"-fzfc":    CreateCmdHelpDoc(DetailedCmdDescriptions[13]),
+	"-fzfa":    CreateCmdHelpDoc(DetailedCmdDescriptions[14]),
 }
 
 // default value for version

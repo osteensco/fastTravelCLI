@@ -10,6 +10,8 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
+
+	"github.com/osteensco/fastTravelCLI/tui"
 )
 
 func PassCmd(args []string) (*Cmd, error) {
@@ -54,7 +56,7 @@ func PassCmd(args []string) (*Cmd, error) {
 	// verify user provided correct minimum number of arguments
 	// too many args will work, any args beyond expected number are simply ignored
 	switch cmd.Cmd {
-	case "-ls", "-]", "-[", "-..", "--", "-hist", "-help", "-h", "-version", "-v", "-is", "-update", "-u", "-fzf", "-fzfc", "-fzfa":
+	case "-ls", "-]", "-[", "-..", "--", "-hist", "-help", "-h", "-version", "-v", "-is", "-update", "-u", "-fzf", "-fzfc", "-fzfa", "-settings":
 		break
 	case "-rn", "-edit":
 		if len(cmd.Args) < 2 {
@@ -589,7 +591,7 @@ func updateFT(data *CmdAPI) error {
 func passToShell(data *CmdAPI) error {
 	c := data.cmd.Cmd
 	if len(c) < 2 {
-		panic(fmt.Sprintf("Cmd provided is too short to parse! Cmd string provided: '%s'.",c))
+		panic(fmt.Sprintf("Cmd provided is too short to parse! Cmd string provided: '%s'.", c))
 	}
 	command := string(c[1:])
 
@@ -609,4 +611,10 @@ func passToShell(data *CmdAPI) error {
 	}
 
 	return nil
+}
+
+func settingsTui(data *CmdAPI) error {
+	settings := tui.Init().Settings
+	err := settings.Run()
+	return err
 }
