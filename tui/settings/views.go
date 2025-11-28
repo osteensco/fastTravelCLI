@@ -2,100 +2,83 @@ package settings
 
 import (
 	"fmt"
-	"strings"
-
 	tea "github.com/charmbracelet/bubbletea"
 	lg "github.com/charmbracelet/lipgloss"
 )
 
 type ViewFunc func(tea.Model) string
 
-func renderSettingsView(m settingsModel) string {
-	// TODO add ascii art at the top centered between columns
+func renderSettingsView(m *settingsModel) string {
+	header := `
+     __           _  _____                     _   ___   __   _____ - -  -  -   -   -
+    / _| ____ ___| |/__   \___  ______   _____| | / __\ / /   \_   \ - -  -  -   -   -
+   | |_ / _  / __| __|/ /\/  _\/ _  \ \ / / _ \ |/ /   / /     / /\/  - -  -   -   -
+   |  _| (_| \__ \ |_/ /  | | | (_| |\ V /  __/ / /___/ /___/\/ /_  - -  -  -   -   -
+   |_|  \__._|___/\__\/   |_|  \__._| \_/ \___|_\____/\____/\____/ - -  -  -   -   -
+
+`
 	m.list.Title = "Settings"
 
-	width := min(70, m.width/2)
-	// height := m.docStyle.GetHeight() // this doesnt actually do anything
-	
-	style := lg.NewStyle().Width(width).Padding(1)
+	width := min(70, m.style.GetWidth()/2)
+	height := min(10, m.style.GetHeight()/2)
+	m.style = m.style.Width(width).Height(height)
 
+	left := ""
 	right := ""
-	left := m.list.View()
 
-	if m.selectedView != nil && m.selectedModel != nil {
-		right = m.selectedView(m)
+	if m.selectedModel != nil {
+		m.selectedModel.ShowFocus(m.focusDetail)
+		right = m.selectedModel.View()
 	}
 	if m.focusDetail {
-		left = style.Border(lg.HiddenBorder()).Render(left)
-		right = style.Height(lg.Height(left)-2).Border(lg.RoundedBorder()).Render(right)
+		m.list.Styles.Title = m.list.Styles.Title.Background(lg.Color("")).Foreground(lg.Color("62"))
+		left = m.list.View()
+		left = m.style.Border(lg.HiddenBorder()).Render(left)
+		right = m.style.Height(lg.Height(left) - 2).Border(lg.RoundedBorder()).Render(right)
 	} else {
-		left = style.Border(lg.RoundedBorder()).Render(left)
-		right = style.Height(lg.Height(left)-2).Border(lg.HiddenBorder()).Render(right)
+		m.list.Styles.Title = m.list.Styles.Title.Background(lg.Color("62"))
+		left = m.list.View()
+		left = m.style.Border(lg.RoundedBorder()).Render(left)
+		right = m.style.Height(lg.Height(left) - 2).Border(lg.HiddenBorder()).Render(right)
 	}
-	
-	return lg.JoinHorizontal(lg.Top,left,right)
+
+	return lg.JoinVertical(lg.Top, header, lg.JoinHorizontal(lg.Center, left, right))
 }
 
-func renderCascadeOrderView(model tea.Model) string {
-	mm, ok := model.(settingsModel)
-	m, ok := mm.selectedModel.(cascadeModel)
-	if !ok {
-		panic("Wrong model passed to renderCascadeOrderView")
+func renderCascadeOrderView(m *cascadeModel) string {
+
+	if m.focus {
+		m.list.Styles.Title = m.list.Styles.Title.Background(lg.Color("62")).Foreground(lg.Color("230"))
+	} else {
+		m.list.Styles.Title = m.list.Styles.Title.Background(lg.Color("")).Foreground(lg.Color("62"))
 	}
-	style := m.delegate.Styles.NormalDesc
-	title := m.delegate.Styles.NormalTitle.Render("fastTravelCLI - Cascade Path Query Order")
-	help := "Some help stuff here..."
 
-	// s.NormalTitle = lg.NewStyle().
-	// 	Foreground(lipgloss.AdaptiveColor{Light: "#1a1a1a", Dark: "#dddddd"}).
-	// 	Padding(0, 0, 0, 2) //nolint:mnd
-	//
-	// s.NormalDesc = s.NormalTitle.
-	// 	Foreground(lipgloss.AdaptiveColor{Light: "#A49FA5", Dark: "#777777"})
-
-	selectedStyle := lg.NewStyle().
-		BorderForeground(lg.AdaptiveColor{Light: "#F793FF", Dark: "#AD58B4"}).
-		Foreground(lg.AdaptiveColor{Light: "#EE6FF8", Dark: "#EE6FF8"})
-
-
-	var b strings.Builder
-	for i, item := range m.items {
+	for i, item := range m.list.Items() {
+		item, ok := item.(cascadeItem)
+		if !ok {
+			panic("item is not a cascadeItem!")
+		}
 		premark := " "
 		postmark := " "
-		if i == m.cursor {
-			premark = ">"
-			postmark = "<"
-			style = selectedStyle
-		}
 
 		if i == m.selected {
 			premark = "|"
 			postmark = "|"
-			style = selectedStyle
 		}
 
-		renderedItem := fmt.Sprintf("%s %s %s\n", premark, item, postmark)
-
-		b.WriteString(style.Render(renderedItem))
+		renderedItem := fmt.Sprintf("%s %s %s", premark, item.name, postmark)
+		m.list.SetItem(i, cascadeItem{title: renderedItem, name: item.name})
 	}
-
-	return lg.JoinVertical(lg.Left, title, b.String(), help)
+	m.list.Title = "Cascade Order"
+	return m.list.View()
 }
 
-func renderManageBookmarksView(mm tea.Model) string {
-	m, ok := mm.(bookmarksModel)
-	if !ok {
-		panic("Wrong model passed to renderManageBookmarksView")
-	}
+func renderManageBookmarksView(m *bookmarksModel) string {
 	// TODO implement
-	return m.name
+	return "bookmarks"
 }
 
-func renderVersionView(mm tea.Model) string {
-	m, ok := mm.(versionModel)
-	if !ok {
-		panic("Wrong model passed to renderVersionView")
-	}
+func renderVersionView(m *versionModel) string {
 	// TODO implement
-	return m.name
+	return "version info"
 }
