@@ -24,7 +24,7 @@ type settingsModel struct {
 	selectedModel DetailModel
 	focusDetail   bool
 	style         lg.Style
-	listStyle 	*list.Styles
+	listStyle     *list.Styles
 }
 
 type settingItem struct {
@@ -50,7 +50,11 @@ var (
 
 	settingsOptions = []list.Item{
 
+		// TODO add "general" settings item.
+
 		settingItem{
+			// TODO: rename to something better, more clear/intuitive
+			//	- query order?
 			name:  "Cascade Order",
 			desc:  "Determine the ordering in which fastTravelCLI resolves a query.",
 			model: 0,
@@ -63,12 +67,12 @@ var (
 		},
 
 		settingItem{
+			// TODO: Rename to something like "info", "build info", "version info"
 			name:  "Version",
 			desc:  "View fastTravelCLI version information.",
 			model: 2,
 		},
 	}
-
 )
 
 func (m settingsModel) Init() tea.Cmd {
@@ -134,11 +138,11 @@ func (m settingsModel) View() string {
 }
 
 type cascadeModel struct {
-	Render ViewFunc
+	Render   ViewFunc
 	list     list.Model
 	cursor   int
 	selected int
-	focus bool
+	focus    bool
 }
 
 type cascadeItem struct {
@@ -267,8 +271,8 @@ func (m *cascadeModel) View() string {
 }
 
 type bookmarksModel struct {
-	name   string
-	list   list.Model
+	name  string
+	list  list.Model
 	focus bool
 }
 
@@ -301,8 +305,8 @@ func (m *bookmarksModel) View() string {
 }
 
 type versionModel struct {
-	name   string
-	list   list.Model
+	name  string
+	list  list.Model
 	focus bool
 }
 

@@ -75,10 +75,14 @@ func renderCascadeOrderView(m *cascadeModel) string {
 
 func renderManageBookmarksView(m *bookmarksModel) string {
 	// TODO implement
+
+	// Table of bookmarks, selections for editing, adding, deleting
 	return "bookmarks"
 }
 
 func renderVersionView(m *versionModel) string {
 	// TODO implement
+
+	// Print version and commit hash
 	return "version info"
 }

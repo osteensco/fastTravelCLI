@@ -11,13 +11,23 @@ type CmdAPI struct {
 	wkDir    string
 	cmd      *Cmd
 	allPaths map[string]string
+	settings *Settings
 	file     *os.File
 	rdr      io.Reader
 }
 
-func NewCmdAPI(ftDir string, inputCmd *Cmd, allPaths map[string]string, file *os.File, rdr io.Reader) *CmdAPI {
-	return &CmdAPI{ftDir, inputCmd, allPaths, file, rdr}
+func NewCmdAPI(ftDir string, inputCmd *Cmd, allPaths map[string]string, settings *Settings, file *os.File, rdr io.Reader) *CmdAPI {
+	return &CmdAPI{ftDir, inputCmd, allPaths, settings, file, rdr}
 }
+
+type Settings struct {
+	cascadeOrder []string
+}
+
+func NewSettings() *Settings {
+	return &Settings{}
+}
+
 
 // struct used to identify flags that were provided with a given command
 type CmdFlags struct {

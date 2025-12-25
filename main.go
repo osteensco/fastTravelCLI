@@ -52,9 +52,12 @@ func main() {
 	var dataPath string
 	var file *os.File
 	var allPaths map[string]string
+	var settings *ft.Settings
 
 	// Lazy load fastTravelCLI data
 	if cmd.LoadData {
+		settings = ft.NewSettings()
+
 		// find persisted keys or create file to persist keys
 		dataDirPath = filepath.Dir(exePath)
 		dataPath = fmt.Sprintf("%s/fastTravel.bin", dataDirPath)
@@ -67,7 +70,7 @@ func main() {
 		defer file.Close()
 
 		// read keys into memory
-		allPaths, err = ft.ReadMap(file)
+		allPaths, err = ft.ReadData(file, settings)
 		if err != nil {
 			fmt.Println("ReadMap Error:", err)
 			return
@@ -75,7 +78,7 @@ func main() {
 	}
 
 	// manifest API
-	data := ft.NewCmdAPI(dataDirPath, inputCommand, allPaths, file, os.Stdin)
+	data := ft.NewCmdAPI(dataDirPath, inputCommand, allPaths, settings, file, os.Stdin)
 
 	// execute user provided action
 	err = cmd.Callback(data)

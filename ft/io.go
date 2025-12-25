@@ -7,7 +7,12 @@ import (
 	"os"
 )
 
-func ReadMap(file *os.File) (map[string]string, error) {
+// TODO: read and write settings file
+//	- this could be included in the current file used as the first x bytes
+//		- settings length is first byte, -> read settings, each setting is a byte -> remaining bytes are keys
+//		- this would be a breaking change, use a different file to avoid breaking change?
+
+func ReadData(file *os.File, settings *Settings) (map[string]string, error) {
 	pathMap := make(map[string]string)
 
 	fileInfo, err := file.Stat()
