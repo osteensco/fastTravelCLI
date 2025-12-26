@@ -4,17 +4,18 @@ import (
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
 	lg "github.com/charmbracelet/lipgloss"
+	ftdata "github.com/osteensco/fastTravelCLI/data"
 )
 
-func setSizeMsg(w, h int) func() tea.Msg {
-	sizeCmd := func() tea.Msg {
-		return tea.WindowSizeMsg{Width: w, Height: h}
-	}
+// func setSizeMsg(w, h int) func() tea.Msg {
+// 	sizeCmd := func() tea.Msg {
+// 		return tea.WindowSizeMsg{Width: w, Height: h}
+// 	}
+//
+// 	return sizeCmd
+// }
 
-	return sizeCmd
-}
-
-func initSettings() settingsModel {
+func initSettings(settings *ftdata.Settings) settingsModel {
 	docStyle := lg.NewStyle().Margin(10, 2)
 	delegate := list.NewDefaultDelegate() // ItemDelegate interface for changing style of items
 
@@ -26,13 +27,14 @@ func initSettings() settingsModel {
 	settingsList.SetFilteringEnabled(false)
 	settingsList.SetShowStatusBar(false)
 
-	return settingsModel{docStyle: docStyle, list: settingsList, models: modelList, style: baseStyle, listStyle: sp}
+	return settingsModel{settings: settings, docStyle: docStyle, list: settingsList, models: modelList, style: baseStyle, listStyle: sp}
 }
 
 var baseStyle = lg.NewStyle().Padding(1)
-var parentModel = initSettings()
+var parentModel settingsModel
 
-func Run() error {
+func Run(settings *ftdata.Settings) error {
+	parentModel = initSettings(settings)
 	p := tea.NewProgram(parentModel, tea.WithAltScreen())
 	if _, err := p.Run(); err != nil {
 		return err

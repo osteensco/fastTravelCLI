@@ -53,11 +53,11 @@ func main() {
 	var dataPath string
 	var file *os.File
 	var allPaths map[string]string
-	var settings *ft.Settings
+	var settings *data.Settings
 
 	// Lazy load fastTravelCLI data
 	if cmd.LoadData {
-		settings = ft.NewSettings()
+		settings = data.NewSettings()
 
 		// find persisted keys or create file to persist keys
 		dataDirPath = filepath.Dir(exePath)

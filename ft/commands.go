@@ -20,12 +20,12 @@ type CmdAPI struct {
 	wkDir    string
 	cmd      *Cmd
 	allPaths map[string]string
-	settings *Settings
+	settings *ftdata.Settings
 	file     *os.File
 	rdr      io.Reader
 }
 
-func NewCmdAPI(ftDir string, inputCmd *Cmd, allPaths map[string]string, settings *Settings, file *os.File, rdr io.Reader) *CmdAPI {
+func NewCmdAPI(ftDir string, inputCmd *Cmd, allPaths map[string]string, settings *ftdata.Settings, file *os.File, rdr io.Reader) *CmdAPI {
 	return &CmdAPI{ftDir, inputCmd, allPaths, settings, file, rdr}
 }
 
@@ -78,6 +78,7 @@ var AvailCmds = map[string]struct {
 	"-u":        {updateFT, false},
 	"-settings": {settingsTui, false},
 }
+
 func PassCmd(args []string) (*Cmd, error) {
 	// Dissect provided args
 	cmd := ParseArgs(&args)
@@ -181,6 +182,10 @@ func setDirectoryVar(data *CmdAPI) error {
 		}
 		if err != nil {
 			return err
+		}
+		// keys with '/' will disrupt key evaluations so this is not allowed
+		if strings.Contains(key,"/") {
+			return errors.New("Key in bookmark cannot contain '/'")
 		}
 
 		// verify if path is already saved to another key

@@ -4,6 +4,7 @@ import (
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
 	lg "github.com/charmbracelet/lipgloss"
+	ftdata "github.com/osteensco/fastTravelCLI/data"
 )
 
 type exitDetail struct{}
@@ -18,6 +19,7 @@ type DetailModel interface {
 }
 
 type settingsModel struct {
+	settings 	  *ftdata.Settings
 	docStyle      lg.Style
 	list          list.Model
 	models        []DetailModel
@@ -40,12 +42,12 @@ var (
 	modelList = []DetailModel{
 		newCascadeModel(),
 
-		&bookmarksModel{
-			name: "BOOKMARKS",
-		},
-		&versionModel{
-			name: "VERSION INFO",
-		},
+		// &bookmarksModel{
+		// 	name: "BOOKMARKS",
+		// },
+		// &versionModel{
+		// 	name: "VERSION INFO",
+		// },
 	}
 
 	settingsOptions = []list.Item{
@@ -55,23 +57,23 @@ var (
 		settingItem{
 			// TODO: rename to something better, more clear/intuitive
 			//	- query order?
-			name:  "Cascade Order",
+			name:  "Query Order",
 			desc:  "Determine the ordering in which fastTravelCLI resolves a query.",
 			model: 0,
 		},
 
-		settingItem{
-			name:  "Manage Bookmarks",
-			desc:  "View and manage bookmarks saved with fastTravelCLI.",
-			model: 1,
-		},
-
-		settingItem{
-			// TODO: Rename to something like "info", "build info", "version info"
-			name:  "Version",
-			desc:  "View fastTravelCLI version information.",
-			model: 2,
-		},
+		// settingItem{
+		// 	name:  "Manage Bookmarks",
+		// 	desc:  "View and manage bookmarks saved with fastTravelCLI.",
+		// 	model: 1,
+		// },
+		//
+		// settingItem{
+		// 	// TODO: Rename to something like "info", "build info", "version info"
+		// 	name:  "Version",
+		// 	desc:  "View fastTravelCLI version information.",
+		// 	model: 2,
+		// },
 	}
 )
 
@@ -270,70 +272,70 @@ func (m *cascadeModel) View() string {
 	return renderCascadeOrderView(m)
 }
 
-type bookmarksModel struct {
-	name  string
-	list  list.Model
-	focus bool
-}
-
-func (m *bookmarksModel) ShowFocus(focus bool) {
-	m.focus = focus
-}
-
-func (m *bookmarksModel) Init() tea.Cmd {
-	return nil
-}
-
-func (m *bookmarksModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	switch msg := msg.(type) {
-	// case tea.WindowSizeMsg:
-	// 	m.width = msg.Width
-	// 	m.height = msg.Height
-	case tea.KeyMsg:
-		switch msg.String() {
-		case "ctrl+c", "q":
-			return m, tea.Quit
-		case "esc", "backspace":
-			// return resetSettings(), setSizeMsg(m.width, m.height)
-		}
-	}
-	return m, nil
-}
-
-func (m *bookmarksModel) View() string {
-	return renderManageBookmarksView(m)
-}
-
-type versionModel struct {
-	name  string
-	list  list.Model
-	focus bool
-}
-
-func (m *versionModel) ShowFocus(focus bool) {
-	m.focus = focus
-}
-
-func (m *versionModel) Init() tea.Cmd {
-	return nil
-}
-
-func (m *versionModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	switch msg := msg.(type) {
-	// case tea.WindowSizeMsg:
-	// 	m.width = msg.Width
-	// 	m.height = msg.Height
-	case tea.KeyMsg:
-		switch msg.String() {
-		case "ctrl+c", "q":
-			return m, tea.Quit
-		case "esc", "backspace":
-			// return resetSettings(), setSizeMsg(m.width, m.height)
-		}
-	}
-	return m, nil
-}
-
-func (m *versionModel) View() string {
-	return renderVersionView(m)
-}
+// type bookmarksModel struct {
+// 	name  string
+// 	list  list.Model
+// 	focus bool
+// }
+//
+// func (m *bookmarksModel) ShowFocus(focus bool) {
+// 	m.focus = focus
+// }
+//
+// func (m *bookmarksModel) Init() tea.Cmd {
+// 	return nil
+// }
+//
+// func (m *bookmarksModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+// 	switch msg := msg.(type) {
+// 	// case tea.WindowSizeMsg:
+// 	// 	m.width = msg.Width
+// 	// 	m.height = msg.Height
+// 	case tea.KeyMsg:
+// 		switch msg.String() {
+// 		case "ctrl+c", "q":
+// 			return m, tea.Quit
+// 		case "esc", "backspace":
+// 			// return resetSettings(), setSizeMsg(m.width, m.height)
+// 		}
+// 	}
+// 	return m, nil
+// }
+//
+// func (m *bookmarksModel) View() string {
+// 	return renderManageBookmarksView(m)
+// }
+//
+// type versionModel struct {
+// 	name  string
+// 	list  list.Model
+// 	focus bool
+// }
+//
+// func (m *versionModel) ShowFocus(focus bool) {
+// 	m.focus = focus
+// }
+//
+// func (m *versionModel) Init() tea.Cmd {
+// 	return nil
+// }
+//
+// func (m *versionModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+// 	switch msg := msg.(type) {
+// 	// case tea.WindowSizeMsg:
+// 	// 	m.width = msg.Width
+// 	// 	m.height = msg.Height
+// 	case tea.KeyMsg:
+// 		switch msg.String() {
+// 		case "ctrl+c", "q":
+// 			return m, tea.Quit
+// 		case "esc", "backspace":
+// 			// return resetSettings(), setSizeMsg(m.width, m.height)
+// 		}
+// 	}
+// 	return m, nil
+// }
+//
+// func (m *versionModel) View() string {
+// 	return renderVersionView(m)
+// }

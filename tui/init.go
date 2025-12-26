@@ -1,11 +1,16 @@
 package tui
 
-import "github.com/osteensco/fastTravelCLI/tui/settings"
+import (
+	ftdata "github.com/osteensco/fastTravelCLI/data"
+	"github.com/osteensco/fastTravelCLI/tui/settings"
+)
 
-type settingsTUI struct{}
+type settingsTUI struct {
+	Settings ftdata.Settings
+}
 
 func (s *settingsTUI) Run() error {
-	err := settings.Run()
+	err := settings.Run(&s.Settings)
 	if err != nil {
 		return err
 	}

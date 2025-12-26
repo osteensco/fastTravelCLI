@@ -11,14 +11,14 @@ import (
 type ViewFunc func(tea.Model) string
 
 func renderSettingsView(m *settingsModel) string {
-// 	header := `
-//      __           _  _____                     _   ___   __   _____ - -  -  -   -   -
-//     / _| ____ ___| |/__   \___  ______   _____| | / __\ / /   \_   \ - -  -  -   -   -
-//    | |_ / _  / __| __|/ /\/  _\/ _  \ \ / / _ \ |/ /   / /     / /\/  - -  -   -   -
-//    |  _| (_| \__ \ |_/ /  | | | (_| |\ V /  __/ / /___/ /___/\/ /_  - -  -  -   -   -
-//    |_|  \__._|___/\__\/   |_|  \__._| \_/ \___|_\____/\____/\____/ - -  -  -   -   -
-//
-// `
+	// 	header := `
+	//      __           _  _____                     _   ___   __   _____ - -  -  -   -   -
+	//     / _| ____ ___| |/__   \___  ______   _____| | / __\ / /   \_   \ - -  -  -   -   -
+	//    | |_ / _  / __| __|/ /\/  _\/ _  \ \ / / _ \ |/ /   / /     / /\/  - -  -   -   -
+	//    |  _| (_| \__ \ |_/ /  | | | (_| |\ V /  __/ / /___/ /___/\/ /_  - -  -  -   -   -
+	//    |_|  \__._|___/\__\/   |_|  \__._| \_/ \___|_\____/\____/\____/ - -  -  -   -   -
+	//
+	// `
 
 	header := ftdata.Logo
 	m.list.Title = "Settings"
@@ -73,20 +73,20 @@ func renderCascadeOrderView(m *cascadeModel) string {
 		renderedItem := fmt.Sprintf("%s %s %s", premark, item.name, postmark)
 		m.list.SetItem(i, cascadeItem{title: renderedItem, name: item.name})
 	}
-	m.list.Title = "Cascade Order"
+	m.list.Title = "Query Order"
 	return m.list.View()
 }
 
-func renderManageBookmarksView(m *bookmarksModel) string {
-	// TODO implement
-
-	// Table of bookmarks, selections for editing, adding, deleting
-	return "bookmarks"
-}
-
-func renderVersionView(m *versionModel) string {
-	// TODO implement
-
-	// Print version and commit hash
-	return "version info"
-}
+// func renderManageBookmarksView(m *bookmarksModel) string {
+// 	// TODO implement
+//
+// 	// Table of bookmarks, selections for editing, adding, deleting
+// 	return "bookmarks"
+// }
+//
+// func renderVersionView(m *versionModel) string {
+// 	// TODO implement
+//
+// 	// Print version and commit hash
+// 	return "version info"
+// }
