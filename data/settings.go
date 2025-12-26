@@ -17,9 +17,9 @@ func NewSettings() *Settings {
 }
 
 func ReadInSettings(settings *Settings) {
-
+	// TODO
 }
 
 func WriteSettings(settings *Settings) {
-
+	// TODO
 }

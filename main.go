@@ -51,35 +51,48 @@ func main() {
 
 	var dataDirPath string
 	var dataPath string
-	var file *os.File
+	var dataFile *os.File
 	var allPaths map[string]string
+
 	var settings *data.Settings
+	var settingsPath string
+	var settingsFile *os.File
 
 	// Lazy load fastTravelCLI data
 	if cmd.LoadData {
-		settings = data.NewSettings()
 
 		// find persisted keys or create file to persist keys
 		dataDirPath = filepath.Dir(exePath)
 		dataPath = fmt.Sprintf("%s/fastTravel.bin", dataDirPath)
 
-		file, err = data.EnsureData(dataPath)
+		dataFile, err = data.EnsureData(dataPath)
 		if err != nil {
 			fmt.Println("EnsureData Error:", err)
 			return
 		}
-		defer file.Close()
+		defer dataFile.Close()
 
 		// read keys into memory
-		allPaths, err = data.ReadData(file)
+		allPaths, err = data.ReadData(dataFile)
 		if err != nil {
 			fmt.Println("ReadMap Error:", err)
 			return
 		}
+
+		settingsPath = fmt.Sprintf("%s/settings.bin", dataDirPath)
+		settingsFile, err = data.EnsureData(settingsPath)
+		if err != nil {
+			fmt.Println("EnsureData Error:", err)
+			return
+		}
+		defer settingsFile.Close()
+
+		// data.ReadInSettings(settings)
+		settings = data.NewSettings() // replace with read settings
 	}
 
 	// manifest API
-	data := ft.NewCmdAPI(dataDirPath, inputCommand, allPaths, settings, file, os.Stdin)
+	data := ft.NewCmdAPI(dataDirPath, inputCommand, allPaths, settings, dataFile, settingsFile, os.Stdin)
 
 	// execute user provided action
 	err = cmd.Callback(data)

@@ -18,6 +18,7 @@ import (
 var QueryCascade = map[string]struct {
 	FuncMap func(allpaths map[string]string, path string) (string, error)
 }{
+	// TODO: make these keys enums?
 	"bookmark": {evalBookmark},
 	"CDPATH": {evalCDPATH},
 	"relative": {evalRelative},

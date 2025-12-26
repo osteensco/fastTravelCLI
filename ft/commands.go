@@ -21,12 +21,13 @@ type CmdAPI struct {
 	cmd      *Cmd
 	allPaths map[string]string
 	settings *ftdata.Settings
-	file     *os.File
+	dataFile     *os.File
+	settingsFile *os.File
 	rdr      io.Reader
 }
 
-func NewCmdAPI(ftDir string, inputCmd *Cmd, allPaths map[string]string, settings *ftdata.Settings, file *os.File, rdr io.Reader) *CmdAPI {
-	return &CmdAPI{ftDir, inputCmd, allPaths, settings, file, rdr}
+func NewCmdAPI(ftDir string, inputCmd *Cmd, allPaths map[string]string, settings *ftdata.Settings, dataFile *os.File, settingsFile *os.File, rdr io.Reader) *CmdAPI {
+	return &CmdAPI{ftDir, inputCmd, allPaths, settings, dataFile, settingsFile, rdr}
 }
 
 // struct used to identify flags that were provided with a given command
@@ -214,7 +215,7 @@ func setDirectoryVar(data *CmdAPI) error {
 			}
 			delete(data.allPaths, k)
 			data.allPaths[key] = path
-			ftdata.DataUpdate(data.allPaths, data.file)
+			ftdata.DataUpdate(data.allPaths, data.dataFile)
 			fmt.Printf(PathOverwriteMsg, key, path)
 			return nil
 		}
@@ -247,7 +248,7 @@ func setDirectoryVar(data *CmdAPI) error {
 
 		// key doesn't exist yet or user wants to overwrite
 		data.allPaths[key] = path
-		ftdata.DataUpdate(data.allPaths, data.file)
+		ftdata.DataUpdate(data.allPaths, data.dataFile)
 		fmt.Printf(AddKeyMsg, key, path)
 
 	}
@@ -290,7 +291,7 @@ func removeKey(data *CmdAPI) error {
 		}
 	}
 	delete(data.allPaths, key)
-	ftdata.DataUpdate(data.allPaths, data.file)
+	ftdata.DataUpdate(data.allPaths, data.dataFile)
 	fmt.Printf(RemoveKeyMsg, key)
 	return nil
 }
@@ -332,7 +333,7 @@ func renameKey(data *CmdAPI) error {
 	delete(data.allPaths, originalKey)
 	data.allPaths[newKey] = path
 
-	ftdata.DataUpdate(data.allPaths, data.file)
+	ftdata.DataUpdate(data.allPaths, data.dataFile)
 	fmt.Printf(RenamedKeyMsg, originalKey, newKey, path)
 	return nil
 }
