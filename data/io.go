@@ -1,4 +1,4 @@
-package ft
+package data
 
 import (
 	"encoding/binary"
@@ -12,7 +12,7 @@ import (
 //		- settings length is first byte, -> read settings, each setting is a byte -> remaining bytes are keys
 //		- this would be a breaking change, use a different file to avoid breaking change?
 
-func ReadData(file *os.File, settings *Settings) (map[string]string, error) {
+func ReadData(file *os.File) (map[string]string, error) {
 	pathMap := make(map[string]string)
 
 	fileInfo, err := file.Stat()
@@ -75,7 +75,7 @@ func EnsureData(filepath string) (*os.File, error) {
 
 }
 
-func dataUpdate(hashmap map[string]string, file *os.File) error {
+func DataUpdate(hashmap map[string]string, file *os.File) error {
 
 	var buffer []byte
 	for key, val := range hashmap {

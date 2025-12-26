@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/osteensco/fastTravelCLI/data"
 	"github.com/osteensco/fastTravelCLI/ft"
 )
 
@@ -62,7 +63,7 @@ func main() {
 		dataDirPath = filepath.Dir(exePath)
 		dataPath = fmt.Sprintf("%s/fastTravel.bin", dataDirPath)
 
-		file, err = ft.EnsureData(dataPath)
+		file, err = data.EnsureData(dataPath)
 		if err != nil {
 			fmt.Println("EnsureData Error:", err)
 			return
@@ -70,7 +71,7 @@ func main() {
 		defer file.Close()
 
 		// read keys into memory
-		allPaths, err = ft.ReadData(file, settings)
+		allPaths, err = data.ReadData(file)
 		if err != nil {
 			fmt.Println("ReadMap Error:", err)
 			return

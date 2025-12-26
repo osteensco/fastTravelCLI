@@ -2,21 +2,25 @@ package settings
 
 import (
 	"fmt"
+
 	tea "github.com/charmbracelet/bubbletea"
 	lg "github.com/charmbracelet/lipgloss"
+	ftdata "github.com/osteensco/fastTravelCLI/data"
 )
 
 type ViewFunc func(tea.Model) string
 
 func renderSettingsView(m *settingsModel) string {
-	header := `
-     __           _  _____                     _   ___   __   _____ - -  -  -   -   -
-    / _| ____ ___| |/__   \___  ______   _____| | / __\ / /   \_   \ - -  -  -   -   -
-   | |_ / _  / __| __|/ /\/  _\/ _  \ \ / / _ \ |/ /   / /     / /\/  - -  -   -   -
-   |  _| (_| \__ \ |_/ /  | | | (_| |\ V /  __/ / /___/ /___/\/ /_  - -  -  -   -   -
-   |_|  \__._|___/\__\/   |_|  \__._| \_/ \___|_\____/\____/\____/ - -  -  -   -   -
+// 	header := `
+//      __           _  _____                     _   ___   __   _____ - -  -  -   -   -
+//     / _| ____ ___| |/__   \___  ______   _____| | / __\ / /   \_   \ - -  -  -   -   -
+//    | |_ / _  / __| __|/ /\/  _\/ _  \ \ / / _ \ |/ /   / /     / /\/  - -  -   -   -
+//    |  _| (_| \__ \ |_/ /  | | | (_| |\ V /  __/ / /___/ /___/\/ /_  - -  -  -   -   -
+//    |_|  \__._|___/\__\/   |_|  \__._| \_/ \___|_\____/\____/\____/ - -  -  -   -   -
+//
+// `
 
-`
+	header := ftdata.Logo
 	m.list.Title = "Settings"
 
 	width := min(70, m.style.GetWidth()/2)

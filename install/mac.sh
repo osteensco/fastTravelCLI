@@ -17,7 +17,7 @@ exe_install() {
     echo "Created dir $TARGET_DIR"
 
     echo "Attempting to compile go binary..."
-    go build -o fastTravel.exe -ldflags="-X 'github.com/osteensco/fastTravelCLI/ft.Version=$version_tag' -X 'github.com/osteensco/fastTravelCLI/ft.Logo=$logo'" 
+    go build -o fastTravel.exe -ldflags="-X 'github.com/osteensco/fastTravelCLI/ft.Version=$version_tag' -X 'github.com/osteensco/fastTravelCLI/data.Logo=$logo'" 
 
     echo "Moving exe to $TARGET_DIR"
     sudo mv ./fastTravel.exe "$TARGET_DIR/fastTravel.exe" 

@@ -4,15 +4,80 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"os"
 	"os/exec"
 	"runtime"
 	"strings"
 
+	ftdata "github.com/osteensco/fastTravelCLI/data"
 	"github.com/osteensco/fastTravelCLI/tui"
 )
 
+// ft command api
+type CmdAPI struct {
+	wkDir    string
+	cmd      *Cmd
+	allPaths map[string]string
+	settings *Settings
+	file     *os.File
+	rdr      io.Reader
+}
+
+func NewCmdAPI(ftDir string, inputCmd *Cmd, allPaths map[string]string, settings *Settings, file *os.File, rdr io.Reader) *CmdAPI {
+	return &CmdAPI{ftDir, inputCmd, allPaths, settings, file, rdr}
+}
+
+// struct used to identify flags that were provided with a given command
+type CmdFlags struct {
+	Y bool
+	H bool
+}
+
+// struct used to dissect and organize a command into it's individual components
+type Cmd struct {
+	Flags CmdFlags
+	Cmd   string
+	Args  []string
+}
+
+// returns a new empty Cmd struct
+func NewCmd(args *[]string) *Cmd {
+	return &Cmd{
+		// flags and cmd will be empty defaults
+		// args is explicit so that enough space is allocated to underlying array for slight optimization
+		Args: make([]string, 0, len(*args)),
+	}
+}
+
+// map of available commands
+var AvailCmds = map[string]struct {
+	Callback func(data *CmdAPI) error
+	LoadData bool
+}{
+	"_":         {changeDirectory, true},
+	"-set":      {setDirectoryVar, true},
+	"-ls":       {displayAllPaths, true},
+	"-rm":       {removeKey, true},
+	"-rn":       {renameKey, true},
+	"-edit":     {editPath, true},
+	"-help":     {showHelp, false},
+	"-]":        {passToShell, false},
+	"-[":        {passToShell, false},
+	"-hist":     {passToShell, false},
+	"-..":       {passToShell, false},
+	"--":        {passToShell, false},
+	"-fzf":      {passToShell, false},
+	"-fzfc":     {passToShell, true},
+	"-fzfa":     {passToShell, true},
+	"-version":  {showVersion, false},
+	"-v":        {showVersion, false},
+	"-is":       {showDirectoryVar, true},
+	"-update":   {updateFT, false},
+	"-u":        {updateFT, false},
+	"-settings": {settingsTui, false},
+}
 func PassCmd(args []string) (*Cmd, error) {
 	// Dissect provided args
 	cmd := ParseArgs(&args)
@@ -144,7 +209,7 @@ func setDirectoryVar(data *CmdAPI) error {
 			}
 			delete(data.allPaths, k)
 			data.allPaths[key] = path
-			dataUpdate(data.allPaths, data.file)
+			ftdata.DataUpdate(data.allPaths, data.file)
 			fmt.Printf(PathOverwriteMsg, key, path)
 			return nil
 		}
@@ -177,7 +242,7 @@ func setDirectoryVar(data *CmdAPI) error {
 
 		// key doesn't exist yet or user wants to overwrite
 		data.allPaths[key] = path
-		dataUpdate(data.allPaths, data.file)
+		ftdata.DataUpdate(data.allPaths, data.file)
 		fmt.Printf(AddKeyMsg, key, path)
 
 	}
@@ -220,7 +285,7 @@ func removeKey(data *CmdAPI) error {
 		}
 	}
 	delete(data.allPaths, key)
-	dataUpdate(data.allPaths, data.file)
+	ftdata.DataUpdate(data.allPaths, data.file)
 	fmt.Printf(RemoveKeyMsg, key)
 	return nil
 }
@@ -262,7 +327,7 @@ func renameKey(data *CmdAPI) error {
 	delete(data.allPaths, originalKey)
 	data.allPaths[newKey] = path
 
-	dataUpdate(data.allPaths, data.file)
+	ftdata.DataUpdate(data.allPaths, data.file)
 	fmt.Printf(RenamedKeyMsg, originalKey, newKey, path)
 	return nil
 }
@@ -350,7 +415,7 @@ func showHelp(data *CmdAPI) error {
 }
 
 func showVersion(data *CmdAPI) error {
-	fmt.Print(Logo)
+	fmt.Print(ftdata.Logo)
 	fmt.Println("version:\t", Version)
 	return nil
 }
