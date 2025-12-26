@@ -30,6 +30,7 @@ var QueryCascade = map[string]struct {
 //  - check for SPECIFIC errors in directory checks (ex: *PathError)
 //  - ensure other types of errors are caught and returned early
 
+// evaluates a bookmark query and returns an absolute path
 func evalBookmark(allPaths map[string]string, path string) (string, error) {
 	var key string
 	provided_string := path
@@ -78,6 +79,7 @@ func evalBookmark(allPaths map[string]string, path string) (string, error) {
 
 }
 
+// evaluates a CDPATH query and returns an absolute path
 func evalCDPATH(allpaths map[string]string, path string) (string, error) {
 	cdpath := os.Getenv("CDPATH")
 	if cdpath != "" {
@@ -93,6 +95,7 @@ func evalCDPATH(allpaths map[string]string, path string) (string, error) {
 	return "", nil
 }
 
+// evaluates a relative path query and returns an absolute path
 func evalRelative(allpaths map[string]string, path string) (string, error) {
 	dir, err := os.Stat(path)
 	if err == nil {
@@ -119,7 +122,7 @@ func evalRelative(allpaths map[string]string, path string) (string, error) {
 
 
 /*
-Takes a key or relative path and returns it's absolute path or an error.
+Takes a path query and returns it's absolute path or an error.
 */
 func evalPath(data *CmdAPI, path *string) (string, error) {
 
