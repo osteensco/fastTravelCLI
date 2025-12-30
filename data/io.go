@@ -1,23 +1,22 @@
 package data
 
 import (
+	"bytes"
 	"encoding/binary"
 	"errors"
 	"fmt"
+	"io"
 	"os"
 )
 
-// TODO: read and write settings file
-//	- this could be included in the current file used as the first x bytes
-//		- settings length is first byte, -> read settings, each setting is a byte -> remaining bytes are keys
-//		- this would be a breaking change, use a different file to avoid breaking change?
+
 
 func ReadData(file *os.File) (map[string]string, error) {
 	pathMap := make(map[string]string)
 
 	fileInfo, err := file.Stat()
 	if err != nil {
-		return pathMap, errors.New(fmt.Sprint("Error getting file info: ", err))
+		return pathMap, fmt.Errorf("Error getting file info: %w", err)
 	}
 
 	// take file size in bytes and make a buffer of that size
@@ -25,9 +24,9 @@ func ReadData(file *os.File) (map[string]string, error) {
 	buff := make([]byte, size)
 
 	// read entire file into memory
-	_, err = file.Read(buff)
+	_, err = io.ReadFull(file, buff)
 	if err != nil {
-		return pathMap, errors.New(fmt.Sprint("Error reading file into buffer: ", err))
+		return pathMap, fmt.Errorf("Error reading file into buffer: %w", err)
 	}
 
 	// key length integer should always fit in 1 byte
@@ -35,16 +34,16 @@ func ReadData(file *os.File) (map[string]string, error) {
 	// value length integer should always fit in 2 bytes
 	var valLen uint16
 	// sliding pointer to navigate buffer
-	var offset uint
+	var offset int
 
 	// iterate through buffer and deserialize
-	for offset < uint(len(buff)) {
+	for offset < len(buff) {
 
 		// read length of key, use length to read in key, adjust offset
 		// simple type conversion since length is only 1 byte and not a []byte
-		keyLen = uint8(buff[offset])
+		keyLen = buff[offset]
 		offset++
-		kl := uint(keyLen)
+		kl := int(keyLen)
 		keyBytes := buff[offset : offset+kl]
 		offset += kl
 
@@ -52,7 +51,7 @@ func ReadData(file *os.File) (map[string]string, error) {
 		// length contained in 2 bytes, need to convert []byte to a uint16 value
 		valLen = binary.LittleEndian.Uint16(buff[offset : offset+2])
 		offset += 2
-		vl := uint(valLen)
+		vl := int(valLen)
 		valBytes := buff[offset : offset+vl]
 		offset += vl
 		// add key-value to map
@@ -77,52 +76,46 @@ func EnsureData(filepath string) (*os.File, error) {
 
 func DataUpdate(hashmap map[string]string, file *os.File) error {
 
-	var buffer []byte
+	bufSize := 0
+
 	for key, val := range hashmap {
+		// key length is stored using 1 byte value length is stored using 2 bytes
+		bufSize += 3 + len(key) + len(val)
+	}
 
+	b := make([]byte, 0, bufSize)
+	buffer := bytes.NewBuffer(b)
+
+	var valLen [2]byte //reusable valLen array of 2 bytes
+	for key, val := range hashmap {
+		// insert key length and key into buffer
 		keyBytes := []byte(key)
+		keyLen := byte(uint8(len(keyBytes)))
+
+		buffer.WriteByte(keyLen)
+		buffer.Write(keyBytes)
+		
+		// insert value length and value into buffer
 		valBytes := []byte(val)
-
-		keyLen := make([]byte, 1)
-		keyLen[0] = byte(uint8(len(keyBytes)))
-
-		valLen := make([]byte, 2)
-		binary.LittleEndian.PutUint16(valLen, uint16(len(valBytes)))
-
-		// create an array of array of bytes for optimal concatenation
-		allBytes := [][]byte{keyLen, keyBytes, valLen, valBytes}
-
-		// get the length for key-value pair to allocate memory
-		var pairLen int
-		for _, s := range allBytes {
-			pairLen += len(s)
-		}
-		// create new slice and append all []byte from allBytes
-		pair := make([]byte, pairLen)
-		var i int
-		for _, s := range allBytes {
-			i += copy(pair[i:], s)
-		}
-		// append completed pair to buffer []byte
-		allPairs := make([]byte, len(buffer)+len(pair))
-		copy(allPairs, buffer)
-		copy(allPairs[len(buffer):], pair)
-		buffer = allPairs
+		binary.LittleEndian.PutUint16(valLen[:], uint16(len(valBytes)))
+		
+		buffer.Write(valLen[:])
+		buffer.Write(valBytes)
 	}
 
 	err := file.Truncate(0)
 	if err != nil {
-		return errors.New(fmt.Sprint("Error truncating file: ", err))
+		return fmt.Errorf("Error truncating file: %w", err)
 	}
 
 	_, err = file.Seek(0, 0)
 	if err != nil {
-		return errors.New(fmt.Sprint("Error seeking to beginning of file: ", err))
+		return fmt.Errorf("Error seeking to beginning of file: %w", err)
 	}
 
-	_, err = file.Write(buffer)
+	_, err = file.Write(buffer.Bytes())
 	if err != nil {
-		return errors.New(fmt.Sprint("Error writing contents of buffer to file: ", err))
+		return fmt.Errorf("Error writing contents of buffer to file: %w", err)
 	}
 
 	return nil

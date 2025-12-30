@@ -12,6 +12,8 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+
+	ftdata "github.com/osteensco/fastTravelCLI/data"
 )
 
 // test helpers
@@ -90,6 +92,7 @@ func TestPassToShell(t *testing.T) {
 	}
 	defer os.RemoveAll(tmpdir)
 	mock_allPaths := map[string]string{"valid": tmpdir}
+	mock_settings := ftdata.GenerateDefaultSettings()
 
 	tests := []struct {
 		name     string
@@ -97,19 +100,19 @@ func TestPassToShell(t *testing.T) {
 		expected string
 		wantErr  bool
 	}{
-		{"1. Pass ']' to shell.", NewCmdAPI("", &Cmd{Cmd: "-]"}, mock_allPaths, nil, nil), "]\n", false},
-		{"2. Pass '[' to shell.", NewCmdAPI("", &Cmd{Cmd: "-["}, mock_allPaths, nil, nil), "[\n", false},
-		{"3. Pass '..' to shell.", NewCmdAPI("", &Cmd{Cmd: "-.."}, mock_allPaths, nil, nil), "..\n", false},
-		{"4. Pass '-' to shell.", NewCmdAPI("", &Cmd{Cmd: "--"}, mock_allPaths, nil, nil), "-\n", false},
-		{"5. Pass 'hist' to shell.", NewCmdAPI("", &Cmd{Cmd: "-hist"}, mock_allPaths, nil, nil), "hist\n", false},
-		{"6. Pass 'fzf' to shell.", NewCmdAPI("", &Cmd{Cmd: "-fzf"}, mock_allPaths, nil, nil), "fzf\n", false},
-		{"7. Pass 'fzfc' to shell.", NewCmdAPI("", &Cmd{Cmd: "-fzfc"}, mock_allPaths, nil, nil), "fzfc\n", false},
-		{"8. Pass 'fzfa' to shell.", NewCmdAPI("", &Cmd{Cmd: "-fzfa"}, mock_allPaths, nil, nil), "fzfa\n", false},
-		{"9. Pass invalid command to shell.", NewCmdAPI("", &Cmd{Cmd: "-invalid"}, mock_allPaths, nil, nil), "", true},
-		{"10. Pass 'fzfc invalid dir' to shell.", NewCmdAPI("", &Cmd{Cmd: "-fzfc", Args: []string{"invalid"}}, mock_allPaths, nil, nil), "fzfc\n", true},
-		{"11. Pass 'fzfc valid dir' to shell.", NewCmdAPI("", &Cmd{Cmd: "-fzfc", Args: []string{"valid"}}, mock_allPaths, nil, nil), fmt.Sprintf("fzfc %s\n", tmpdir), false},
-		{"12. Pass 'fzfa invalid dir' to shell.", NewCmdAPI("", &Cmd{Cmd: "-fzfa", Args: []string{"invalid"}}, mock_allPaths, nil, nil), "fzfa\n", true},
-		{"13. Pass 'fzfa valid dir' to shell.", NewCmdAPI("", &Cmd{Cmd: "-fzfa", Args: []string{"valid"}}, mock_allPaths, nil, nil), fmt.Sprintf("fzfa %s\n", tmpdir), false},
+		{"1. Pass ']' to shell.", NewCmdAPI("", &Cmd{Cmd: "-]"}, mock_allPaths, mock_settings, nil, nil, nil), "]\n", false},
+		{"2. Pass '[' to shell.", NewCmdAPI("", &Cmd{Cmd: "-["}, mock_allPaths, mock_settings,nil, nil, nil), "[\n", false},
+		{"3. Pass '..' to shell.", NewCmdAPI("", &Cmd{Cmd: "-.."}, mock_allPaths, mock_settings, nil, nil, nil), "..\n", false},
+		{"4. Pass '-' to shell.", NewCmdAPI("", &Cmd{Cmd: "--"}, mock_allPaths,mock_settings, nil, nil, nil), "-\n", false},
+		{"5. Pass 'hist' to shell.", NewCmdAPI("", &Cmd{Cmd: "-hist"}, mock_allPaths,mock_settings, nil, nil, nil), "hist\n", false},
+		{"6. Pass 'fzf' to shell.", NewCmdAPI("", &Cmd{Cmd: "-fzf"}, mock_allPaths, mock_settings, nil, nil, nil), "fzf\n", false},
+		{"7. Pass 'fzfc' to shell.", NewCmdAPI("", &Cmd{Cmd: "-fzfc"}, mock_allPaths, mock_settings, nil, nil, nil), "fzfc\n", false},
+		{"8. Pass 'fzfa' to shell.", NewCmdAPI("", &Cmd{Cmd: "-fzfa"}, mock_allPaths, mock_settings, nil, nil, nil), "fzfa\n", false},
+		{"9. Pass invalid command to shell.", NewCmdAPI("", &Cmd{Cmd: "-invalid"}, mock_allPaths, mock_settings, nil, nil, nil), "", true},
+		{"10. Pass 'fzfc invalid dir' to shell.", NewCmdAPI("", &Cmd{Cmd: "-fzfc", Args: []string{"invalid"}}, mock_allPaths, mock_settings, nil, nil, nil), "fzfc\n", true},
+		{"11. Pass 'fzfc valid dir' to shell.", NewCmdAPI("", &Cmd{Cmd: "-fzfc", Args: []string{"valid"}}, mock_allPaths, mock_settings, nil, nil, nil), fmt.Sprintf("fzfc %s\n", tmpdir), false},
+		{"12. Pass 'fzfa invalid dir' to shell.", NewCmdAPI("", &Cmd{Cmd: "-fzfa", Args: []string{"invalid"}}, mock_allPaths, mock_settings, nil, nil, nil), "fzfa\n", true},
+		{"13. Pass 'fzfa valid dir' to shell.", NewCmdAPI("", &Cmd{Cmd: "-fzfa", Args: []string{"valid"}}, mock_allPaths, mock_settings, nil, nil, nil), fmt.Sprintf("fzfa %s\n", tmpdir), false},
 	}
 
 	for _, tt := range tests {
@@ -224,6 +227,8 @@ func TestChangeDirectory(t *testing.T) {
 			tmpdir,
 			&tt.command,
 			tt.allPaths,
+			nil,
+			nil,
 			tt.file,
 			tt.rdr,
 		)
@@ -297,6 +302,8 @@ func TestShowDirectoryVar(t *testing.T) {
 			CWD,
 			&tt.command,
 			tt.paths,
+			nil,
+			nil,
 			nil,
 			nil,
 		)
@@ -469,12 +476,14 @@ func TestSetDirectoryVar(t *testing.T) {
 			workdir,
 			tt.command,
 			pathMap,
+			nil,
+			nil,
 			tmpfile,
 			nil,
 		)
 
 		if len(tt._map) > 0 {
-			dataUpdate(data.allPaths, tmpfile)
+			ftdata.DataUpdate(data.allPaths, tmpfile)
 		}
 
 		stdin := os.Stdin
@@ -521,7 +530,7 @@ func TestSetDirectoryVar(t *testing.T) {
 		}
 		defer file.Close()
 
-		result, err := ReadMap(file)
+		result, err := ftdata.ReadData(file)
 		if err != nil {
 			t.Error(err)
 		}
@@ -539,6 +548,8 @@ func TestDisplayAllPaths(t *testing.T) {
 			"key1": "value1",
 			"key2": "value2",
 		},
+		nil,
+		nil,
 		nil,
 		nil,
 	)
@@ -625,6 +636,8 @@ func TestRemoveKey(t *testing.T) {
 			"",
 			&tt.command,
 			tt.allPaths,
+			nil,
+			nil,
 			tmpfile,
 			strings.NewReader(tt.input),
 		)
@@ -660,7 +673,7 @@ func TestRemoveKey(t *testing.T) {
 		}
 		defer file.Close()
 
-		result, err := ReadMap(file)
+		result, err := ftdata.ReadData(file)
 		if err != nil {
 			t.Error(err)
 		}
@@ -725,7 +738,7 @@ func TestRenameKey(t *testing.T) {
 	}
 
 	for _, tt := range tests {
-		err := dataUpdate(tt.allPaths, tmpfile)
+		err := ftdata.DataUpdate(tt.allPaths, tmpfile)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -733,6 +746,8 @@ func TestRenameKey(t *testing.T) {
 			"",
 			&tt.command,
 			tt.allPaths,
+			nil,
+			nil,
 			tmpfile,
 			strings.NewReader(tt.input),
 		)
@@ -762,7 +777,7 @@ func TestRenameKey(t *testing.T) {
 		}
 		defer file.Close()
 
-		result, err := ReadMap(file)
+		result, err := ftdata.ReadData(file)
 		if err != nil {
 			t.Error(err)
 		}
@@ -775,7 +790,7 @@ func TestRenameKey(t *testing.T) {
 }
 
 func TestShowVersion(t *testing.T) {
-	data := NewCmdAPI("", &Cmd{Cmd: "-version"}, map[string]string{}, nil, nil)
+	data := NewCmdAPI("", &Cmd{Cmd: "-version"}, map[string]string{}, nil, nil,nil,nil)
 
 	old := os.Stdout
 	r, w, err := os.Pipe()
@@ -800,7 +815,7 @@ func TestShowVersion(t *testing.T) {
 	w.Close()
 	os.Stdout = old
 	actual := <-outChan
-	expected := fmt.Sprintf("%sversion:\t %s\n", Logo, Version)
+	expected := fmt.Sprintf("%sversion:\t %s\n", ftdata.Logo, Version)
 
 	if !(actual == expected) {
 		t.Errorf("Expected %q got %q", expected, actual)
@@ -808,7 +823,7 @@ func TestShowVersion(t *testing.T) {
 }
 
 func TestShowHelp(t *testing.T) {
-	data := NewCmdAPI("", &Cmd{Cmd: "-help"}, map[string]string{}, nil, nil)
+	data := NewCmdAPI("", &Cmd{Cmd: "-help"}, map[string]string{}, nil, nil, nil, nil)
 
 	old := os.Stdout
 	r, w, err := os.Pipe()
@@ -1074,12 +1089,14 @@ func TestEditPath(t *testing.T) {
 			workdir,
 			tt.command,
 			pathMap,
+			nil,
+			nil,
 			tmpfile,
 			strings.NewReader(tt.input),
 		)
 
 		if len(tt._map) > 0 {
-			dataUpdate(data.allPaths, tmpfile)
+			ftdata.DataUpdate(data.allPaths, tmpfile)
 		}
 
 		err = editPath(data)
@@ -1179,6 +1196,8 @@ func TestEvalPath(t *testing.T) {
 			tmpdir,
 			tt.command,
 			tt.allPaths,
+			nil,
+			nil,
 			nil,
 			nil,
 		)
