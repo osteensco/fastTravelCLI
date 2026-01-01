@@ -1,6 +1,8 @@
 package settings
 
 import (
+	"os"
+
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
 	lg "github.com/charmbracelet/lipgloss"
@@ -15,7 +17,33 @@ import (
 // 	return sizeCmd
 // }
 
-func initSettings(settings *ftdata.Settings) settingsModel {
+func initSettings(settings *ftdata.Settings, file *os.File) settingsModel {
+	settingsOptions := []list.Item{
+
+		// TODO add "general" settings item.
+
+		settingItem{
+			// TODO: rename to something better, more clear/intuitive
+			//	- query order?
+			name:  "Query Order",
+			desc:  "Determine the ordering in which fastTravelCLI resolves a query.",
+			model: 0,
+		},
+
+		// settingItem{
+		// 	name:  "Manage Bookmarks",
+		// 	desc:  "View and manage bookmarks saved with fastTravelCLI.",
+		// 	model: 1,
+		// },
+		//
+		// settingItem{
+		// 	// TODO: Rename to something like "info", "build info", "version info"
+		// 	name:  "Version",
+		// 	desc:  "View fastTravelCLI version information.",
+		// 	model: 2,
+		// },
+	}
+
 	docStyle := lg.NewStyle().Margin(10, 2)
 	delegate := list.NewDefaultDelegate() // ItemDelegate interface for changing style of items
 
@@ -27,14 +55,24 @@ func initSettings(settings *ftdata.Settings) settingsModel {
 	settingsList.SetFilteringEnabled(false)
 	settingsList.SetShowStatusBar(false)
 
-	return settingsModel{settings: settings, docStyle: docStyle, list: settingsList, models: modelList, style: baseStyle, listStyle: sp}
+	modelList := []DetailModel{
+		newCascadeModel(settings),
+		// &bookmarksModel{
+		// 	name: "BOOKMARKS",
+		// },
+		// &versionModel{
+		// 	name: "VERSION INFO",
+		// },
+	}
+
+	return settingsModel{settings: settings, settingsFile: file, docStyle: docStyle, list: settingsList, models: modelList, style: baseStyle, listStyle: sp}
 }
 
 var baseStyle = lg.NewStyle().Padding(1)
 var parentModel settingsModel
 
-func Run(settings *ftdata.Settings) error {
-	parentModel = initSettings(settings)
+func Run(settings *ftdata.Settings, file *os.File) error {
+	parentModel = initSettings(settings, file)
 	p := tea.NewProgram(parentModel, tea.WithAltScreen())
 	if _, err := p.Run(); err != nil {
 		return err

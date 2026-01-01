@@ -1,34 +1,23 @@
 package settings
 
 import (
+	"os"
+
 	"github.com/charmbracelet/bubbles/list"
 	tea "github.com/charmbracelet/bubbletea"
 	lg "github.com/charmbracelet/lipgloss"
 	ftdata "github.com/osteensco/fastTravelCLI/data"
 )
 
+// Custom messages to communicate between models
 type exitDetail struct{}
 type unfocusDetail struct{}
 type handledCommand struct{}
+type updateSettings struct{}
 
-type DetailModel interface {
-	Init() tea.Cmd
-	Update(tea.Msg) (tea.Model, tea.Cmd)
-	View() string
-	ShowFocus(focus bool)
-}
 
-type settingsModel struct {
-	settings 	  *ftdata.Settings
-	docStyle      lg.Style
-	list          list.Model
-	models        []DetailModel
-	selectedModel DetailModel
-	focusDetail   bool
-	style         lg.Style
-	listStyle     *list.Styles
-}
 
+// Setting Item is used for managing each individual setting in the list.Model
 type settingItem struct {
 	name, desc string
 	model      int
@@ -38,44 +27,34 @@ func (i settingItem) Title() string       { return i.name }
 func (i settingItem) Description() string { return i.desc }
 func (i settingItem) FilterValue() string { return i.name }
 
-var (
-	modelList = []DetailModel{
-		newCascadeModel(),
 
-		// &bookmarksModel{
-		// 	name: "BOOKMARKS",
-		// },
-		// &versionModel{
-		// 	name: "VERSION INFO",
-		// },
-	}
 
-	settingsOptions = []list.Item{
+// Detail Model contains functionalities for each Setting Item's corresponding model
+type DetailModel interface {
+	Init() tea.Cmd
+	Update(tea.Msg) (tea.Model, tea.Cmd)
+	View() string
+	ShowFocus(focus bool)
+	SetSize(width int, heigh int)
+}
 
-		// TODO add "general" settings item.
 
-		settingItem{
-			// TODO: rename to something better, more clear/intuitive
-			//	- query order?
-			name:  "Query Order",
-			desc:  "Determine the ordering in which fastTravelCLI resolves a query.",
-			model: 0,
-		},
 
-		// settingItem{
-		// 	name:  "Manage Bookmarks",
-		// 	desc:  "View and manage bookmarks saved with fastTravelCLI.",
-		// 	model: 1,
-		// },
-		//
-		// settingItem{
-		// 	// TODO: Rename to something like "info", "build info", "version info"
-		// 	name:  "Version",
-		// 	desc:  "View fastTravelCLI version information.",
-		// 	model: 2,
-		// },
-	}
-)
+// Settings Model provides the main interface for interacting with the various settings
+type settingsModel struct {
+	settings 	   *ftdata.Settings
+	settingsFile   *os.File
+	docStyle       lg.Style
+	list           list.Model
+	models         []DetailModel
+	selectedModel  DetailModel
+	focusDetail    bool
+	style          lg.Style
+	listStyle      *list.Styles
+	updated 	   bool
+	applySelected  bool
+	showAppliedMsg bool
+}
 
 func (m settingsModel) Init() tea.Cmd {
 	return nil
@@ -95,9 +74,10 @@ func (m settingsModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			case exitDetail:
 				m.focusDetail = false
 				m.selectedModel = nil
-				// m.selectedView = nil
 			case unfocusDetail:
 				m.focusDetail = false
+			case updateSettings:
+				m.updated = true
 			}
 			return m, cmd
 		}
@@ -115,22 +95,40 @@ func (m settingsModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "ctrl+c", "q", "esc":
 			return m, tea.Quit
 
-		// select a setting
+		// select a setting or apply setting changes
 		case "enter":
-			i := m.list.SelectedItem().(settingItem)
-			// m.selectedView = i.view
-			m.selectedModel = m.models[i.model]
-			m.focusDetail = true
-			return m, nil
+			if m.applySelected {
+				ftdata.WriteSettings(m.settingsFile, m.settings)
+				m.applySelected = false
+				m.updated = false
+				m.selectedModel = nil
+				m.showAppliedMsg = true
+				return m, nil
+			} else {
+				i := m.list.SelectedItem().(settingItem)
+				m.selectedModel = m.models[i.model]
+				m.focusDetail = true
+				m.showAppliedMsg = false
+				return m, nil
+			}
 		case "l", "right":
 			if m.selectedModel != nil {
 				m.focusDetail = true
 			}
+		case "s":
+			if m.updated {
+				if m.applySelected {
+					m.applySelected = false
+				} else {
+					m.applySelected = true
+				}
+			}
 		}
-
 	}
-
-	m.list, cmd = m.list.Update(msg)
+	
+	if !m.applySelected {
+		m.list, cmd = m.list.Update(msg)
+	}
 	return m, cmd
 }
 
@@ -139,27 +137,40 @@ func (m settingsModel) View() string {
 	return renderSettingsView(&m)
 }
 
+
+
+// Cascade Model helps determine the query ordering fastTravelCLI adhears to
 type cascadeModel struct {
 	Render   ViewFunc
 	list     list.Model
 	cursor   int
 	selected int
 	focus    bool
+	queryOrder []string
+	width int
+	height int
 }
 
 type cascadeItem struct {
 	title string
 	name  string
-	// hook func()
 }
 
 func (i cascadeItem) Title() string       { return i.title }
 func (i cascadeItem) Description() string { return "" }
 func (i cascadeItem) FilterValue() string { return i.title }
 
-func newCascadeList() list.Model {
-	// TODO: import items from ft settings
-	items := []list.Item{cascadeItem{name: "one"}, cascadeItem{name: "two"}, cascadeItem{name: "three"}, cascadeItem{name: "four"}}
+func generateCascadeItems(settings *ftdata.Settings) []list.Item {
+	items := make([]list.Item, len(settings.QueryOrder))
+	for i, name := range settings.QueryOrder {
+		items[i] = cascadeItem{name: name}
+	}
+	return items
+}
+
+func newCascadeList(settings *ftdata.Settings) list.Model {
+	items := generateCascadeItems(settings)
+	// items := []list.Item{cascadeItem{name: "one"}, cascadeItem{name: "two"}, cascadeItem{name: "three"}, cascadeItem{name: "four"}}
 	styles := list.NewDefaultItemStyles()
 	styles.SelectedTitle = lg.NewStyle().Border(lg.NormalBorder(), false).Foreground(lg.AdaptiveColor{Light: "#EE6FF8", Dark: "#EE6FF8"}).Padding(0, 0, 0, 1)
 	delegate := list.NewDefaultDelegate()
@@ -174,15 +185,23 @@ func newCascadeList() list.Model {
 	return l
 }
 
-func newCascadeModel() DetailModel {
-
-	m := cascadeModel{
-		list:     newCascadeList(),
+func newCascadeModel(settings *ftdata.Settings) DetailModel {
+	return &cascadeModel{
+		list:     newCascadeList(settings),
 		cursor:   0,
 		selected: -1,
+		queryOrder: settings.QueryOrder,
 	}
+}
 
-	return &m
+func (m *cascadeModel) SetSize(width int, height int) {
+	m.width, m.height = width, height
+}
+
+func (m *cascadeModel) updateQueryOrder() {
+	for i, item := range m.list.Items() {
+		m.queryOrder[i] = item.(cascadeItem).name
+	}
 }
 
 func (m *cascadeModel) ShowFocus(focus bool) {
@@ -250,6 +269,8 @@ func (m *cascadeModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.selected = m.cursor
 			} else {
 				m.selected = -1
+				m.updateQueryOrder()
+				return m, tea.Cmd(func() tea.Msg { return updateSettings{} })
 			}
 		case "ctrl+c", "q":
 			return m, tea.Quit

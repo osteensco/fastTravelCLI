@@ -17,13 +17,13 @@ import (
 
 // ft command api
 type CmdAPI struct {
-	wkDir    string
-	cmd      *Cmd
-	allPaths map[string]string
-	settings *ftdata.Settings
+	wkDir        string
+	cmd          *Cmd
+	allPaths     map[string]string
+	settings     *ftdata.Settings
 	dataFile     *os.File
 	settingsFile *os.File
-	rdr      io.Reader
+	rdr          io.Reader
 }
 
 func NewCmdAPI(ftDir string, inputCmd *Cmd, allPaths map[string]string, settings *ftdata.Settings, dataFile *os.File, settingsFile *os.File, rdr io.Reader) *CmdAPI {
@@ -77,7 +77,7 @@ var AvailCmds = map[string]struct {
 	"-is":       {showDirectoryVar, true},
 	"-update":   {updateFT, false},
 	"-u":        {updateFT, false},
-	"-settings": {settingsTui, false},
+	"-settings": {settingsTui, true},
 }
 
 func PassCmd(args []string) (*Cmd, error) {
@@ -185,7 +185,7 @@ func setDirectoryVar(data *CmdAPI) error {
 			return err
 		}
 		// keys with '/' will disrupt key evaluations so this is not allowed
-		if strings.Contains(key,"/") {
+		if strings.Contains(key, "/") {
 			return errors.New("Key in bookmark cannot contain '/'")
 		}
 
@@ -600,7 +600,12 @@ func passToShell(data *CmdAPI) error {
 }
 
 func settingsTui(data *CmdAPI) error {
-	settings := tui.Init().Settings
+	settings := tui.Init(data.settings, data.settingsFile).Settings
 	err := settings.Run()
-	return err
+	// We want to avoid writing settings if something goes wrong with the tui
+	if err != nil {
+		return err
+	}
+
+	return nil
 }
