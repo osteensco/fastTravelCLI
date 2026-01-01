@@ -111,7 +111,7 @@ func PassCmd(args []string) (*Cmd, error) {
 
 	_, ok := AvailCmds[cmd.Cmd]
 	if !ok {
-		return nil, errors.New(fmt.Sprintf("%v is not a valid command, use 'ft -h' or 'ft -help' for a list of valid commands", cmd.Cmd))
+		return nil, fmt.Errorf("%v is not a valid command, use 'ft -h' or 'ft -help' for a list of valid commands", cmd.Cmd)
 	}
 
 	// We don't care about minimum number of args if we're just getting help docs for a command
@@ -126,11 +126,11 @@ func PassCmd(args []string) (*Cmd, error) {
 		break
 	case "-rn", "-edit":
 		if len(cmd.Args) < 2 {
-			return nil, errors.New(fmt.Sprintf("Insufficient args provided %v, see ft -help for more info", args[1:]))
+			return nil, fmt.Errorf("Insufficient args provided %v, see ft -help for more info", args[1:])
 		}
 	case "-set":
 		if len(cmd.Args) < 1 {
-			return nil, errors.New(fmt.Sprintf("Insufficient args provided %v, see ft -help for more info", args[1:]))
+			return nil, fmt.Errorf("Insufficient args provided %v, see ft -help for more info", args[1:])
 		}
 	// these should never be reached
 	// a call to 'ft' with no args should map to the '-fzf' command
@@ -422,7 +422,7 @@ func showHelp(data *CmdAPI) error {
 
 func showVersion(data *CmdAPI) error {
 	fmt.Print(ftdata.Logo)
-	fmt.Println("version:\t", Version)
+	fmt.Println("version:\t", ftdata.Version)
 	return nil
 }
 
@@ -459,28 +459,26 @@ func updateFT(data *CmdAPI) error {
 	// verify/obtain version
 	var endpoint string
 	if version == "latest" {
-		endpoint = EndpointLatestGH
+		endpoint = ftdata.EndpointLatestGH
 	} else if version == "nightly" {
 		// no enpoint needed
 	} else {
-		endpoint = fmt.Sprintf(EndpointGH, version)
+		endpoint = fmt.Sprintf(ftdata.EndpointGH, version)
 	}
 
 	if endpoint != "" {
 		resp, err := http.Get(endpoint)
 		if err != nil {
-			return errors.New(fmt.Sprintf("Error sending Get request to %q: %v", endpoint, err))
+			return fmt.Errorf("Error sending Get request to %q: %v", endpoint, err)
 		}
 		defer resp.Body.Close()
 
 		if resp.StatusCode != http.StatusOK {
-			return errors.New(
-				fmt.Sprintf(
+			return fmt.Errorf(
 					"Error while attempting to retrieve version from github repo - status: %v %s. \n %s",
 					resp.StatusCode,
 					http.StatusText(resp.StatusCode),
 					endpoint,
-				),
 			)
 		}
 
@@ -497,11 +495,11 @@ func updateFT(data *CmdAPI) error {
 	}
 
 	// verify current version is not the version attempting to be updated to
-	if Version == version {
+	if ftdata.Version == version {
 		fmt.Println("fastTravelCLI version is already ", version)
 		return nil
 	} else {
-		fmt.Printf("fastTravelCLI %v updating to %v release \n", Version, version)
+		fmt.Printf("fastTravelCLI %v updating to %v release \n", ftdata.Version, version)
 	}
 
 	// make temp directory, clone the repo
@@ -522,27 +520,27 @@ func updateFT(data *CmdAPI) error {
 
 	if version == "nightly" {
 		// clone from main branch
-		if len(GitCloneCMD) != 5 {
-			return errors.New(fmt.Sprintf("Error! Constant GitCloneCMD has length %v expected 5. %v", len(GitCloneCMD), GitCloneCMD))
+		if len(ftdata.GitCloneCMD) != 5 {
+			return fmt.Errorf("Error! Constant GitCloneCMD has length %v expected 5. %v", len(ftdata.GitCloneCMD), ftdata.GitCloneCMD)
 		}
-		GitCloneCMD = []string{GitCloneCMD[0], GitCloneCMD[1], GitCloneCMD[4]}
+		ftdata.GitCloneCMD = []string{ftdata.GitCloneCMD[0], ftdata.GitCloneCMD[1], ftdata.GitCloneCMD[4]}
 	} else {
 		// clone with specific version tag
-		GitCloneCMD[3] = version
+		ftdata.GitCloneCMD[3] = version
 	}
 
-	clonecmd := exec.Command(GitCloneCMD[0], GitCloneCMD[1:]...)
+	clonecmd := exec.Command(ftdata.GitCloneCMD[0], ftdata.GitCloneCMD[1:]...)
 	err = clonecmd.Run()
 	if err != nil {
-		return errors.New(fmt.Sprintf("Error cloning repo: %v - Command used: %q", err, clonecmd.String()))
+		return fmt.Errorf("Error cloning repo: %v - Command used: %q", err, clonecmd.String())
 	}
 
 	// run install script
 	output := ""
 	script := ""
-	err = os.Chdir(GitCloneDir)
+	err = os.Chdir(ftdata.GitCloneDir)
 	if err != nil {
-		return errors.New(fmt.Sprintf("Error! Could not change to dir %q", GitCloneDir))
+		return fmt.Errorf("Error! Could not change to dir %q", ftdata.GitCloneDir)
 	}
 
 	// skip install script if function call during testing
@@ -556,7 +554,7 @@ func updateFT(data *CmdAPI) error {
 	case "darwin":
 		script = "mac.sh"
 	default:
-		return errors.New(fmt.Sprintf("OS %s is not handled in the update command!", opsys))
+		return fmt.Errorf("OS %s is not handled in the update command!", opsys)
 	}
 
 	fmt.Printf("Running %s script from install folder... \n", script)
@@ -589,11 +587,11 @@ func passToShell(data *CmdAPI) error {
 			fmt.Println(command)
 		} else {
 			path, err := evalPath(data, &data.cmd.Args[0])
-			fmt.Println(fmt.Sprintf("%s %s", command, path))
+			fmt.Printf("%s %s", command, path)
 			return err
 		}
 	default:
-		return errors.New(fmt.Sprintf("Tried to pass command to shell, but '%s' is not a valid command for the shell function.", command))
+		return fmt.Errorf("Tried to pass command to shell, but '%s' is not a valid command for the shell function.", command)
 	}
 
 	return nil

@@ -327,36 +327,47 @@ func (m *cascadeModel) View() string {
 // 	return renderManageBookmarksView(m)
 // }
 //
-// type versionModel struct {
-// 	name  string
-// 	list  list.Model
-// 	focus bool
-// }
-//
-// func (m *versionModel) ShowFocus(focus bool) {
-// 	m.focus = focus
-// }
-//
-// func (m *versionModel) Init() tea.Cmd {
-// 	return nil
-// }
-//
-// func (m *versionModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-// 	switch msg := msg.(type) {
-// 	// case tea.WindowSizeMsg:
-// 	// 	m.width = msg.Width
-// 	// 	m.height = msg.Height
-// 	case tea.KeyMsg:
-// 		switch msg.String() {
-// 		case "ctrl+c", "q":
-// 			return m, tea.Quit
-// 		case "esc", "backspace":
-// 			// return resetSettings(), setSizeMsg(m.width, m.height)
-// 		}
-// 	}
-// 	return m, nil
-// }
-//
-// func (m *versionModel) View() string {
-// 	return renderVersionView(m)
-// }
+type versionModel struct {
+	name  string
+	focus bool
+}
+
+func newVersionModel() *versionModel {
+	return &versionModel{
+		name: "Build Info",
+		focus: false,
+	}
+}
+
+func (m *versionModel) SetSize(width int, height int) {
+
+}
+
+func (m *versionModel) ShowFocus(focus bool) {
+	m.focus = focus
+}
+
+func (m *versionModel) Init() tea.Cmd {
+	return nil
+}
+
+func (m *versionModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	switch msg := msg.(type) {
+	// case tea.WindowSizeMsg:
+	// 	m.width = msg.Width
+	// 	m.height = msg.Height
+	case tea.KeyMsg:
+		switch msg.String() {
+		case "ctrl+c", "q":
+			return m, tea.Quit
+		case "esc", "backspace":
+			// return resetSettings(), setSizeMsg(m.width, m.height)
+		}
+	}
+	return m, nil
+}
+
+func (m *versionModel) View() string {
+	return renderVersionView(m)
+}
+

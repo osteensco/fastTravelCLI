@@ -19,29 +19,23 @@ import (
 
 func initSettings(settings *ftdata.Settings, file *os.File) settingsModel {
 	settingsOptions := []list.Item{
-
-		// TODO add "general" settings item.
-
 		settingItem{
-			// TODO: rename to something better, more clear/intuitive
-			//	- query order?
 			name:  "Query Order",
 			desc:  "Determine the ordering in which fastTravelCLI resolves a query.",
 			model: 0,
 		},
-
+		settingItem{
+			// TODO: Rename to something like "info", "build info", "version info"
+			name:  "Build Info",
+			desc:  "View fastTravelCLI build information.",
+			model: 1,
+		},
 		// settingItem{
 		// 	name:  "Manage Bookmarks",
 		// 	desc:  "View and manage bookmarks saved with fastTravelCLI.",
-		// 	model: 1,
-		// },
-		//
-		// settingItem{
-		// 	// TODO: Rename to something like "info", "build info", "version info"
-		// 	name:  "Version",
-		// 	desc:  "View fastTravelCLI version information.",
 		// 	model: 2,
 		// },
+		//
 	}
 
 	docStyle := lg.NewStyle().Margin(10, 2)
@@ -57,6 +51,7 @@ func initSettings(settings *ftdata.Settings, file *os.File) settingsModel {
 
 	modelList := []DetailModel{
 		newCascadeModel(settings),
+		newVersionModel(),
 		// &bookmarksModel{
 		// 	name: "BOOKMARKS",
 		// },

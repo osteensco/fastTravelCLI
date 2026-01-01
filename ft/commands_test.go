@@ -17,17 +17,17 @@ import (
 )
 
 // test helpers
-func equalSlices(a, b []string) bool {
-	if len(a) != len(b) {
-		return false
-	}
-	for i, v := range a {
-		if v != b[i] {
-			return false
-		}
-	}
-	return true
-}
+// func equalSlices(a, b []string) bool {
+// 	if len(a) != len(b) {
+// 		return false
+// 	}
+// 	for i, v := range a {
+// 		if v != b[i] {
+// 			return false
+// 		}
+// 	}
+// 	return true
+// }
 
 func equalCmd(got, expected *Cmd) bool {
 	if len(got.Args) != len(expected.Args) {
@@ -101,10 +101,10 @@ func TestPassToShell(t *testing.T) {
 		wantErr  bool
 	}{
 		{"1. Pass ']' to shell.", NewCmdAPI("", &Cmd{Cmd: "-]"}, mock_allPaths, mock_settings, nil, nil, nil), "]\n", false},
-		{"2. Pass '[' to shell.", NewCmdAPI("", &Cmd{Cmd: "-["}, mock_allPaths, mock_settings,nil, nil, nil), "[\n", false},
+		{"2. Pass '[' to shell.", NewCmdAPI("", &Cmd{Cmd: "-["}, mock_allPaths, mock_settings, nil, nil, nil), "[\n", false},
 		{"3. Pass '..' to shell.", NewCmdAPI("", &Cmd{Cmd: "-.."}, mock_allPaths, mock_settings, nil, nil, nil), "..\n", false},
-		{"4. Pass '-' to shell.", NewCmdAPI("", &Cmd{Cmd: "--"}, mock_allPaths,mock_settings, nil, nil, nil), "-\n", false},
-		{"5. Pass 'hist' to shell.", NewCmdAPI("", &Cmd{Cmd: "-hist"}, mock_allPaths,mock_settings, nil, nil, nil), "hist\n", false},
+		{"4. Pass '-' to shell.", NewCmdAPI("", &Cmd{Cmd: "--"}, mock_allPaths, mock_settings, nil, nil, nil), "-\n", false},
+		{"5. Pass 'hist' to shell.", NewCmdAPI("", &Cmd{Cmd: "-hist"}, mock_allPaths, mock_settings, nil, nil, nil), "hist\n", false},
 		{"6. Pass 'fzf' to shell.", NewCmdAPI("", &Cmd{Cmd: "-fzf"}, mock_allPaths, mock_settings, nil, nil, nil), "fzf\n", false},
 		{"7. Pass 'fzfc' to shell.", NewCmdAPI("", &Cmd{Cmd: "-fzfc"}, mock_allPaths, mock_settings, nil, nil, nil), "fzfc\n", false},
 		{"8. Pass 'fzfa' to shell.", NewCmdAPI("", &Cmd{Cmd: "-fzfa"}, mock_allPaths, mock_settings, nil, nil, nil), "fzfa\n", false},
@@ -790,7 +790,7 @@ func TestRenameKey(t *testing.T) {
 }
 
 func TestShowVersion(t *testing.T) {
-	data := NewCmdAPI("", &Cmd{Cmd: "-version"}, map[string]string{}, nil, nil,nil,nil)
+	data := NewCmdAPI("", &Cmd{Cmd: "-version"}, map[string]string{}, nil, nil, nil, nil)
 
 	old := os.Stdout
 	r, w, err := os.Pipe()
@@ -815,7 +815,7 @@ func TestShowVersion(t *testing.T) {
 	w.Close()
 	os.Stdout = old
 	actual := <-outChan
-	expected := fmt.Sprintf("%sversion:\t %s\n", ftdata.Logo, Version)
+	expected := fmt.Sprintf("%sversion:\t %s\n", ftdata.Logo, ftdata.Version)
 
 	if !(actual == expected) {
 		t.Errorf("Expected %q got %q", expected, actual)
@@ -889,12 +889,12 @@ func TestUpdateFT(t *testing.T) {
 	var defaultVersion string
 
 	// Override endpoint URL to use the test server
-	EndpointGH = server.URL + "/repos/osteensco/fastTravelCLI/tags/%s"
-	EndpointLatestGH = server.URL + "/repos/osteensco/fastTravelCLI/releases/latest"
+	ftdata.EndpointGH = server.URL + "/repos/osteensco/fastTravelCLI/tags/%s"
+	ftdata.EndpointLatestGH = server.URL + "/repos/osteensco/fastTravelCLI/releases/latest"
 
 	// Override Git related constants for testing
-	GitCloneCMD = []string{"echo", "'", "mocking", "version", "", "git", "clone", "dev", "'"}
-	GitCloneDir = strings.TrimSuffix(cwd, "/ft")
+	ftdata.GitCloneCMD = []string{"echo", "'", "mocking", "version", "", "git", "clone", "dev", "'"}
+	ftdata.GitCloneDir = strings.TrimSuffix(cwd, "/ft")
 	UPDATEMOCK = true
 
 	tests := []struct {
@@ -917,7 +917,7 @@ func TestUpdateFT(t *testing.T) {
 			name:       "3. Already up-to-date version.",
 			args:       []string{"latest"},
 			wantError:  false,
-			setVersion: func() { Version = "v.0.2.0" },
+			setVersion: func() { ftdata.Version = "v.0.2.0" },
 		},
 		{
 			name:      "4. Nonexistent version.",
@@ -932,7 +932,7 @@ func TestUpdateFT(t *testing.T) {
 			t.Log(server.URL)
 
 			if tt.setVersion != nil {
-				defaultVersion = Version
+				defaultVersion = ftdata.Version
 				tt.setVersion()
 			}
 
@@ -967,7 +967,7 @@ func TestUpdateFT(t *testing.T) {
 				t.Errorf("updateFT() error inside of directory %v -> %v, wantError %v", errwkdir, err, tt.wantError)
 			}
 			if tt.setVersion != nil {
-				Version = defaultVersion
+				ftdata.Version = defaultVersion
 			}
 
 		})
