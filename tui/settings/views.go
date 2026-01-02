@@ -22,6 +22,8 @@ func renderHints(style lg.Style, text string) string {
 
 func renderSettingsView(m *settingsModel) string {
 
+	// TODO: avoid updating any state within the model inside the View function, instead do this in the Update function
+
 	header := ftdata.Logo
 	m.list.Title = "Settings"
 
@@ -71,7 +73,7 @@ func renderSettingsView(m *settingsModel) string {
 		if m.updated && m.applySelected {
 			applyButtonStyle = applyButtonStyle.BorderForeground(lg.Color("62"))
 			leftStyle = m.style.Border(lg.RoundedBorder())
-			keybindHints = renderHints(basePeripherialStyle, "Enter Apply changes • ←/→ (h/l) Change Focus • ↑/↓ (j/k) Navigate • Esc Quit")
+			keybindHints = renderHints(basePeripherialStyle, "Enter Apply Changes • ←/→ (h/l) Change Focus • ↑/↓ (j/k) Navigate • Esc Quit")
 		} else {
 			leftStyle = m.style.Border(lg.RoundedBorder()).BorderForeground(lg.Color("62"))
 		}

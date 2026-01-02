@@ -75,7 +75,7 @@ func main() {
 		// read keys into memory
 		allPaths, err = ftdata.ReadData(dataFile)
 		if err != nil {
-			fmt.Println("ReadMap Error:", err)
+			fmt.Println("ReadData Error:", err)
 			return
 		}
 
@@ -87,8 +87,11 @@ func main() {
 		}
 		defer settingsFile.Close()
 
-		// settings = ftdata.ReadSettings(settingsFile)
-		settings = ftdata.GenerateDefaultSettings() // replace with read settings
+		settings, err = ftdata.ReadSettings(settingsFile)
+		if err != nil {
+			fmt.Println("ReadSettings Error:", err)
+			return
+		}
 	}
 
 	// initialize ft command API

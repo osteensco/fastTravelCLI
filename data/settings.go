@@ -43,23 +43,20 @@ func ReadSettings(settingsFile *os.File) (*Settings, error) {
 }
 
 func WriteSettings(settingsFile *os.File, settings *Settings) error {
-	// err := settingsFile.Truncate(0)
-	// if err != nil {
-	// 	return fmt.Errorf("Error truncating file: %w", err)
-	// }
-	//
-	// _, err = settingsFile.Seek(0, 0)
-	// if err != nil {
-	// 	return fmt.Errorf("Error seeking to beginning of file: %w", err)
-	// }
-	//
-	// err = json.NewEncoder(settingsFile).Encode(settings)
-	// if err != nil {
-	// 	return err
-	// }
-	
-	fmt.Println("Write Success!")
-	fmt.Println(settings.QueryOrder)
+	err := settingsFile.Truncate(0)
+	if err != nil {
+		return fmt.Errorf("Error truncating file: %w", err)
+	}
+
+	_, err = settingsFile.Seek(0, 0)
+	if err != nil {
+		return fmt.Errorf("Error seeking to beginning of file: %w", err)
+	}
+
+	err = json.NewEncoder(settingsFile).Encode(settings)
+	if err != nil {
+		return err
+	}
 
 	return nil
 }
