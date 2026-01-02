@@ -3,12 +3,22 @@ package settings
 import (
 	"fmt"
 
-	tea "github.com/charmbracelet/bubbletea"
 	lg "github.com/charmbracelet/lipgloss"
 	ftdata "github.com/osteensco/fastTravelCLI/data"
 )
 
-type ViewFunc func(tea.Model) string
+//helpers
+
+func joinWithSpacer(width int, left string, right string) string {
+	style := lg.NewStyle().Width(width - lg.Width(left) - lg.Width(right) - 2)
+	return lg.JoinHorizontal(lg.Center, left, style.Render(" "), right)
+}
+
+func renderHints(style lg.Style, text string) string {
+	return style.Foreground(lg.Color("240")).Italic(true).Render(text)
+}
+
+// View functions
 
 func renderSettingsView(m *settingsModel) string {
 
@@ -23,14 +33,14 @@ func renderSettingsView(m *settingsModel) string {
 
 	left := ""
 	right := ""
-	applyButtonStyle := lg.NewStyle().Border(lg.HiddenBorder())
+	basePeripherialStyle := lg.NewStyle().Border(lg.HiddenBorder())
+	keybindHints := renderHints(basePeripherialStyle, m.keybindHints)
+	applyButtonStyle := basePeripherialStyle
 	applyButtonText := ""
-	applyButtonHint := ""
 
 	if m.updated {
 		applyButtonStyle = applyButtonStyle.Border(lg.RoundedBorder())
 		applyButtonText = "Apply Changes"
-		applyButtonHint = applyButtonStyle.Foreground(lg.Color("240")).Border(lg.HiddenBorder()).Render("[s]")
 	}
 
 	if m.showAppliedMsg {
@@ -43,13 +53,12 @@ func renderSettingsView(m *settingsModel) string {
 		right = m.selectedModel.View()
 	}
 	if m.focusDetail {
+		keybindHints = renderHints(basePeripherialStyle, m.selectedModel.GetKeybindHints())
 		// to get the style applied to the list title list.View() has to be called after Styles are updated
 		m.list.Styles.Title = m.list.Styles.Title.Background(lg.Color("")).Foreground(lg.Color("62"))
 		left = m.list.View()
-		// TODO move this below everything and add other keymap hints
-		footer := joinWithSpacer(width, applyButtonStyle.Render(applyButtonText), applyButtonHint)
-		// applyButton := lg.JoinHorizontal(lg.Left,applyButtonStyle.Render(applyButtonText),applyButtonHint)
-		left = lg.JoinVertical(lg.Top, left, footer)
+		applyButton := joinWithSpacer(width, "", applyButtonStyle.Render(applyButtonText))
+		left = lg.JoinVertical(lg.Top, left, applyButton)
 		// lg.Place gives us a bounded box
 		left = lg.Place(width, innerHeight, lg.Left, lg.Top, left)
 		right = lg.Place(width, height, lg.Left, lg.Top, right)
@@ -62,15 +71,16 @@ func renderSettingsView(m *settingsModel) string {
 		if m.updated && m.applySelected {
 			applyButtonStyle = applyButtonStyle.BorderForeground(lg.Color("62"))
 			leftStyle = m.style.Border(lg.RoundedBorder())
+			keybindHints = renderHints(basePeripherialStyle, "Enter Apply changes • ←/→ (h/l) Change Focus • ↑/↓ (j/k) Navigate • Esc Quit")
 		} else {
 			leftStyle = m.style.Border(lg.RoundedBorder()).BorderForeground(lg.Color("62"))
 		}
 
-		footer := joinWithSpacer(width, applyButtonStyle.Render(applyButtonText), applyButtonHint)
+		applyButton := joinWithSpacer(width, "", applyButtonStyle.Render(applyButtonText))
 
 		m.list.Styles.Title = m.list.Styles.Title.Background(lg.Color("62"))
 		left = m.list.View()
-		left = lg.JoinVertical(lg.Top, left, footer)
+		left = lg.JoinVertical(lg.Top, left, applyButton)
 		left = lg.Place(width, innerHeight, lg.Left, lg.Top, left)
 		right = lg.Place(width, height, lg.Left, lg.Top, right)
 
@@ -82,7 +92,7 @@ func renderSettingsView(m *settingsModel) string {
 		}
 	}
 
-	return lg.JoinVertical(lg.Top, header, lg.JoinHorizontal(lg.Center, left, right))
+	return lg.JoinVertical(lg.Top, header, lg.JoinHorizontal(lg.Center, left, right), keybindHints)
 }
 
 func renderCascadeOrderView(m *cascadeModel) string {
@@ -125,5 +135,5 @@ func renderVersionView(m *versionModel) string {
 	// TODO implement
 
 	// Print version and commit hash
-	return fmt.Sprintf("version: %s",ftdata.Version) 
+	return fmt.Sprintf("version: %s", ftdata.Version)
 }

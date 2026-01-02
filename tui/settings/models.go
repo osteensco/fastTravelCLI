@@ -15,8 +15,6 @@ type unfocusDetail struct{}
 type handledCommand struct{}
 type updateSettings struct{}
 
-
-
 // Setting Item is used for managing each individual setting in the list.Model
 type settingItem struct {
 	name, desc string
@@ -27,8 +25,6 @@ func (i settingItem) Title() string       { return i.name }
 func (i settingItem) Description() string { return i.desc }
 func (i settingItem) FilterValue() string { return i.name }
 
-
-
 // Detail Model contains functionalities for each Setting Item's corresponding model
 type DetailModel interface {
 	Init() tea.Cmd
@@ -36,13 +32,12 @@ type DetailModel interface {
 	View() string
 	ShowFocus(focus bool)
 	SetSize(width int, heigh int)
+	GetKeybindHints() string
 }
-
-
 
 // Settings Model provides the main interface for interacting with the various settings
 type settingsModel struct {
-	settings 	   *ftdata.Settings
+	settings       *ftdata.Settings
 	settingsFile   *os.File
 	docStyle       lg.Style
 	list           list.Model
@@ -51,9 +46,10 @@ type settingsModel struct {
 	focusDetail    bool
 	style          lg.Style
 	listStyle      *list.Styles
-	updated 	   bool
+	updated        bool
 	applySelected  bool
 	showAppliedMsg bool
+	keybindHints string
 }
 
 func (m settingsModel) Init() tea.Cmd {
@@ -61,6 +57,12 @@ func (m settingsModel) Init() tea.Cmd {
 }
 
 func (m settingsModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	// State updates
+
+
+
+
+	// Handle message
 	var cmd tea.Cmd
 
 	if m.focusDetail {
@@ -88,6 +90,7 @@ func (m settingsModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		top, right, bottom, left := m.docStyle.GetMargin()
 		m.list.SetSize(msg.Width-left-right, msg.Height-top-bottom)
 		m.style = m.style.Width(msg.Width).Height(msg.Height)
+		return m, tea.ClearScreen
 
 	case tea.KeyMsg:
 		switch msg.String() {
@@ -115,20 +118,22 @@ func (m settingsModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if m.selectedModel != nil {
 				m.focusDetail = true
 			}
-		case "s":
-			if m.updated {
+		case "down", "j":
+			if m.list.Index() == len(m.list.Items())-1 && m.updated {
+				m.applySelected = true
+				return m, nil
+			}
+		case "up", "k":
+			if m.list.Index() == len(m.list.Items())-1 && m.updated {
 				if m.applySelected {
 					m.applySelected = false
-				} else {
-					m.applySelected = true
+					return m, nil
 				}
 			}
 		}
 	}
-	
-	if !m.applySelected {
-		m.list, cmd = m.list.Update(msg)
-	}
+
+	m.list, cmd = m.list.Update(msg)
 	return m, cmd
 }
 
@@ -137,18 +142,15 @@ func (m settingsModel) View() string {
 	return renderSettingsView(&m)
 }
 
-
-
 // Cascade Model helps determine the query ordering fastTravelCLI adhears to
 type cascadeModel struct {
-	Render   ViewFunc
-	list     list.Model
-	cursor   int
-	selected int
-	focus    bool
+	list       list.Model
+	cursor     int
+	selected   int
+	focus      bool
 	queryOrder []string
-	width int
-	height int
+	width      int
+	height     int
 }
 
 type cascadeItem struct {
@@ -187,15 +189,19 @@ func newCascadeList(settings *ftdata.Settings) list.Model {
 
 func newCascadeModel(settings *ftdata.Settings) DetailModel {
 	return &cascadeModel{
-		list:     newCascadeList(settings),
-		cursor:   0,
-		selected: -1,
+		list:       newCascadeList(settings),
+		cursor:     0,
+		selected:   -1,
 		queryOrder: settings.QueryOrder,
 	}
 }
 
 func (m *cascadeModel) SetSize(width int, height int) {
 	m.width, m.height = width, height
+}
+
+func (m *cascadeModel) GetKeybindHints() string {
+	return "↑/↓ (j/k) Navigate/Move • Enter Select/Place • ←/→ (h/l) Change Focus • Esc Close Setting"
 }
 
 func (m *cascadeModel) updateQueryOrder() {
@@ -293,40 +299,39 @@ func (m *cascadeModel) View() string {
 	return renderCascadeOrderView(m)
 }
 
-// type bookmarksModel struct {
-// 	name  string
-// 	list  list.Model
-// 	focus bool
-// }
+//	type bookmarksModel struct {
+//		name  string
+//		list  list.Model
+//		focus bool
+//	}
 //
-// func (m *bookmarksModel) ShowFocus(focus bool) {
-// 	m.focus = focus
-// }
+//	func (m *bookmarksModel) ShowFocus(focus bool) {
+//		m.focus = focus
+//	}
 //
-// func (m *bookmarksModel) Init() tea.Cmd {
-// 	return nil
-// }
+//	func (m *bookmarksModel) Init() tea.Cmd {
+//		return nil
+//	}
 //
-// func (m *bookmarksModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-// 	switch msg := msg.(type) {
-// 	// case tea.WindowSizeMsg:
-// 	// 	m.width = msg.Width
-// 	// 	m.height = msg.Height
-// 	case tea.KeyMsg:
-// 		switch msg.String() {
-// 		case "ctrl+c", "q":
-// 			return m, tea.Quit
-// 		case "esc", "backspace":
-// 			// return resetSettings(), setSizeMsg(m.width, m.height)
-// 		}
-// 	}
-// 	return m, nil
-// }
+//	func (m *bookmarksModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+//		switch msg := msg.(type) {
+//		// case tea.WindowSizeMsg:
+//		// 	m.width = msg.Width
+//		// 	m.height = msg.Height
+//		case tea.KeyMsg:
+//			switch msg.String() {
+//			case "ctrl+c", "q":
+//				return m, tea.Quit
+//			case "esc", "backspace":
+//				// return resetSettings(), setSizeMsg(m.width, m.height)
+//			}
+//		}
+//		return m, nil
+//	}
 //
-// func (m *bookmarksModel) View() string {
-// 	return renderManageBookmarksView(m)
-// }
-//
+//	func (m *bookmarksModel) View() string {
+//		return renderManageBookmarksView(m)
+//	}
 type versionModel struct {
 	name  string
 	focus bool
@@ -334,13 +339,17 @@ type versionModel struct {
 
 func newVersionModel() *versionModel {
 	return &versionModel{
-		name: "Build Info",
+		name:  "Build Info",
 		focus: false,
 	}
 }
 
 func (m *versionModel) SetSize(width int, height int) {
 
+}
+
+func (m *versionModel) GetKeybindHints() string {
+	return "←/→ (h/l) Change Focus • Esc Close Setting"
 }
 
 func (m *versionModel) ShowFocus(focus bool) {
@@ -352,22 +361,23 @@ func (m *versionModel) Init() tea.Cmd {
 }
 
 func (m *versionModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	var cmd tea.Cmd
 	switch msg := msg.(type) {
-	// case tea.WindowSizeMsg:
-	// 	m.width = msg.Width
-	// 	m.height = msg.Height
 	case tea.KeyMsg:
 		switch msg.String() {
 		case "ctrl+c", "q":
 			return m, tea.Quit
 		case "esc", "backspace":
-			// return resetSettings(), setSizeMsg(m.width, m.height)
+			return m, tea.Cmd(func() tea.Msg { return exitDetail{} })
+		case "left", "h":
+			return m, tea.Cmd(func() tea.Msg { return unfocusDetail{} })
 		}
+		return m, tea.Cmd(func() tea.Msg { return handledCommand{} })
 	}
-	return m, nil
+
+	return m, cmd
 }
 
 func (m *versionModel) View() string {
 	return renderVersionView(m)
 }
-

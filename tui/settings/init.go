@@ -60,7 +60,18 @@ func initSettings(settings *ftdata.Settings, file *os.File) settingsModel {
 		// },
 	}
 
-	return settingsModel{settings: settings, settingsFile: file, docStyle: docStyle, list: settingsList, models: modelList, style: baseStyle, listStyle: sp}
+	keybindHints := "↑/↓ (j/k) Navigate • Enter Select • ←/→ (h/l) Change Focus • Esc Quit"
+
+	return settingsModel{
+		settings:     settings,
+		settingsFile: file,
+		docStyle:     docStyle,
+		list:         settingsList,
+		models:       modelList,
+		style:        baseStyle,
+		listStyle:    sp,
+		keybindHints: keybindHints,
+	}
 }
 
 var baseStyle = lg.NewStyle().Padding(1)

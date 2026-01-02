@@ -9,7 +9,7 @@ import (
 
 type settingsTUI struct {
 	Settings *ftdata.Settings
-	File *os.File
+	File     *os.File
 }
 
 func (s *settingsTUI) Run() error {
