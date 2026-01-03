@@ -153,6 +153,9 @@ func TestPassToShell(t *testing.T) {
 }
 
 func TestChangeDirectory(t *testing.T) {
+
+	settings := ftdata.GenerateDefaultSettings()
+
 	tmpdir, err := os.MkdirTemp("", "testing")
 	if err != nil {
 		t.Fatal(err)
@@ -227,7 +230,7 @@ func TestChangeDirectory(t *testing.T) {
 			tmpdir,
 			&tt.command,
 			tt.allPaths,
-			nil,
+			settings,
 			nil,
 			tt.file,
 			tt.rdr,
@@ -274,6 +277,8 @@ func TestChangeDirectory(t *testing.T) {
 }
 
 func TestShowDirectoryVar(t *testing.T) {
+	
+	settings := ftdata.GenerateDefaultSettings()
 
 	CWD, err := os.Getwd()
 	if err != nil {
@@ -302,7 +307,7 @@ func TestShowDirectoryVar(t *testing.T) {
 			CWD,
 			&tt.command,
 			tt.paths,
-			nil,
+			settings,
 			nil,
 			nil,
 			nil,
@@ -346,17 +351,18 @@ func TestSetDirectoryVar(t *testing.T) {
 		t.Fatalf("Failed to create temp file: %v", err)
 	}
 
-	// tmpdir for directories to test with
-	tmpdir, err := os.MkdirTemp("", "testdata")
+	wd, err := os.Getwd()
 	if err != nil {
-		t.Fatalf("Failed to create temp dir: %v", err)
+		t.Fatalf("Failed to get current working directory: %v", err)
 	}
-	tmpdir, err = filepath.EvalSymlinks(tmpdir)
-	if err != nil {
-		t.Fatalf("Failed to create temp dir: %v", err)
-	}
-	tmpdir = strings.Trim(tmpdir, " ")
 
+	// tmpdir for directories to test with
+	tmpdir, err := os.MkdirTemp(wd, "testdata")
+	if err != nil {
+		t.Fatalf("Failed to create temp dir: %v", err)
+	}
+	reltmpdir := filepath.Base(tmpdir)
+	
 	defer os.RemoveAll(tmpdir)
 	defer os.Remove(tmpfile.Name())
 	defer tmpfile.Close()
@@ -366,21 +372,7 @@ func TestSetDirectoryVar(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	// reltmpdir for testing relative pathing
-	reltmpdir, err := os.MkdirTemp(workdir, "testdata")
-	if err != nil {
-		t.Fatalf("Failed to create temp dir: %v", err)
-	}
-	reltmpdir, err = filepath.EvalSymlinks(reltmpdir)
-	if err != nil {
-		t.Fatalf("Failed to create temp dir: %v", err)
-	}
-	reltmpdir = strings.Trim(reltmpdir, " ")
-	reltmpdir, err = filepath.Rel(workdir, reltmpdir)
-	if err != nil {
-		t.Fatalf("Failed to create temp dir: %v", err)
-	}
-	defer os.RemoveAll(reltmpdir)
+	settings := ftdata.GenerateDefaultSettings()
 
 	tests := []struct {
 		name     string
@@ -459,15 +451,14 @@ func TestSetDirectoryVar(t *testing.T) {
 		},
 		{
 			name:     "9. Force set key to a relative path.",
-			command:  &Cmd{Cmd: "-set", Args: []string{fmt.Sprintf("testKey8=%s", reltmpdir)}, Flags: CmdFlags{Y: true}},
-			key:      "testKey8",
-			_map:     map[string]string{"testKey8": tmpdir},
-			expected: workdir + "/" + reltmpdir,
+			command:  &Cmd{Cmd: "-set", Args: []string{fmt.Sprintf("testKey9=%s", reltmpdir)}, Flags: CmdFlags{Y: true}},
+			key:      "testKey9",
+			_map:     map[string]string{"testKey9": workdir},
+			expected: tmpdir,
 		},
 	}
 
 	for _, tt := range tests {
-		t.Log(tt.name)
 		pathMap := make(map[string]string)
 		if tt._map != nil {
 			pathMap = tt._map
@@ -476,9 +467,9 @@ func TestSetDirectoryVar(t *testing.T) {
 			workdir,
 			tt.command,
 			pathMap,
-			nil,
-			nil,
+			settings,
 			tmpfile,
+			nil,
 			nil,
 		)
 
@@ -518,29 +509,38 @@ func TestSetDirectoryVar(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		t.Log(output.String())
-
 		if data.allPaths[tt.key] != tt.expected {
-			t.Errorf("Expected key 'testKey' to have value %q, got %q", tt.expected, data.allPaths[tt.key])
+			t.Log(tt.name)
+			t.Log(output.String())
+			t.Errorf("Expected key '%s' to have value %q, got %q", tt.key, tt.expected, data.allPaths[tt.key])
 		}
 
 		file, err := os.Open(tmpfile.Name())
 		if err != nil {
+			t.Log(tt.name)
+			t.Log(output.String())
 			t.Fatalf("Failed to open temp file: %v", err)
 		}
 		defer file.Close()
 
 		result, err := ftdata.ReadData(file)
 		if err != nil {
+			t.Log(tt.name)
+			t.Log(output.String())
 			t.Error(err)
 		}
 		if result[tt.key] != tt.expected {
-			t.Errorf("Expected file to have key 'testKey' with value %q, got %q", tt.expected, result[tt.key])
+			t.Log(tt.name)
+			t.Log(output.String())
+			t.Errorf("Expected file to have key '%s' with value %q, got %q", tt.key, tt.expected, result[tt.key])
 		}
 	}
 }
 
 func TestDisplayAllPaths(t *testing.T) {
+	
+	settings := ftdata.GenerateDefaultSettings()
+	
 	data := NewCmdAPI(
 		"",
 		&Cmd{Cmd: "-ls"},
@@ -548,7 +548,7 @@ func TestDisplayAllPaths(t *testing.T) {
 			"key1": "value1",
 			"key2": "value2",
 		},
-		nil,
+		settings,
 		nil,
 		nil,
 		nil,
@@ -582,6 +582,9 @@ func TestDisplayAllPaths(t *testing.T) {
 }
 
 func TestRemoveKey(t *testing.T) {
+	
+	settings := ftdata.GenerateDefaultSettings()
+	
 	tmpfile, err := os.CreateTemp("", "testdata.bin")
 	if err != nil {
 		t.Fatalf("Failed to create temp file: %v", err)
@@ -636,9 +639,9 @@ func TestRemoveKey(t *testing.T) {
 			"",
 			&tt.command,
 			tt.allPaths,
-			nil,
-			nil,
+			settings,
 			tmpfile,
+			nil,
 			strings.NewReader(tt.input),
 		)
 
@@ -690,6 +693,9 @@ func TestRemoveKey(t *testing.T) {
 }
 
 func TestRenameKey(t *testing.T) {
+
+	settings := ftdata.GenerateDefaultSettings()
+	
 	tmpfile, err := os.CreateTemp("", "testdata.bin")
 	if err != nil {
 		t.Fatalf("Failed to create temp file: %v", err)
@@ -746,9 +752,9 @@ func TestRenameKey(t *testing.T) {
 			"",
 			&tt.command,
 			tt.allPaths,
-			nil,
-			nil,
+			settings,
 			tmpfile,
+			nil,
 			strings.NewReader(tt.input),
 		)
 
@@ -790,6 +796,7 @@ func TestRenameKey(t *testing.T) {
 }
 
 func TestShowVersion(t *testing.T) {
+
 	data := NewCmdAPI("", &Cmd{Cmd: "-version"}, map[string]string{}, nil, nil, nil, nil)
 
 	old := os.Stdout
@@ -975,6 +982,9 @@ func TestUpdateFT(t *testing.T) {
 }
 
 func TestEditPath(t *testing.T) {
+
+	settings := ftdata.GenerateDefaultSettings()
+
 	// tmpfile for temporary data persistence
 	tmpfile, err := os.CreateTemp("", "testdata.bin")
 	if err != nil {
@@ -1089,7 +1099,7 @@ func TestEditPath(t *testing.T) {
 			workdir,
 			tt.command,
 			pathMap,
-			nil,
+			settings,
 			nil,
 			tmpfile,
 			strings.NewReader(tt.input),
@@ -1130,92 +1140,3 @@ func TestEditPath(t *testing.T) {
 	}
 }
 
-func TestEvalPath(t *testing.T) {
-
-	tmpdir, err := os.MkdirTemp("", "testing")
-	if err != nil {
-		t.Fatal(err)
-	}
-	tmpdir2 := tmpdir + "/subdir"
-	err = os.Mkdir(tmpdir2, fs.ModeDir)
-	if err != nil {
-		t.Error(err)
-		return
-	}
-	defer os.RemoveAll(tmpdir)
-
-	tests := []struct {
-		name     string
-		command  *Cmd
-		expected string
-		wantErr  bool
-		err      string
-		allPaths map[string]string
-	}{
-		{
-			name:     "1. Valid key provided, standalone.",
-			command:  &Cmd{Cmd: "_", Args: []string{"testKey"}},
-			expected: tmpdir,
-			allPaths: map[string]string{
-				"testKey": tmpdir,
-			},
-		},
-		{
-			name:     "2. Valid key provided, evaluate path.",
-			command:  &Cmd{Cmd: "_", Args: []string{"testKey/subdir"}},
-			expected: tmpdir2,
-			allPaths: map[string]string{
-				"testKey": tmpdir,
-			},
-		},
-		{
-			name:     "3. Invalid key provided.",
-			command:  &Cmd{Cmd: "_", Args: []string{"testKye"}},
-			expected: "",
-			wantErr:  true,
-			err:      fmt.Sprintf(UnrecognizedKeyMsg, "testKye"),
-			allPaths: map[string]string{
-				"testKey": tmpdir,
-			},
-		},
-		{
-			name:     "4. Invalid key provided, evaluate path.",
-			command:  &Cmd{Cmd: "_", Args: []string{"testKye/subdir"}},
-			expected: "",
-			wantErr:  true,
-			err:      fmt.Sprintf(InvalidDirectoryMsg, "testKye/subdir", "testKye/subdir"),
-			allPaths: map[string]string{
-				"testKey": tmpdir,
-			},
-		},
-	}
-
-	for _, tt := range tests {
-		t.Log(tt.name)
-		data := NewCmdAPI(
-			tmpdir,
-			tt.command,
-			tt.allPaths,
-			nil,
-			nil,
-			nil,
-			nil,
-		)
-
-		actual, err := evalPath(data, &data.cmd.Args[0])
-		if tt.wantErr {
-			if err == nil {
-				t.Error("expected the following error but did not get it - ", tt.err)
-			}
-			if tt.err != err.Error() {
-				t.Errorf("Expected error: %q, got: %q", tt.err, err)
-			}
-		} else if err != nil {
-			t.Error(err)
-		}
-
-		if actual != tt.expected {
-			t.Errorf("Expected: %q, got: %q", tt.expected, actual)
-		}
-	}
-}

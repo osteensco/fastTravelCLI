@@ -176,7 +176,7 @@ func setDirectoryVar(data *CmdAPI) error {
 			pair := make([]string, 2)
 			pair = strings.Split(arg, "=")
 			key, path = pair[0], pair[1]
-			path, err = evalPath(data, &path)
+			path, err = evalRelative(data.allPaths, path)
 		} else {
 			key = arg
 			path, err = os.Getwd()
@@ -475,10 +475,10 @@ func updateFT(data *CmdAPI) error {
 
 		if resp.StatusCode != http.StatusOK {
 			return fmt.Errorf(
-					"Error while attempting to retrieve version from github repo - status: %v %s. \n %s",
-					resp.StatusCode,
-					http.StatusText(resp.StatusCode),
-					endpoint,
+				"Error while attempting to retrieve version from github repo - status: %v %s. \n %s",
+				resp.StatusCode,
+				http.StatusText(resp.StatusCode),
+				endpoint,
 			)
 		}
 
@@ -587,7 +587,7 @@ func passToShell(data *CmdAPI) error {
 			fmt.Println(command)
 		} else {
 			path, err := evalPath(data, &data.cmd.Args[0])
-			fmt.Printf("%s %s", command, path)
+			fmt.Printf("%s %s\n", command, path)
 			return err
 		}
 	default:

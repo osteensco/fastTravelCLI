@@ -8,12 +8,6 @@ import (
 	"strings"
 )
 
-// TODO:
-//  - move evalPath to this file
-//  - setup some sort of map for individual functions identified
-//  - change logic in evalPath to read in settings and execute given order
-//  - move tests to new tests file
-//  - add tests for various settings and reading in settings
 
 var QueryCascade = map[string]struct {
 	FuncMap func(allpaths map[string]string, path string) (string, error)
@@ -63,7 +57,7 @@ func evalBookmark(allPaths map[string]string, path string) (string, error) {
 			}
 		}
 
-		return "", errors.New(fmt.Sprintf(InvalidDirectoryMsg, provided_string, path))
+		return "", fmt.Errorf(InvalidDirectoryMsg, provided_string, path)
 
 	} else {
 
