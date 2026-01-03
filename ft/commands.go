@@ -4,13 +4,81 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"net/http"
 	"os"
 	"os/exec"
-	"path/filepath"
 	"runtime"
 	"strings"
+
+	ftdata "github.com/osteensco/fastTravelCLI/data"
+	"github.com/osteensco/fastTravelCLI/tui"
 )
+
+// ft command api
+type CmdAPI struct {
+	wkDir        string
+	cmd          *Cmd
+	allPaths     map[string]string
+	settings     *ftdata.Settings
+	dataFile     *os.File
+	settingsFile *os.File
+	rdr          io.Reader
+}
+
+func NewCmdAPI(ftDir string, inputCmd *Cmd, allPaths map[string]string, settings *ftdata.Settings, dataFile *os.File, settingsFile *os.File, rdr io.Reader) *CmdAPI {
+	return &CmdAPI{ftDir, inputCmd, allPaths, settings, dataFile, settingsFile, rdr}
+}
+
+// struct used to identify flags that were provided with a given command
+type CmdFlags struct {
+	Y bool
+	H bool
+}
+
+// struct used to dissect and organize a command into it's individual components
+type Cmd struct {
+	Flags CmdFlags
+	Cmd   string
+	Args  []string
+}
+
+// returns a new empty Cmd struct
+func NewCmd(args *[]string) *Cmd {
+	return &Cmd{
+		// flags and cmd will be empty defaults
+		// args is explicit so that enough space is allocated to underlying array for slight optimization
+		Args: make([]string, 0, len(*args)),
+	}
+}
+
+// map of available commands
+var AvailCmds = map[string]struct {
+	Callback func(data *CmdAPI) error
+	LoadData bool
+}{
+	"_":         {changeDirectory, true},
+	"-set":      {setDirectoryVar, true},
+	"-ls":       {displayAllPaths, true},
+	"-rm":       {removeKey, true},
+	"-rn":       {renameKey, true},
+	"-edit":     {editPath, true},
+	"-help":     {showHelp, false},
+	"-]":        {passToShell, false},
+	"-[":        {passToShell, false},
+	"-hist":     {passToShell, false},
+	"-..":       {passToShell, false},
+	"--":        {passToShell, false},
+	"-fzf":      {passToShell, false},
+	"-fzfc":     {passToShell, true},
+	"-fzfa":     {passToShell, true},
+	"-version":  {showVersion, false},
+	"-v":        {showVersion, false},
+	"-is":       {showDirectoryVar, true},
+	"-update":   {updateFT, false},
+	"-u":        {updateFT, false},
+	"-settings": {settingsTui, true},
+}
 
 func PassCmd(args []string) (*Cmd, error) {
 	// Dissect provided args
@@ -43,7 +111,7 @@ func PassCmd(args []string) (*Cmd, error) {
 
 	_, ok := AvailCmds[cmd.Cmd]
 	if !ok {
-		return nil, errors.New(fmt.Sprintf("%v is not a valid command, use 'ft -h' or 'ft -help' for a list of valid commands", cmd.Cmd))
+		return nil, fmt.Errorf("%v is not a valid command, use 'ft -h' or 'ft -help' for a list of valid commands", cmd.Cmd)
 	}
 
 	// We don't care about minimum number of args if we're just getting help docs for a command
@@ -54,15 +122,15 @@ func PassCmd(args []string) (*Cmd, error) {
 	// verify user provided correct minimum number of arguments
 	// too many args will work, any args beyond expected number are simply ignored
 	switch cmd.Cmd {
-	case "-ls", "-]", "-[", "-..", "--", "-hist", "-help", "-h", "-version", "-v", "-is", "-update", "-u", "-fzf", "-fzfc", "-fzfa":
+	case "-ls", "-]", "-[", "-..", "--", "-hist", "-help", "-h", "-version", "-v", "-is", "-update", "-u", "-fzf", "-fzfc", "-fzfa", "-settings":
 		break
 	case "-rn", "-edit":
 		if len(cmd.Args) < 2 {
-			return nil, errors.New(fmt.Sprintf("Insufficient args provided %v, see ft -help for more info", args[1:]))
+			return nil, fmt.Errorf("Insufficient args provided %v, see ft -help for more info", args[1:])
 		}
 	case "-set":
 		if len(cmd.Args) < 1 {
-			return nil, errors.New(fmt.Sprintf("Insufficient args provided %v, see ft -help for more info", args[1:]))
+			return nil, fmt.Errorf("Insufficient args provided %v, see ft -help for more info", args[1:])
 		}
 	// these should never be reached
 	// a call to 'ft' with no args should map to the '-fzf' command
@@ -76,90 +144,6 @@ func PassCmd(args []string) (*Cmd, error) {
 	}
 
 	return cmd, nil
-}
-
-/*
-Takes a key or relative path and returns it's absolute path or an error.
-
-Path is a seperate argument to handle evaluating many paths as part of a loop.
-*/
-func evalPath(data *CmdAPI, path *string) (string, error) {
-
-	// TODO
-	//  - check for SPECIFIC errors in directory checks (ex: *PathError)
-	//  - ensure other types of errors are caught and returned early
-
-	var key string
-	provided_string := *path
-
-	if strings.Contains(provided_string, "/") {
-
-		path_array := strings.Split(provided_string, "/")
-		eval_array := make([]string, len(path_array))
-
-		// key evaluation if the first string before "/" delimeter is key
-		key = path_array[0]
-		if p, ok := data.allPaths[key]; ok {
-			eval_array[0] = p
-		} else {
-			eval_array[0] = key
-		}
-		for i, str := range path_array {
-			if i != 0 {
-				eval_array[i] = str
-			}
-		}
-
-		// handles evaluated path and relative paths
-		path := strings.Join(eval_array, "/")
-		dir, err := os.Stat(path)
-		if err == nil {
-			if dir.IsDir() {
-				return fmt.Sprintf("%s", path), nil
-			}
-		}
-
-		return "", errors.New(fmt.Sprintf(InvalidDirectoryMsg, provided_string, path))
-
-	} else {
-
-		key = provided_string
-		// handles key lookup
-		p, ok := data.allPaths[key]
-		if !ok {
-			// handles releative directory in CWD
-			dir, err := os.Stat(key)
-			if err == nil {
-				if dir.IsDir() {
-					// in this case key is assumed to be a relative path
-					p, err = filepath.Abs(key)
-					if err != nil {
-						return "", err
-					}
-					return fmt.Sprintf("%s", p), nil
-				}
-			}
-
-			// handles CDPATH
-			cdpath := os.Getenv("CDPATH")
-			if cdpath != "" {
-				cdpaths := strings.Split(cdpath, ":")
-				for _, path := range cdpaths {
-					cdPathResult := filepath.Join(path, key)
-					dir, err := os.Stat(cdPathResult)
-					if err == nil && dir.IsDir() {
-						return fmt.Sprintf("%s", cdPathResult), nil
-					}
-				}
-			}
-
-			return "", errors.New(fmt.Sprintf(UnrecognizedKeyMsg, key))
-
-		}
-
-		return fmt.Sprintf("%s", p), nil
-
-	}
 }
 
 // changeDirectory can handle key lookup, relative paths, directories in CDPATH, and key evaluation.
@@ -192,13 +176,17 @@ func setDirectoryVar(data *CmdAPI) error {
 			pair := make([]string, 2)
 			pair = strings.Split(arg, "=")
 			key, path = pair[0], pair[1]
-			path, err = evalPath(data, &path)
+			path, err = evalRelative(data.allPaths, path)
 		} else {
 			key = arg
 			path, err = os.Getwd()
 		}
 		if err != nil {
 			return err
+		}
+		// keys with '/' will disrupt key evaluations so this is not allowed
+		if strings.Contains(key, "/") {
+			return errors.New("Key in bookmark cannot contain '/'")
 		}
 
 		// verify if path is already saved to another key
@@ -227,7 +215,7 @@ func setDirectoryVar(data *CmdAPI) error {
 			}
 			delete(data.allPaths, k)
 			data.allPaths[key] = path
-			dataUpdate(data.allPaths, data.file)
+			ftdata.DataUpdate(data.allPaths, data.dataFile)
 			fmt.Printf(PathOverwriteMsg, key, path)
 			return nil
 		}
@@ -260,7 +248,7 @@ func setDirectoryVar(data *CmdAPI) error {
 
 		// key doesn't exist yet or user wants to overwrite
 		data.allPaths[key] = path
-		dataUpdate(data.allPaths, data.file)
+		ftdata.DataUpdate(data.allPaths, data.dataFile)
 		fmt.Printf(AddKeyMsg, key, path)
 
 	}
@@ -303,7 +291,7 @@ func removeKey(data *CmdAPI) error {
 		}
 	}
 	delete(data.allPaths, key)
-	dataUpdate(data.allPaths, data.file)
+	ftdata.DataUpdate(data.allPaths, data.dataFile)
 	fmt.Printf(RemoveKeyMsg, key)
 	return nil
 }
@@ -345,7 +333,7 @@ func renameKey(data *CmdAPI) error {
 	delete(data.allPaths, originalKey)
 	data.allPaths[newKey] = path
 
-	dataUpdate(data.allPaths, data.file)
+	ftdata.DataUpdate(data.allPaths, data.dataFile)
 	fmt.Printf(RenamedKeyMsg, originalKey, newKey, path)
 	return nil
 }
@@ -433,8 +421,8 @@ func showHelp(data *CmdAPI) error {
 }
 
 func showVersion(data *CmdAPI) error {
-	fmt.Print(Logo)
-	fmt.Println("version:\t", Version)
+	fmt.Print(ftdata.Logo)
+	fmt.Println("version:\t", ftdata.Version)
 	return nil
 }
 
@@ -471,28 +459,26 @@ func updateFT(data *CmdAPI) error {
 	// verify/obtain version
 	var endpoint string
 	if version == "latest" {
-		endpoint = EndpointLatestGH
+		endpoint = ftdata.EndpointLatestGH
 	} else if version == "nightly" {
 		// no enpoint needed
 	} else {
-		endpoint = fmt.Sprintf(EndpointGH, version)
+		endpoint = fmt.Sprintf(ftdata.EndpointGH, version)
 	}
 
 	if endpoint != "" {
 		resp, err := http.Get(endpoint)
 		if err != nil {
-			return errors.New(fmt.Sprintf("Error sending Get request to %q: %v", endpoint, err))
+			return fmt.Errorf("Error sending Get request to %q: %v", endpoint, err)
 		}
 		defer resp.Body.Close()
 
 		if resp.StatusCode != http.StatusOK {
-			return errors.New(
-				fmt.Sprintf(
-					"Error while attempting to retrieve version from github repo - status: %v %s. \n %s",
-					resp.StatusCode,
-					http.StatusText(resp.StatusCode),
-					endpoint,
-				),
+			return fmt.Errorf(
+				"Error while attempting to retrieve version from github repo - status: %v %s. \n %s",
+				resp.StatusCode,
+				http.StatusText(resp.StatusCode),
+				endpoint,
 			)
 		}
 
@@ -509,11 +495,11 @@ func updateFT(data *CmdAPI) error {
 	}
 
 	// verify current version is not the version attempting to be updated to
-	if Version == version {
+	if ftdata.Version == version {
 		fmt.Println("fastTravelCLI version is already ", version)
 		return nil
 	} else {
-		fmt.Printf("fastTravelCLI %v updating to %v release \n", Version, version)
+		fmt.Printf("fastTravelCLI %v updating to %v release \n", ftdata.Version, version)
 	}
 
 	// make temp directory, clone the repo
@@ -534,27 +520,27 @@ func updateFT(data *CmdAPI) error {
 
 	if version == "nightly" {
 		// clone from main branch
-		if len(GitCloneCMD) != 5 {
-			return errors.New(fmt.Sprintf("Error! Constant GitCloneCMD has length %v expected 5. %v", len(GitCloneCMD), GitCloneCMD))
+		if len(ftdata.GitCloneCMD) != 5 {
+			return fmt.Errorf("Error! Constant GitCloneCMD has length %v expected 5. %v", len(ftdata.GitCloneCMD), ftdata.GitCloneCMD)
 		}
-		GitCloneCMD = []string{GitCloneCMD[0], GitCloneCMD[1], GitCloneCMD[4]}
+		ftdata.GitCloneCMD = []string{ftdata.GitCloneCMD[0], ftdata.GitCloneCMD[1], ftdata.GitCloneCMD[4]}
 	} else {
 		// clone with specific version tag
-		GitCloneCMD[3] = version
+		ftdata.GitCloneCMD[3] = version
 	}
 
-	clonecmd := exec.Command(GitCloneCMD[0], GitCloneCMD[1:]...)
+	clonecmd := exec.Command(ftdata.GitCloneCMD[0], ftdata.GitCloneCMD[1:]...)
 	err = clonecmd.Run()
 	if err != nil {
-		return errors.New(fmt.Sprintf("Error cloning repo: %v - Command used: %q", err, clonecmd.String()))
+		return fmt.Errorf("Error cloning repo: %v - Command used: %q", err, clonecmd.String())
 	}
 
 	// run install script
 	output := ""
 	script := ""
-	err = os.Chdir(GitCloneDir)
+	err = os.Chdir(ftdata.GitCloneDir)
 	if err != nil {
-		return errors.New(fmt.Sprintf("Error! Could not change to dir %q", GitCloneDir))
+		return fmt.Errorf("Error! Could not change to dir %q", ftdata.GitCloneDir)
 	}
 
 	// skip install script if function call during testing
@@ -568,7 +554,7 @@ func updateFT(data *CmdAPI) error {
 	case "darwin":
 		script = "mac.sh"
 	default:
-		return errors.New(fmt.Sprintf("OS %s is not handled in the update command!", opsys))
+		return fmt.Errorf("OS %s is not handled in the update command!", opsys)
 	}
 
 	fmt.Printf("Running %s script from install folder... \n", script)
@@ -589,7 +575,7 @@ func updateFT(data *CmdAPI) error {
 func passToShell(data *CmdAPI) error {
 	c := data.cmd.Cmd
 	if len(c) < 2 {
-		panic(fmt.Sprintf("Cmd provided is too short to parse! Cmd string provided: '%s'.",c))
+		panic(fmt.Sprintf("Cmd provided is too short to parse! Cmd string provided: '%s'.", c))
 	}
 	command := string(c[1:])
 
@@ -601,11 +587,22 @@ func passToShell(data *CmdAPI) error {
 			fmt.Println(command)
 		} else {
 			path, err := evalPath(data, &data.cmd.Args[0])
-			fmt.Println(fmt.Sprintf("%s %s", command, path))
+			fmt.Printf("%s %s\n", command, path)
 			return err
 		}
 	default:
-		return errors.New(fmt.Sprintf("Tried to pass command to shell, but '%s' is not a valid command for the shell function.", command))
+		return fmt.Errorf("Tried to pass command to shell, but '%s' is not a valid command for the shell function.", command)
+	}
+
+	return nil
+}
+
+func settingsTui(data *CmdAPI) error {
+	settings := tui.Init(data.settings, data.settingsFile).Settings
+	err := settings.Run()
+	// We want to avoid writing settings if something goes wrong with the tui
+	if err != nil {
+		return err
 	}
 
 	return nil

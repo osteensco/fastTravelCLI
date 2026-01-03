@@ -5,6 +5,7 @@ import (
 	"os"
 	"path/filepath"
 
+	ftdata "github.com/osteensco/fastTravelCLI/data"
 	"github.com/osteensco/fastTravelCLI/ft"
 )
 
@@ -50,32 +51,51 @@ func main() {
 
 	var dataDirPath string
 	var dataPath string
-	var file *os.File
+	var dataFile *os.File
 	var allPaths map[string]string
+
+	var settings *ftdata.Settings
+	var settingsPath string
+	var settingsFile *os.File
 
 	// Lazy load fastTravelCLI data
 	if cmd.LoadData {
+
 		// find persisted keys or create file to persist keys
 		dataDirPath = filepath.Dir(exePath)
 		dataPath = fmt.Sprintf("%s/fastTravel.bin", dataDirPath)
 
-		file, err = ft.EnsureData(dataPath)
+		dataFile, err = ftdata.EnsureData(dataPath)
 		if err != nil {
 			fmt.Println("EnsureData Error:", err)
 			return
 		}
-		defer file.Close()
+		defer dataFile.Close()
 
 		// read keys into memory
-		allPaths, err = ft.ReadMap(file)
+		allPaths, err = ftdata.ReadData(dataFile)
 		if err != nil {
-			fmt.Println("ReadMap Error:", err)
+			fmt.Println("ReadData Error:", err)
+			return
+		}
+
+		settingsPath = fmt.Sprintf("%s/settings.json", dataDirPath)
+		settingsFile, err = ftdata.EnsureData(settingsPath)
+		if err != nil {
+			fmt.Println("EnsureData Error:", err)
+			return
+		}
+		defer settingsFile.Close()
+
+		settings, err = ftdata.ReadSettings(settingsFile)
+		if err != nil {
+			fmt.Println("ReadSettings Error:", err)
 			return
 		}
 	}
 
-	// manifest API
-	data := ft.NewCmdAPI(dataDirPath, inputCommand, allPaths, file, os.Stdin)
+	// initialize ft command API
+	data := ft.NewCmdAPI(dataDirPath, inputCommand, allPaths, settings, dataFile, settingsFile, os.Stdin)
 
 	// execute user provided action
 	err = cmd.Callback(data)
