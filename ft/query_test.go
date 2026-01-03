@@ -10,8 +10,6 @@ import (
 	ftdata "github.com/osteensco/fastTravelCLI/data"
 )
 
-// TODO: fix and improve tests
-
 func TestEvalBookmark(t *testing.T) {
 	tmpdir, err := os.MkdirTemp("", "ft_test_bookmark")
 	if err != nil {
@@ -140,7 +138,6 @@ func TestEvalCDPATH(t *testing.T) {
 		})
 	}
 }
-
 
 func TestEvalRelative(t *testing.T) {
 	wd, err := os.Getwd()

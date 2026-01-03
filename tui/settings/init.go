@@ -25,7 +25,6 @@ func initSettings(settings *ftdata.Settings, file *os.File) settingsModel {
 			model: 0,
 		},
 		settingItem{
-			// TODO: Rename to something like "info", "build info", "version info"
 			name:  "Build Info",
 			desc:  "View fastTravelCLI build information.",
 			model: 1,
