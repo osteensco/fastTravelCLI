@@ -2,8 +2,9 @@ name: Go Tests
 
 on:
   pull_request:
-    branches:
-      - master
+    types:
+      - opened
+    workflow_dispatch:
 
 jobs:
   test-ubuntu:
