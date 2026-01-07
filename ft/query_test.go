@@ -183,6 +183,8 @@ func TestEvalRelative(t *testing.T) {
 
 func TestEvalPath(t *testing.T) {
 
+	// TODO: refactor tests to ensure correct behavior given query order when there are potential conflicts
+
 	settings := ftdata.GenerateDefaultSettings()
 
 	tmpdir, err := os.MkdirTemp("", "testing")
